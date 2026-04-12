@@ -310,6 +310,8 @@ class ClinicalRecruitmentEnv:
             grader = GRADERS.get(self._task)
             if grader:
                 final_score = grader(obs, self._total_reward, self._history)
+                # Strict clamp: must be in (0, 1), never exactly 0.0 or 1.0
+                final_score = min(0.999, max(0.001, float(final_score)))
                 info["final_score"] = final_score
                 info["grader_task"] = self._task
 
@@ -649,7 +651,7 @@ class ClinicalRecruitmentEnv:
             if self._uncertainty > 0.3:
                 r -= 0.15
 
-        return max(-0.5, min(1.0, r))
+        return max(-0.5, min(0.99, r))
 
     def _make_observation(self) -> Observation:
         # Available patients: up to 5 unscreened candidates
