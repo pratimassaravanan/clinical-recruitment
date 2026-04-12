@@ -131,8 +131,8 @@ check(
     'json.dumps({"type": "[START]"' not in content,
 )
 check(
-    "No score field in [END] line",
-    "score=" not in content.split("def log_end", 1)[1]
+    "score field present in [END] line",
+    "score=" in content.split("def log_end", 1)[1]
     if "def log_end" in content
     else False,
 )
