@@ -1,0 +1,55 @@
+name: adaptive-clinical-recruitment
+version: "1.0.0"
+description: >
+  Long-horizon sequential decision environment modeling clinical trial
+  recruitment funnel under uncertainty, budget, time pressure, and site
+  variability. Agents optimize screening, enrollment, and retention with
+  partial rewards and curriculum injections. Shifts from solved matching
+  to real pharma pipeline optimization.
+author: "Kaushik S"
+tags:
+  - openenv
+  - healthcare
+  - sequential-decision
+  - non-stationary
+  - uncertainty
+  - pharma
+  - curriculum-rl
+
+models:
+  observation: models:Observation
+  action: models:Action
+  state: models:State
+
+server:
+  module: app:app
+  port: 7860
+
+tasks:
+  - id: easy_bench
+    name: Basic Eligibility Screening
+    description: >
+      Stable patient pool with low dropout and generous budget/time.
+      Agent learns basic screening and enrollment workflow with a single site.
+      Goal: reach 80% enrollment with high screening accuracy.
+    difficulty: easy
+    max_steps: 180
+
+  - id: medium_bench
+    name: Full Funnel with Site Allocation
+    description: >
+      Moderate uncertainty with 3 recruitment sites of different performance
+      characteristics. Some dropout risk and site delays. Agent must optimize
+      across sites while managing patient flow through the funnel.
+    difficulty: medium
+    max_steps: 180
+
+  - id: hard_bench
+    name: Multi-Objective Pipeline Under Pressure
+    description: >
+      Tight budget/time constraints, high dropout risk, non-stationary
+      patient quality, 5 sites, regulatory holds, and periodic curriculum
+      easy-pool resets. Agent must balance enrollment, cost, retention,
+      and adaptive strategy under extreme conditions.
+    difficulty: hard
+    max_steps: 180

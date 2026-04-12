@@ -1,0 +1,23 @@
+[project]
+name = "adaptive-clinical-recruitment"
+version = "1.0.0"
+description = "Long-horizon clinical trial recruitment optimization OpenEnv"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "httpx",
+    "openai",
+    "openenv-core>=0.2.0",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools.packages]
+find = {}
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
