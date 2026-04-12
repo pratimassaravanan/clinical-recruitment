@@ -3,7 +3,7 @@
 import os
 import httpx
 
-BASE = "https://kaushikss-clinical-recruitment.hf.space"
+BASE = "https://pratimassaravanan-clinical-recruitment.hf.space"
 _DIR = os.path.dirname(os.path.abspath(__file__))
 c = httpx.Client(timeout=30)
 checks = []

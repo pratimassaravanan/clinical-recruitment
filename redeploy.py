@@ -4,7 +4,7 @@ import os
 from huggingface_hub import HfApi, upload_file
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-HF_REPO_ID = os.getenv("HF_REPO_ID", "kaushikss/clinical-recruitment")
+HF_REPO_ID = os.getenv("HF_REPO_ID", "pratimassaravanan/clinical-recruitment")
 
 QUICK_FILES = ["README.md", "inference.py", "app.py", "env.py", "graders.py"]
 

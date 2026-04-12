@@ -13,7 +13,9 @@ MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
-ENV_URL = os.getenv("ENV_URL", "https://kaushikss-clinical-recruitment.hf.space")
+ENV_URL = os.getenv(
+    "ENV_URL", "https://pratimassaravanan-clinical-recruitment.hf.space"
+)
 BENCHMARK = "adaptive-clinical-recruitment"
 LLM_CALL_INTERVAL = 5
 TEMPERATURE = 0.0

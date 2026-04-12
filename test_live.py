@@ -3,7 +3,7 @@
 import httpx
 import sys
 
-BASE = "https://kaushikss-clinical-recruitment.hf.space"
+BASE = "https://pratimassaravanan-clinical-recruitment.hf.space"
 c = httpx.Client(timeout=30, follow_redirects=True)
 checks = []
 
