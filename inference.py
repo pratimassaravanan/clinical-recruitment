@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 from openai import OpenAI
@@ -99,25 +99,366 @@ class EnvClient:
         self.http.close()
 
 
+class PolicyState:
+    """Tracks actionable patient memory across steps for the baseline policy."""
+
+    def __init__(self):
+        self.patients: Dict[str, Dict[str, Any]] = {}
+        self.last_strategy_step: Dict[str, int] = {}
+
+    def reset(self, obs: dict) -> None:
+        self.patients = {}
+        self.last_strategy_step = {}
+        self._remember_available_patients(obs)
+
+    def _ensure_patient(self, patient_id: str) -> Dict[str, Any]:
+        return self.patients.setdefault(
+            patient_id,
+            {
+                "status": "unknown",
+                "eligible": False,
+                "screened": False,
+                "followup_due_step": None,
+                "priority": 0.0,
+                "dropout_risk": 0.0,
+                "eligibility_score": 0.0,
+                "site_id": None,
+                "recontact_attempts": 0,
+            },
+        )
+
+    def _priority(self, patient: Dict[str, Any]) -> float:
+        return round(
+            float(patient.get("eligibility_score", 0.0))
+            * (1.0 - float(patient.get("dropout_risk", 0.0)) * 0.8),
+            4,
+        )
+
+    def _remember_available_patients(self, obs: dict) -> None:
+        for patient in obs.get("available_patients", []):
+            pid = patient.get("id")
+            if not pid:
+                continue
+            entry = self._ensure_patient(pid)
+            entry["eligibility_score"] = float(patient.get("eligibility_score", 0.0))
+            entry["dropout_risk"] = float(patient.get("dropout_risk", 0.0))
+            entry["priority"] = self._priority(patient)
+            if entry.get("status") in ("unknown", "available"):
+                entry["status"] = "available"
+
+    def strategy_recently_used(
+        self, strategy_change: str, step_num: int, cooldown: int = 10
+    ) -> bool:
+        return step_num - self.last_strategy_step.get(strategy_change, -999) < cooldown
+
+    def record_strategy(self, strategy_change: Optional[str], step_num: int) -> None:
+        if strategy_change:
+            self.last_strategy_step[strategy_change] = step_num
+
+    def tracked_patients(self, step_num: int, status: str) -> List[str]:
+        candidates = []
+        for patient_id, entry in self.patients.items():
+            if entry.get("status") != status:
+                continue
+            due = entry.get("followup_due_step")
+            due_rank = due if isinstance(due, int) else 10**6
+            candidates.append((due_rank, -float(entry.get("priority", 0.0)), patient_id))
+        candidates.sort()
+        return [patient_id for _, _, patient_id in candidates]
+
+    def consented_pending_ids(self, step_num: int) -> List[str]:
+        return self.tracked_patients(step_num, "consented_pending")
+
+    def recontact_candidate_ids(self, step_num: int) -> List[str]:
+        actionable = []
+        for patient_id, entry in self.patients.items():
+            if entry.get("status") != "eligible_pending":
+                continue
+            due = entry.get("followup_due_step")
+            due_rank = due if isinstance(due, int) else 10**6
+            actionable.append((due_rank, entry.get("recontact_attempts", 0), -float(entry.get("priority", 0.0)), patient_id))
+        actionable.sort()
+        return [patient_id for _, _, _, patient_id in actionable]
+
+    def describe_tracked_patients(self, step_num: int, limit: int = 8) -> str:
+        lines = []
+        ranked = []
+        for patient_id, entry in self.patients.items():
+            status = entry.get("status")
+            if status in {"unknown", "available", "screen_failed"}:
+                continue
+            due = entry.get("followup_due_step")
+            due_rank = due if isinstance(due, int) else 10**6
+            ranked.append((due_rank, -float(entry.get("priority", 0.0)), patient_id, entry))
+        ranked.sort()
+        for _, _, patient_id, entry in ranked[:limit]:
+            due = entry.get("followup_due_step")
+            due_text = due if isinstance(due, int) else "-"
+            lines.append(
+                f"  {patient_id}: status={entry.get('status')}, priority={entry.get('priority', 0):.2f}, due={due_text}, dropout={entry.get('dropout_risk', 0):.2f}"
+            )
+        return "\n".join(lines) if lines else "  (no tracked actionable patients yet)"
+
+    def update(self, prev_obs: dict, action: dict, result: dict, step_num: int) -> None:
+        next_obs = result.get("observation", {})
+        info = result.get("info", {})
+        reward_breakdown = info.get("reward_breakdown", {})
+        error = info.get("last_action_error")
+        action_type = action.get("action_type")
+        patient_id = action.get("patient_id")
+        self.record_strategy(action.get("strategy_change"), step_num)
+
+        self._remember_available_patients(prev_obs)
+        self._remember_available_patients(next_obs)
+
+        prev_funnel = prev_obs.get("current_funnel", {})
+        next_funnel = next_obs.get("current_funnel", {})
+        consent_delta = int(next_funnel.get("consented", 0)) - int(
+            prev_funnel.get("consented", 0)
+        )
+        enrolled_delta = int(next_funnel.get("enrolled", 0)) - int(
+            prev_funnel.get("enrolled", 0)
+        )
+        dropped_delta = int(next_funnel.get("dropped", 0)) - int(
+            prev_funnel.get("dropped", 0)
+        )
+
+        if patient_id:
+            entry = self._ensure_patient(patient_id)
+            if error == "already_enrolled":
+                entry["status"] = "enrolled"
+            elif error == "patient_not_consented":
+                entry["status"] = "eligible_pending"
+                entry["followup_due_step"] = step_num + 2
+            elif error == "patient_dropped":
+                entry["status"] = "dropped"
+            elif error == "already_screened":
+                entry["screened"] = True
+            elif error is None and action_type == "screen_patient":
+                entry["screened"] = True
+                if reward_breakdown.get("screen_success"):
+                    entry["eligible"] = True
+                    if consent_delta > 0:
+                        entry["status"] = "consented_pending"
+                        entry["followup_due_step"] = step_num + 5
+                    else:
+                        entry["status"] = "eligible_pending"
+                        entry["followup_due_step"] = step_num + 3
+                else:
+                    entry["status"] = "screen_failed"
+                    entry["followup_due_step"] = None
+            elif error is None and action_type == "recontact":
+                entry["recontact_attempts"] = int(entry.get("recontact_attempts", 0)) + 1
+                if enrolled_delta > 0:
+                    entry["status"] = "enrolled"
+                    entry["followup_due_step"] = None
+                elif consent_delta > 0:
+                    entry["status"] = "consented_pending"
+                    entry["followup_due_step"] = step_num + 4
+                elif entry.get("eligible"):
+                    entry["status"] = "eligible_pending"
+                    entry["followup_due_step"] = step_num + 2
+            elif error is None and action_type == "allocate_to_site":
+                entry["site_id"] = action.get("site_id")
+                if enrolled_delta > 0:
+                    entry["status"] = "enrolled"
+                    entry["followup_due_step"] = None
+                elif dropped_delta > 0:
+                    entry["status"] = "dropped"
+                    entry["followup_due_step"] = None
+
+        if consent_delta < 0:
+            to_expire = abs(consent_delta)
+            for tracked_id in self.consented_pending_ids(step_num):
+                entry = self.patients.get(tracked_id, {})
+                due = entry.get("followup_due_step")
+                if isinstance(due, int) and due <= step_num:
+                    entry["status"] = "eligible_pending"
+                    entry["followup_due_step"] = step_num + 2
+                    to_expire -= 1
+                    if to_expire <= 0:
+                        break
+
+        if enrolled_delta < 0:
+            to_drop = abs(enrolled_delta)
+            ranked = []
+            for tracked_id, entry in self.patients.items():
+                if entry.get("status") == "enrolled":
+                    ranked.append((-float(entry.get("dropout_risk", 0.0)), tracked_id))
+            ranked.sort()
+            for _, tracked_id in ranked[:to_drop]:
+                self.patients[tracked_id]["status"] = "dropped"
+                self.patients[tracked_id]["followup_due_step"] = None
+
+
+def _site_suffix(site_id: Optional[str]) -> str:
+    if not site_id:
+        return ""
+    return str(site_id).replace("site_", "")
+
+
+def _valid_strategy_choices(obs: dict) -> List[str]:
+    choices = ["increase_outreach", "relax_criteria", "tighten_criteria"]
+    for site_id in obs.get("site_performance", {}):
+        suffix = _site_suffix(site_id)
+        if suffix:
+            choices.append(f"focus_site_{suffix}")
+            choices.append(f"negotiate_site_{suffix}")
+    return choices
+
+
+def _best_site(obs: dict, mode: str = "allocate") -> Optional[str]:
+    sites = obs.get("site_performance", {})
+    best_site_id = None
+    best_score = -1.0
+    for site_id, site in sites.items():
+        capacity = float(site.get("capacity_remaining", 0))
+        if capacity <= 0:
+            continue
+        conversion = float(site.get("conversion_rate", 0.0))
+        wait_days = float(site.get("avg_wait_days", 0.0))
+        retention = float(site.get("retention_rate", 0.8))
+        if mode == "negotiate":
+            score = conversion * 1.5 + wait_days * 0.2 + max(0.0, 6.0 - capacity) * 0.1
+        else:
+            score = conversion * retention * (0.5 + capacity / 10.0) / max(1.0, wait_days)
+        if score > best_score:
+            best_score = score
+            best_site_id = site_id
+    return best_site_id
+
+
+def _best_available_patient(obs: dict) -> Optional[str]:
+    available = obs.get("available_patients", [])
+    if not available:
+        return None
+    patient = max(
+        available,
+        key=lambda item: float(item.get("eligibility_score", 0.0))
+        * (1.0 - float(item.get("dropout_risk", 0.0)) * 0.8),
+    )
+    return patient.get("id")
+
+
+def _normalize_action(
+    action: dict, obs: dict, step_num: int, policy_state: PolicyState
+) -> Optional[dict]:
+    valid_actions = {
+        "screen_patient",
+        "recontact",
+        "allocate_to_site",
+        "adjust_strategy",
+        "stop_recruitment",
+    }
+    action_type = action.get("action_type")
+    if action_type not in valid_actions:
+        return None
+
+    normalized = {
+        "action_type": action_type,
+        "patient_id": action.get("patient_id"),
+        "site_id": action.get("site_id"),
+        "strategy_change": action.get("strategy_change"),
+        "hypothesis": action.get("hypothesis"),
+        "confidence": action.get("confidence", 0.5),
+    }
+
+    for key in ("patient_id", "site_id", "strategy_change"):
+        if normalized.get(key) in (None, "null", "None", ""):
+            normalized[key] = None
+
+    valid_hypotheses = {
+        "dropout_dominant",
+        "noise_dominant",
+        "site_bias",
+        "confounding",
+        "unknown",
+    }
+    if normalized.get("hypothesis") not in valid_hypotheses:
+        normalized["hypothesis"] = _infer_hypothesis(obs)
+
+    confidence = normalized.get("confidence", 0.5)
+    if isinstance(confidence, (int, float)):
+        normalized["confidence"] = max(0.0, min(1.0, float(confidence)))
+    else:
+        normalized["confidence"] = _infer_confidence(obs, step_num)
+
+    if action_type == "screen_patient":
+        normalized["patient_id"] = normalized.get("patient_id") or _best_available_patient(obs)
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        if not normalized["patient_id"]:
+            return None
+    elif action_type == "recontact":
+        candidates = policy_state.recontact_candidate_ids(step_num)
+        normalized["patient_id"] = normalized.get("patient_id") or (
+            candidates[0] if candidates else None
+        )
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        if not normalized["patient_id"]:
+            return None
+    elif action_type == "allocate_to_site":
+        candidates = policy_state.consented_pending_ids(step_num)
+        normalized["patient_id"] = normalized.get("patient_id") or (
+            candidates[0] if candidates else None
+        )
+        normalized["site_id"] = normalized.get("site_id") or _best_site(
+            obs, mode="allocate"
+        )
+        normalized["strategy_change"] = None
+        if not normalized["patient_id"] or not normalized["site_id"]:
+            return None
+    elif action_type == "adjust_strategy":
+        valid_strategies = set(_valid_strategy_choices(obs))
+        if normalized.get("strategy_change") not in valid_strategies:
+            return None
+        normalized["patient_id"] = None
+        normalized["site_id"] = None
+    else:
+        normalized["patient_id"] = None
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        progress = obs.get("enrolled_so_far", 0) / max(1, obs.get("target_enrollment", 1))
+        normalized["confidence"] = min(normalized["confidence"], max(0.1, progress))
+
+    return normalized
+
+
 # -- Rule-based fallback policy --
 def _infer_hypothesis(obs: dict) -> str:
     """Infer a hypothesis about dominant trial dynamics from observation."""
     dropout_7d = obs.get("dropout_rate_7d", 0)
     uncertainty = obs.get("uncertainty_level", 0)
     sites = obs.get("site_performance", {})
+    uncertainty_components = obs.get("uncertainty_components", {})
+    patient_memory = obs.get("patient_memory_summary", {})
+    constraints = obs.get("active_constraints", {})
 
-    if dropout_7d > 0.3:
+    patient_uncertainty = float(uncertainty_components.get("patient_pool", uncertainty))
+    site_uncertainty = float(uncertainty_components.get("site_operations", 0.0))
+    policy_uncertainty = float(uncertainty_components.get("policy", 0.0))
+    at_risk_enrolled = int(patient_memory.get("at_risk_enrolled", 0))
+
+    if dropout_7d > 0.25 or (dropout_7d > 0.12 and at_risk_enrolled >= 3):
         return "dropout_dominant"
-
-    if uncertainty > 0.4:
-        return "noise_dominant"
 
     # Check site variance
     conv_rates = [s.get("conversion_rate", 0.5) for s in sites.values()]
     if len(conv_rates) > 1:
         site_var = max(conv_rates) - min(conv_rates)
-        if site_var > 0.2:
+        if (
+            site_var > 0.18
+            or site_uncertainty > 0.45
+            or constraints.get("site_bottleneck", False)
+        ):
             return "site_bias"
+
+    if patient_uncertainty > max(site_uncertainty, policy_uncertainty, 0.35):
+        return "noise_dominant"
+
+    if uncertainty > 0.4 and policy_uncertainty < 0.35:
+        return "noise_dominant"
 
     return "confounding"
 
@@ -125,121 +466,334 @@ def _infer_hypothesis(obs: dict) -> str:
 def _infer_confidence(obs: dict, step: int) -> float:
     """Estimate confidence based on how much data we've seen."""
     # Confidence grows with steps (more data = more certainty)
-    base = min(0.9, 0.4 + step * 0.005)
+    base = min(0.92, 0.38 + step * 0.006 + obs.get("hypothesis_accuracy", 0) * 0.12)
     # Lower confidence if uncertainty is high
-    base -= obs.get("uncertainty_level", 0) * 0.2
+    uncertainty_components = obs.get("uncertainty_components", {})
+    component_values = [
+        float(value)
+        for value in uncertainty_components.values()
+        if isinstance(value, (int, float))
+    ]
+    if component_values:
+        base -= (sum(component_values) / len(component_values)) * 0.15
+    base -= obs.get("uncertainty_level", 0) * 0.15
+    base -= min(0.12, obs.get("delayed_effects_pending", 0) * 0.02)
+    if obs.get("active_constraints", {}).get("regulatory_hold_days", 0) > 0:
+        base -= 0.05
     return max(0.1, min(0.95, base))
 
 
-def rule_based_action(obs: dict, step: int = 0) -> dict:
+def _hard_mode_action(
+    obs: dict,
+    step: int,
+    policy_state: PolicyState,
+    hypothesis: str,
+    confidence: float,
+) -> Optional[dict]:
+    """Retention-heavy serving policy chosen from offline research results.
+
+    Offline runs showed the conservative retention policy outperformed the generic
+    memory baseline on `hard_bench`, so hard-mode routing prefers follow-up,
+    stability, and selective screening over aggressive outreach churn.
+    """
+
+    budget = obs.get("budget_remaining", 0)
+    time_left = obs.get("time_to_deadline_days", 180)
+    constraints = obs.get("active_constraints", {})
+    available = obs.get("available_patients", [])
+    uncertainty_components = obs.get("uncertainty_components", {})
+    patient_uncertainty = float(
+        uncertainty_components.get("patient_pool", obs.get("uncertainty_level", 0.0))
+    )
+    regulatory_hold_days = int(constraints.get("regulatory_hold_days", 0))
+    delayed_effects_pending = int(obs.get("delayed_effects_pending", 0))
+    recontact_ids = policy_state.recontact_candidate_ids(step)
+    consented_ids = policy_state.consented_pending_ids(step)
+    best_site = _best_site(obs, mode="allocate")
+    best_negotiate_site = _best_site(obs, mode="negotiate")
+
+    def emit(
+        action_type: str,
+        patient_id: Optional[str] = None,
+        site_id: Optional[str] = None,
+        strategy_change: Optional[str] = None,
+        conf: Optional[float] = None,
+    ) -> dict:
+        return {
+            "action_type": action_type,
+            "patient_id": patient_id,
+            "site_id": site_id,
+            "strategy_change": strategy_change,
+            "hypothesis": hypothesis,
+            "confidence": confidence if conf is None else conf,
+        }
+
+    if consented_ids and best_site and budget > 1400:
+        return emit("allocate_to_site", patient_id=consented_ids[0], site_id=best_site)
+
+    if recontact_ids and budget > 200:
+        first_due = policy_state.patients.get(recontact_ids[0], {}).get("followup_due_step")
+        if isinstance(first_due, int) and first_due <= step + 2:
+            return emit("recontact", patient_id=recontact_ids[0], conf=max(confidence, 0.68))
+
+    if regulatory_hold_days > 0:
+        if recontact_ids and budget > 200:
+            return emit("recontact", patient_id=recontact_ids[0], conf=max(confidence, 0.7))
+        if (
+            best_negotiate_site
+            and budget > 400
+            and delayed_effects_pending < 3
+            and not policy_state.strategy_recently_used(
+                f"negotiate_site_{_site_suffix(best_negotiate_site)}", step, cooldown=14
+            )
+        ):
+            return emit(
+                "adjust_strategy",
+                strategy_change=f"negotiate_site_{_site_suffix(best_negotiate_site)}",
+                conf=max(confidence, 0.65),
+            )
+
+    if (
+        patient_uncertainty > 0.34
+        and budget > 400
+        and time_left > 12
+        and not policy_state.strategy_recently_used("tighten_criteria", step, cooldown=14)
+    ):
+        return emit("adjust_strategy", strategy_change="tighten_criteria", conf=0.68)
+
+    if available and budget > 900 and regulatory_hold_days <= 0:
+        best_patient = max(
+            available,
+            key=lambda patient: float(patient.get("eligibility_score", 0.0))
+            * (1.0 - float(patient.get("dropout_risk", 0.0))),
+        )
+        patient_id = best_patient.get("id")
+        if patient_id:
+            return emit("screen_patient", patient_id=patient_id, conf=max(confidence, 0.64))
+
+    if recontact_ids and budget > 200:
+        return emit("recontact", patient_id=recontact_ids[0], conf=max(confidence, 0.66))
+
+    if (
+        budget > 400
+        and delayed_effects_pending < 2
+        and obs.get("enrolled_so_far", 0) < max(1, obs.get("target_enrollment", 1)) * 0.2
+        and patient_uncertainty < 0.28
+        and not policy_state.strategy_recently_used("increase_outreach", step, cooldown=16)
+    ):
+        return emit("adjust_strategy", strategy_change="increase_outreach", conf=0.6)
+
+    if time_left <= 2 or budget < 250:
+        progress = obs.get("enrolled_so_far", 0) / max(1, obs.get("target_enrollment", 1))
+        return emit("stop_recruitment", conf=min(0.95, max(0.1, progress)))
+
+    return None
+
+
+def rule_based_action(
+    obs: dict, step: int = 0, policy_state: Optional[PolicyState] = None
+) -> dict:
     """Heuristic policy: screen available patients, allocate consented ones, manage budget."""
+    policy_state = policy_state or PolicyState()
     enrolled = obs.get("enrolled_so_far", 0)
     target = obs.get("target_enrollment", 100)
     budget = obs.get("budget_remaining", 0)
     time_left = obs.get("time_to_deadline_days", 180)
-    funnel = obs.get("current_funnel", {})
     available = obs.get("available_patients", [])
-    sites = obs.get("site_performance", {})
     uncertainty = obs.get("uncertainty_level", 0)
     screening_backlog = obs.get("screening_backlog", 0)
+    milestones = obs.get("milestones", {})
+    constraints = obs.get("active_constraints", {})
+    uncertainty_components = obs.get("uncertainty_components", {})
+
+    patient_uncertainty = float(uncertainty_components.get("patient_pool", uncertainty))
+    site_uncertainty = float(uncertainty_components.get("site_operations", 0.0))
+    policy_uncertainty = float(uncertainty_components.get("policy", 0.0))
+    regulatory_hold_days = int(constraints.get("regulatory_hold_days", 0))
+    sponsor_pressure = bool(constraints.get("sponsor_pressure", False))
+    site_bottleneck = bool(constraints.get("site_bottleneck", False))
+    delayed_effects_pending = int(obs.get("delayed_effects_pending", 0))
+    focused_site = constraints.get("focused_site", "")
+
+    def emit(
+        action_type: str,
+        patient_id: Optional[str] = None,
+        site_id: Optional[str] = None,
+        strategy_change: Optional[str] = None,
+        confidence_override: Optional[float] = None,
+    ) -> dict:
+        return {
+            "action_type": action_type,
+            "patient_id": patient_id,
+            "site_id": site_id,
+            "strategy_change": strategy_change,
+            "hypothesis": hypothesis,
+            "confidence": confidence_override if confidence_override is not None else confidence,
+        }
 
     # Infer hypothesis and confidence
     hypothesis = _infer_hypothesis(obs)
     confidence = _infer_confidence(obs, step)
 
-    consented = funnel.get("consented", 0)
-    enrolled_count = funnel.get("enrolled", 0)
-    pending_consented = consented - enrolled_count - funnel.get("dropped", 0)
+    if obs.get("difficulty") == 3:
+        hard_action = _hard_mode_action(obs, step, policy_state, hypothesis, confidence)
+        if hard_action is not None:
+            return hard_action
 
-    # If we have consented patients not yet enrolled, allocate them first
-    if pending_consented > 0 and budget > 1500:
-        best_site = None
-        best_conv = -1
-        for sid, sinfo in sites.items():
-            cap = sinfo.get("capacity_remaining", 0)
-            conv = sinfo.get("conversion_rate", 0)
-            if cap > 0 and conv > best_conv:
-                best_conv = conv
-                best_site = sid
-        if best_site:
-            return {
-                "action_type": "allocate_to_site",
-                "patient_id": None,
-                "site_id": best_site,
-                "strategy_change": None,
-                "hypothesis": hypothesis,
-                "confidence": confidence,
-            }
+    consented_ids = policy_state.consented_pending_ids(step)
+    recontact_ids = policy_state.recontact_candidate_ids(step)
+    best_allocate_site = _best_site(obs, mode="allocate")
+    best_negotiate_site = _best_site(obs, mode="negotiate")
+    best_allocate_info = obs.get("site_performance", {}).get(best_allocate_site or "", {})
+    negotiate_strategy = (
+        f"negotiate_site_{_site_suffix(best_negotiate_site)}"
+        if best_negotiate_site
+        else None
+    )
+    focus_strategy = (
+        f"focus_site_{_site_suffix(best_allocate_site)}" if best_allocate_site else None
+    )
 
-    # If uncertainty is high and budget allows, adjust strategy
-    if uncertainty > 0.6 and budget > 1000 and time_left > 30:
-        return {
-            "action_type": "adjust_strategy",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": "relax_criteria",
-            "hypothesis": hypothesis,
-            "confidence": confidence,
-        }
+    # If we have consented patients not yet enrolled, allocate them first.
+    if consented_ids and best_allocate_site and budget > 1500:
+        first_due = policy_state.patients.get(consented_ids[0], {}).get("followup_due_step")
+        if (
+            isinstance(first_due, int)
+            and first_due <= step + 1
+            and float(best_allocate_info.get("avg_wait_days", 0.0)) >= 5.5
+        ):
+            return emit("recontact", patient_id=consented_ids[0])
+        return emit(
+            "allocate_to_site",
+            patient_id=consented_ids[0],
+            site_id=best_allocate_site,
+        )
 
-    # If behind schedule and budget allows, increase outreach
+    # If screening is blocked, spend the step on follow-up or site preparation.
+    if regulatory_hold_days > 0:
+        if recontact_ids and budget > 200:
+            return emit("recontact", patient_id=recontact_ids[0])
+        if (
+            negotiate_strategy
+            and budget > 400
+            and delayed_effects_pending < 3
+            and not policy_state.strategy_recently_used(negotiate_strategy, step, cooldown=12)
+        ):
+            return emit("adjust_strategy", strategy_change=negotiate_strategy)
+
+    # Rescue follow-up windows before delayed effects close them.
+    if recontact_ids and budget > 200:
+        first_due = policy_state.patients.get(recontact_ids[0], {}).get(
+            "followup_due_step"
+        )
+        if isinstance(first_due, int) and first_due <= step + 1:
+            return emit("recontact", patient_id=recontact_ids[0])
+
+    # If site operations are the main bottleneck, negotiate capacity/wait improvements.
+    if (
+        negotiate_strategy
+        and budget > 400
+        and (site_bottleneck or site_uncertainty > 0.45)
+        and delayed_effects_pending < 3
+        and not policy_state.strategy_recently_used(negotiate_strategy, step, cooldown=12)
+    ):
+        return emit("adjust_strategy", strategy_change=negotiate_strategy)
+
+    # Focus a strong site once site bias is apparent.
+    if (
+        focus_strategy
+        and hypothesis == "site_bias"
+        and focused_site != best_allocate_site
+        and time_left > 25
+        and budget > 400
+        and not policy_state.strategy_recently_used(focus_strategy, step, cooldown=12)
+    ):
+        return emit("adjust_strategy", strategy_change=focus_strategy)
+
+    # If the patient pool has drifted noisy, tighten before screening more.
+    if (
+        patient_uncertainty > 0.55
+        and budget > 400
+        and time_left > 25
+        and not policy_state.strategy_recently_used("tighten_criteria", step)
+    ):
+        return emit("adjust_strategy", strategy_change="tighten_criteria")
+
+    # If behind schedule, push growth only when we are not already over-noisy.
     expected_progress = 1.0 - (time_left / 180.0)
     actual_progress = enrolled / max(1, target)
-    if actual_progress < expected_progress * 0.7 and budget > 1000:
-        return {
-            "action_type": "adjust_strategy",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": "increase_outreach",
-            "hypothesis": hypothesis,
-            "confidence": confidence,
-        }
+    if sponsor_pressure or actual_progress < expected_progress * 0.75:
+        if (
+            budget > 400
+            and time_left > 20
+            and delayed_effects_pending < 3
+            and not policy_state.strategy_recently_used("increase_outreach", step, cooldown=10)
+        ):
+            return emit("adjust_strategy", strategy_change="increase_outreach")
+        if (
+            patient_uncertainty < 0.4
+            and budget > 400
+            and time_left > 20
+            and not policy_state.strategy_recently_used("relax_criteria", step, cooldown=10)
+        ):
+            return emit("adjust_strategy", strategy_change="relax_criteria")
+
+    # When backlog grows, convert known candidates before screening more.
+    if (screening_backlog > 3 or delayed_effects_pending > 2) and recontact_ids and budget > 200:
+        return emit("recontact", patient_id=recontact_ids[0])
 
     # Default: screen next available patient (MUST provide patient_id)
-    if available and budget > 900:
-        # Pick the patient with highest eligibility score (intelligent selection)
-        best_patient = max(available, key=lambda p: p.get("eligibility_score", 0))
-        patient_id = best_patient.get("id")
-        return {
-            "action_type": "screen_patient",
-            "patient_id": patient_id,
-            "site_id": None,
-            "strategy_change": None,
-            "hypothesis": hypothesis,
-            "confidence": confidence,
-        }
+    if available and budget > 900 and regulatory_hold_days <= 0:
+        patient_id = _best_available_patient(obs)
+        if patient_id:
+            return emit("screen_patient", patient_id=patient_id)
+
+    if recontact_ids and budget > 200:
+        return emit("recontact", patient_id=recontact_ids[0])
 
     # If near target or low budget, stop with calibrated confidence
-    if enrolled >= target or budget < 500:
-        return {
-            "action_type": "stop_recruitment",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": None,
-            "hypothesis": hypothesis,
-            "confidence": min(0.95, enrolled / max(1, target)),
-        }
+    if enrolled >= target or budget < 500 or (time_left <= 5 and milestones.get("75pct")):
+        return emit(
+            "stop_recruitment",
+            confidence_override=min(0.95, enrolled / max(1, target)),
+        )
 
-    # No patients available but budget left: try recontact
-    if budget > 500:
-        return {
-            "action_type": "adjust_strategy",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": "increase_outreach",
-            "hypothesis": hypothesis,
-            "confidence": confidence,
-        }
+    # No patients available but budget left: keep the episode alive with a non-redundant strategy step.
+    if (
+        negotiate_strategy
+        and budget > 400
+        and delayed_effects_pending < 3
+        and not policy_state.strategy_recently_used(negotiate_strategy, step, cooldown=12)
+    ):
+        return emit("adjust_strategy", strategy_change=negotiate_strategy)
+    if (
+        budget > 400
+        and time_left > 10
+        and policy_uncertainty < 0.55
+        and delayed_effects_pending < 3
+        and not policy_state.strategy_recently_used("increase_outreach", step, cooldown=10)
+    ):
+        return emit("adjust_strategy", strategy_change="increase_outreach")
 
-    # Fallback: stop
-    return {
-        "action_type": "stop_recruitment",
-        "patient_id": None,
-        "site_id": None,
-        "strategy_change": None,
-        "hypothesis": hypothesis,
-        "confidence": min(0.95, enrolled / max(1, target)),
-    }
+    if available and regulatory_hold_days <= 0 and budget > 900:
+        patient_id = _best_available_patient(obs)
+        if patient_id:
+            return emit("screen_patient", patient_id=patient_id)
+
+    # Fallback: only stop when late or resource-constrained.
+    if time_left <= 3 or budget < 250:
+        return emit(
+            "stop_recruitment",
+            confidence_override=min(0.95, enrolled / max(1, target)),
+        )
+
+    if budget > 200 and recontact_ids:
+        return emit("recontact", patient_id=recontact_ids[0])
+
+    return emit(
+        "adjust_strategy",
+        strategy_change="increase_outreach",
+    )
 
 
 # -- LLM-based policy --
@@ -263,14 +817,25 @@ CURRENT STATE:
 AVAILABLE PATIENTS (up to 5):
 {patient_summary}
 
+TRACKED ACTIONABLE PATIENTS:
+{tracked_patient_summary}
+
 SITE PERFORMANCE:
 {site_summary}
+
+LONG-HORIZON SIGNALS:
+- Milestones reached: {milestones}
+- Active constraints: {active_constraints}
+- Uncertainty components: {uncertainty_components}
+- Patient memory summary: {patient_memory_summary}
+- Delayed effects pending: {delayed_effects_pending}
+- Counterfactual hint: {counterfactual_hint}
 
 AVAILABLE ACTIONS:
 1. screen_patient (patient_id) - run screening ($800-900, may find eligible)
 2. recontact (patient_id) - re-engage dropped interest (low cost, uncertain)
 3. allocate_to_site (patient_id, site_id) - assign consented patient to site for enrollment
-4. adjust_strategy (strategy_change) - one of: increase_outreach, relax_criteria, tighten_criteria, focus_site_A/B/C
+4. adjust_strategy (strategy_change) - one of: {strategy_options}
 5. stop_recruitment - end episode early (only when confident enrollment targets are met or unachievable)
 
 REASONING REQUIREMENTS:
@@ -290,7 +855,9 @@ Respond with EXACTLY one JSON object:
 No markdown, no explanation."""
 
 
-def llm_action(client: OpenAI, obs: dict, step_num: int) -> dict:
+def llm_action(
+    client: OpenAI, obs: dict, step_num: int, policy_state: PolicyState
+) -> dict:
     # Format patient summary
     patients = obs.get("available_patients", [])
     if patients:
@@ -318,6 +885,9 @@ def llm_action(client: OpenAI, obs: dict, step_num: int) -> dict:
     else:
         site_summary = "  (no sites)"
 
+    tracked_patient_summary = policy_state.describe_tracked_patients(step_num)
+    strategy_options = ", ".join(_valid_strategy_choices(obs))
+
     prompt = SYSTEM_PROMPT.format(
         timestamp=obs.get("timestamp", 0),
         budget_remaining=obs.get("budget_remaining", 0),
@@ -332,7 +902,15 @@ def llm_action(client: OpenAI, obs: dict, step_num: int) -> dict:
         causal_insight=obs.get("causal_insight", "No insight yet."),
         hypothesis_accuracy=obs.get("hypothesis_accuracy", 0),
         patient_summary=patient_summary,
+        tracked_patient_summary=tracked_patient_summary,
         site_summary=site_summary,
+        strategy_options=strategy_options,
+        milestones=obs.get("milestones", {}),
+        active_constraints=obs.get("active_constraints", {}),
+        uncertainty_components=obs.get("uncertainty_components", {}),
+        patient_memory_summary=obs.get("patient_memory_summary", {}),
+        delayed_effects_pending=obs.get("delayed_effects_pending", 0),
+        counterfactual_hint=obs.get("counterfactual_hint", ""),
     )
 
     try:
@@ -348,45 +926,18 @@ def llm_action(client: OpenAI, obs: dict, step_num: int) -> dict:
             text = text[4:].strip()
         action = json.loads(text)
 
-        valid_actions = (
-            "screen_patient",
-            "recontact",
-            "allocate_to_site",
-            "adjust_strategy",
-            "stop_recruitment",
-        )
-        if action.get("action_type") not in valid_actions:
-            return rule_based_action(obs, step_num)
-
-        # Normalize None values
-        for key in ("patient_id", "site_id", "strategy_change"):
-            if action.get(key) in (None, "null", "None", ""):
-                action[key] = None
-
-        # Ensure hypothesis and confidence are present
-        valid_hypotheses = (
-            "dropout_dominant",
-            "noise_dominant",
-            "site_bias",
-            "confounding",
-            "unknown",
-        )
-        if action.get("hypothesis") not in valid_hypotheses:
-            action["hypothesis"] = _infer_hypothesis(obs)
-        conf = action.get("confidence", 0.5)
-        if isinstance(conf, (int, float)):
-            action["confidence"] = max(0.0, min(1.0, float(conf)))
-        else:
-            action["confidence"] = _infer_confidence(obs, step_num)
-
-        return action
+        normalized = _normalize_action(action, obs, step_num, policy_state)
+        if normalized is None:
+            return rule_based_action(obs, step_num, policy_state)
+        return normalized
     except Exception:
-        return rule_based_action(obs, step_num)
+        return rule_based_action(obs, step_num, policy_state)
 
 
 # -- Run one task --
 def run_task(task_id: str, client: OpenAI) -> float:
     env = EnvClient(ENV_URL)
+    policy_state = PolicyState()
     rewards: List[float] = []
     steps_taken = 0
     score = 0.0
@@ -399,18 +950,39 @@ def run_task(task_id: str, client: OpenAI) -> float:
         result = env.reset(task_id)
         obs = result["observation"]
         last_info = result.get("info", {})
+        policy_state.reset(obs)
 
         while not result.get("done", False):
+            prev_obs = obs
             if steps_taken % LLM_CALL_INTERVAL == 0:
-                action = llm_action(client, obs, steps_taken)
+                action = llm_action(client, obs, steps_taken, policy_state)
             else:
-                action = rule_based_action(obs, steps_taken)
+                action = rule_based_action(obs, steps_taken, policy_state)
+
+            action = _normalize_action(action, obs, steps_taken, policy_state)
+            if action is None:
+                action = rule_based_action(obs, steps_taken, policy_state)
+                action = _normalize_action(action, obs, steps_taken, policy_state)
+            if action is None:
+                action = {
+                    "action_type": "stop_recruitment",
+                    "patient_id": None,
+                    "site_id": None,
+                    "strategy_change": None,
+                    "hypothesis": _infer_hypothesis(obs),
+                    "confidence": min(
+                        0.95,
+                        obs.get("enrolled_so_far", 0)
+                        / max(1, obs.get("target_enrollment", 1)),
+                    ),
+                }
 
             action_str = _format_action(action)
 
             try:
                 result = env.step(action)
                 obs = result["observation"]
+                policy_state.update(prev_obs, action, result, steps_taken)
                 reward = float(result.get("reward", 0.0) or 0.0)
                 done = bool(result.get("done", False))
                 last_info = result.get("info", {})

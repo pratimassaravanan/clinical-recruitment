@@ -57,6 +57,31 @@ class Observation(BaseModel):
         default="unknown",
         description="Ground truth dominant dynamic for the current task (noise, site_bias, dropout)",
     )
+    milestones: Dict[str, bool] = Field(
+        default_factory=dict,
+        description="Enrollment progress milestones reached so far (25%, 50%, 75%, 100%)",
+    )
+    active_constraints: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Currently active operational constraints such as regulatory holds or sponsor pressure",
+    )
+    delayed_effects_pending: int = Field(
+        default=0,
+        ge=0,
+        description="Number of scheduled delayed consequences that have not triggered yet",
+    )
+    uncertainty_components: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Decomposed uncertainty across patient pool, site operations, and policy dynamics",
+    )
+    patient_memory_summary: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Summary of remembered patient cohorts accumulated across prior actions",
+    )
+    counterfactual_hint: str = Field(
+        default="",
+        description="Simple what-if suggestion showing an alternative next move worth testing",
+    )
 
 
 class Action(BaseModel):
@@ -77,7 +102,7 @@ class Action(BaseModel):
     )
     strategy_change: Optional[str] = Field(
         default=None,
-        description="Strategy adjustment: increase_outreach, relax_criteria, focus_site_A, focus_site_B, focus_site_C, tighten_criteria",
+        description="Strategy adjustment: increase_outreach, relax_criteria, focus_site_A/B/C, tighten_criteria, or negotiate_site_A/B/C",
     )
     hypothesis: Optional[str] = Field(
         default=None,
@@ -122,6 +147,10 @@ class State(BaseModel):
     budget_remaining: float = Field(default=0.0)
     total_reward: float = Field(default=0.0)
     history: List[Dict[str, Any]] = Field(default_factory=list)
+    milestones: Dict[str, bool] = Field(default_factory=dict)
+    active_constraints: Dict[str, Any] = Field(default_factory=dict)
+    delayed_effects_pending: int = Field(default=0, ge=0)
+    uncertainty_components: Dict[str, float] = Field(default_factory=dict)
 
 
 class StepResult(BaseModel):

@@ -49,6 +49,24 @@ check(
     "observation has hypothesis_accuracy",
     0.0 <= result.observation.hypothesis_accuracy <= 1.0,
 )
+check("observation has milestones", isinstance(result.observation.milestones, dict))
+check(
+    "observation has active_constraints",
+    isinstance(result.observation.active_constraints, dict),
+)
+check(
+    "observation has uncertainty_components",
+    isinstance(result.observation.uncertainty_components, dict),
+)
+check(
+    "observation has patient_memory_summary",
+    isinstance(result.observation.patient_memory_summary, dict),
+)
+check(
+    "observation has counterfactual_hint",
+    isinstance(result.observation.counterfactual_hint, str)
+    and len(result.observation.counterfactual_hint) > 0,
+)
 
 # 3. Grader scores in (0, 1)
 print("\n3. Grader scores in (0, 1)")
@@ -134,15 +152,64 @@ check(
     f"penalty={env._consistency_penalty()}",
 )
 
-# 6. State endpoint
-print("\n6. State check")
-state = env.state()
-check("state() returns task", state.task == "easy_bench")
-check("state() returns step", state.step == 5)
-check("state() returns history", len(state.history) > 0)
+# 6. Delayed effects and strategy negotiation
+print("\n6. Delayed effects and site negotiation")
+env.reset("medium_bench")
+before_conv = env._sites["site_A"]["conversion_rate"]
+result = env.step(
+    Action(
+        action_type="adjust_strategy",
+        strategy_change="negotiate_site_A",
+        hypothesis="site_bias",
+        confidence=0.8,
+    )
+)
+check(
+    "negotiation schedules delayed effect",
+    result.observation.delayed_effects_pending >= 1,
+    f"pending={result.observation.delayed_effects_pending}",
+)
+env.step(
+    Action(
+        action_type="screen_patient",
+        patient_id="P-1000",
+        hypothesis="site_bias",
+        confidence=0.7,
+    )
+)
+result = env.step(
+    Action(
+        action_type="screen_patient",
+        patient_id="P-1001",
+        hypothesis="site_bias",
+        confidence=0.7,
+    )
+)
+after_conv = env._sites["site_A"]["conversion_rate"]
+check(
+    "site negotiation improves conversion after delay",
+    after_conv > before_conv,
+    f"before={before_conv} after={after_conv}",
+)
+check(
+    "delayed effect surfaced in info",
+    result.info.get("reward_breakdown", {}).get("delayed_effects_triggered", 0) >= 1,
+)
 
-# 7. World type per task
-print("\n7. World type per task")
+# 7. State endpoint
+print("\n7. State check")
+state = env.state()
+check("state() returns task", state.task == "medium_bench")
+check("state() returns step", state.step == 3)
+check("state() returns history", len(state.history) > 0)
+check("state() exposes milestones", isinstance(state.milestones, dict))
+check(
+    "state() exposes active_constraints",
+    isinstance(state.active_constraints, dict),
+)
+
+# 8. World type per task
+print("\n8. World type per task")
 for task, expected in [
     ("easy_bench", "noise"),
     ("medium_bench", "site_bias"),

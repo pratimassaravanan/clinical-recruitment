@@ -37,6 +37,7 @@ try:
         f"{BASE}/step",
         json={
             "action_type": "screen_patient",
+            "patient_id": "P-1000",
             "hypothesis": "noise_dominant",
             "confidence": 0.7,
         },
@@ -45,6 +46,19 @@ try:
     d = r.json()
     check("Step has reward", "reward" in d)
     check("Step has causal_insight", "causal_insight" in d.get("observation", {}))
+    check("Step has milestones", "milestones" in d.get("observation", {}))
+    check(
+        "Step has active_constraints",
+        "active_constraints" in d.get("observation", {}),
+    )
+    check(
+        "Step has delayed_effects_pending",
+        "delayed_effects_pending" in d.get("observation", {}),
+    )
+    check(
+        "Step has patient_memory_summary",
+        "patient_memory_summary" in d.get("observation", {}),
+    )
 
     # Tasks
     r = c.get(f"{BASE}/tasks")
@@ -54,6 +68,9 @@ try:
     # State
     r = c.get(f"{BASE}/state")
     check("State returns 200", r.status_code == 200)
+    state = r.json()
+    check("State has milestones", "milestones" in state)
+    check("State has active_constraints", "active_constraints" in state)
 
 except httpx.ConnectError:
     print(f"\n  [FAIL] Cannot connect to {BASE}")

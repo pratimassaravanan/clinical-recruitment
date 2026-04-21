@@ -73,6 +73,27 @@ try:
         "observation has hypothesis_accuracy",
         "hypothesis_accuracy" in d.get("observation", {}),
     )
+    check("observation has milestones", "milestones" in d.get("observation", {}))
+    check(
+        "observation has active_constraints",
+        "active_constraints" in d.get("observation", {}),
+    )
+    check(
+        "observation has delayed_effects_pending",
+        "delayed_effects_pending" in d.get("observation", {}),
+    )
+    check(
+        "observation has uncertainty_components",
+        "uncertainty_components" in d.get("observation", {}),
+    )
+    check(
+        "observation has patient_memory_summary",
+        "patient_memory_summary" in d.get("observation", {}),
+    )
+    check(
+        "observation has counterfactual_hint",
+        "counterfactual_hint" in d.get("observation", {}),
+    )
 
     # 6. State
     print("\n6. State endpoint")
@@ -81,6 +102,10 @@ try:
     check("state() returns 200", r.status_code == 200)
     check("state() has task", "task" in d)
     check("state() has step", "step" in d)
+    check("state() has milestones", "milestones" in d)
+    check("state() has active_constraints", "active_constraints" in d)
+    check("state() has delayed_effects_pending", "delayed_effects_pending" in d)
+    check("state() has uncertainty_components", "uncertainty_components" in d)
 
 except httpx.ConnectError:
     print("\n  [FAIL] Cannot connect to localhost:7860. Start the server first:")

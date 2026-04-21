@@ -1,0 +1,13 @@
+policy,task,episodes,avg_final_score,avg_total_reward,avg_enrolled,avg_budget_remaining,avg_dropped,avg_screened,avg_milestones_hit,avg_delayed_effects_triggered,avg_strategy_steps,avg_recontacts,avg_allocations
+conservative_retention,easy_bench,3,0.6225,33.6268,28,37300.0,11,59,1,71,1,51,69
+conservative_retention,hard_bench,3,0.5114,43.9034,3,6500.0,21,43,0,170,11,72,47
+conservative_retention,medium_bench,3,0.5161,28.6669,18,51100.0,13,60,0,128,6,39,70
+greedy_screen,easy_bench,3,0.4616,59.7085,0,14400.0,0,176,0,198,0,0,0
+greedy_screen,hard_bench,3,0.1924,30.6651,0,100.0,0,111,0,186,0,0,0
+greedy_screen,medium_bench,3,0.25,35.0053,0,23600.0,0,158,0,202,0,0,0
+rule_based_memory,easy_bench,3,0.6281,34.1723,27,48100.0,10,38,1,92,21,53,68
+rule_based_memory,hard_bench,3,0.4077,17.7638,1,15200.0,20,39,0,169,13,65,57
+rule_based_memory,medium_bench,3,0.645,42.3134,18,60600.0,12,42,0,148,41,38,56
+site_negotiation,easy_bench,3,0.4934,45.4022,36,4800.0,7,105,1,96,15,0,57
+site_negotiation,hard_bench,3,0.2973,27.4561,0,100.0,17,76,0,175,34,0,38
+site_negotiation,medium_bench,3,0.5554,55.8137,20,19700.0,11,103,0,145,15,0,44
