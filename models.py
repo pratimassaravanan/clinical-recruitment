@@ -22,6 +22,14 @@ class Observation(BaseModel):
         default_factory=list,
         description="Up to 5 candidate patients with id, age, eligibility_score, dropout_risk",
     )
+    recontact_candidates: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Up to 5 screened or eligible patients worth recontacting for consent or enrollment",
+    )
+    allocation_candidates: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Up to 5 consented patients eligible for site allocation and enrollment",
+    )
     site_performance: Dict[str, Dict[str, float]] = Field(
         default_factory=dict,
         description="Per-site metrics: conversion_rate, avg_wait_days, capacity_remaining",

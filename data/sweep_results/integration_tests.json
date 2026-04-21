@@ -15,7 +15,7 @@
       "non_zero_reward": true
     },
     "steps_run": 20,
-    "total_reward": 2.6802
+    "total_reward": 4.683600000000001
   },
   "medium_bench": {
     "passed": 10,
@@ -33,7 +33,7 @@
       "non_zero_reward": true
     },
     "steps_run": 20,
-    "total_reward": 1.8704999999999998
+    "total_reward": 2.6390000000000002
   },
   "hard_bench": {
     "passed": 10,
@@ -51,6 +51,6 @@
       "non_zero_reward": true
     },
     "steps_run": 20,
-    "total_reward": 1.5921999999999996
+    "total_reward": 2.1073999999999997
   }
 }

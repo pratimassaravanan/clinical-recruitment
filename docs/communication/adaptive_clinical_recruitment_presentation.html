@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Clinical Recruitment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
+    <style>
+        /* ===========================================
+           THEME
+           =========================================== */
+        :root {
+            --bg-root: #06101d;
+            --bg-panel: rgba(12, 22, 40, 0.78);
+            --bg-panel-strong: rgba(16, 28, 48, 0.9);
+            --bg-soft: rgba(245, 239, 228, 0.08);
+            --line-soft: rgba(159, 179, 204, 0.20);
+            --line-strong: rgba(245, 239, 228, 0.34);
+            --ink: #f5efe4;
+            --ink-soft: #c7cfda;
+            --ink-faint: #93a2b9;
+            --accent: #63dfd5;
+            --accent-copper: #cb7c59;
+            --accent-mist: #8fb0d7;
+            --accent-cream: #f5efe4;
+            --shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+            --radius-md: 18px;
+            --radius-sm: 14px;
+            --font-display: 'Newsreader', serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --title-size: clamp(1.8rem, 6vw, 5.2rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.75rem);
+            --h3-size: clamp(0.95rem, 2.2vw, 1.45rem);
+            --body-size: clamp(0.78rem, 1.18vw, 1.02rem);
+            --small-size: clamp(0.62rem, 0.92vw, 0.84rem);
+            --slide-padding: clamp(1rem, 4vw, 4rem);
+            --content-gap: clamp(0.7rem, 1.8vw, 1.7rem);
+            --element-gap: clamp(0.35rem, 1vw, 0.95rem);
+            --duration-normal: 0.7s;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           Include this ENTIRE file in every presentation.
+           These styles ensure slides fit exactly in the viewport.
+           =========================================== */
+
+        /* 1. Lock html/body to viewport */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        /* 2. Each slide = exact viewport height */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 3. Content container with flex for centering */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden; /* Double-protection against overflow */
+            padding: var(--slide-padding);
+        }
+
+        /* 4. ALL typography uses clamp() for responsive scaling */
+        :root {
+            /* Titles scale from mobile to desktop */
+            --title-size: clamp(1.5rem, 5vw, 4rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+            /* Body text */
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+
+            /* Spacing scales with viewport */
+            --slide-padding: clamp(1rem, 4vw, 4rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+        }
+
+        /* 5. Cards/containers use viewport-relative max sizes */
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        /* 6. Lists auto-scale with viewport */
+        .feature-list, .bullet-list {
+            gap: clamp(0.4rem, 1vh, 1rem);
+        }
+
+        .feature-list li, .bullet-list li {
+            font-size: var(--body-size);
+            line-height: 1.4;
+        }
+
+        /* 7. Grids adapt to available space */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        /* 8. Images constrained to viewport */
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           Aggressive scaling for smaller viewports
+           =========================================== */
+
+        /* Short viewports (< 700px height) */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+
+        /* Very short viewports (< 600px height) */
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+
+            /* Hide non-essential elements */
+            .nav-dots, .keyboard-hint, .decorative {
+                display: none;
+            }
+        }
+
+        /* Extremely short (landscape phones, < 500px height) */
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+
+        /* Narrow viewports (< 600px width) */
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.25rem, 7vw, 2.5rem);
+            }
+
+            /* Stack grids vertically */
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===========================================
+           REDUCED MOTION
+           Respect user preferences
+           =========================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ===========================================
+           PRESENTATION STYLES
+           =========================================== */
+        body {
+            font-family: var(--font-body);
+            background:
+                radial-gradient(circle at 15% 15%, rgba(99, 223, 213, 0.08), transparent 20%),
+                radial-gradient(circle at 85% 18%, rgba(203, 124, 89, 0.12), transparent 18%),
+                radial-gradient(circle at 50% 82%, rgba(143, 176, 215, 0.10), transparent 20%),
+                var(--bg-root);
+            color: var(--ink);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: clamp(38px, 4vw, 64px) clamp(38px, 4vw, 64px);
+            opacity: 0.16;
+            pointer-events: none;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 4px;
+            z-index: 9999;
+            background: linear-gradient(90deg, var(--accent), var(--accent-copper));
+            box-shadow: 0 0 24px rgba(99, 223, 213, 0.45);
+            transition: width 0.2s ease;
+        }
+
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.5rem, 1.5vw, 1.2rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.8vw, 0.55rem);
+            z-index: 9998;
+        }
+
+        .nav-dot {
+            width: clamp(0.55rem, 0.9vw, 0.8rem);
+            height: clamp(0.55rem, 0.9vw, 0.8rem);
+            border-radius: 999px;
+            border: 1px solid rgba(245, 239, 228, 0.45);
+            background: rgba(245, 239, 228, 0.12);
+            cursor: pointer;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.18);
+        }
+
+        .slide {
+            isolation: isolate;
+            background: linear-gradient(180deg, rgba(6, 16, 29, 0.78), rgba(6, 16, 29, 0.96));
+        }
+
+        .slide::before,
+        .slide::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .slide::before {
+            inset: 6% 3%;
+            border: 1px solid rgba(245, 239, 228, 0.10);
+            border-radius: calc(var(--radius-xl) + 8px);
+        }
+
+        .slide::after {
+            width: min(42vw, 520px);
+            height: min(42vw, 520px);
+            right: calc(-1 * clamp(4rem, 10vw, 9rem));
+            top: calc(-1 * clamp(5rem, 12vw, 10rem));
+            border-radius: 50%;
+            border: 1px solid rgba(143, 176, 215, 0.16);
+            box-shadow: inset 0 0 0 80px rgba(143, 176, 215, 0.02);
+            opacity: 0.8;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: min(1420px, 100%);
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            gap: clamp(0.9rem, 1.8vw, 1.8rem);
+        }
+
+        .section-chip,
+        .micro-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6em;
+            padding: 0.55em 0.95em;
+            border-radius: 999px;
+            border: 1px solid var(--line-strong);
+            background: rgba(245, 239, 228, 0.05);
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+        }
+
+        .micro-chip strong {
+            color: var(--accent-cream);
+            font-weight: 500;
+        }
+
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.26em;
+            color: var(--ink-faint);
+        }
+
+        .display {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            line-height: 0.92;
+            letter-spacing: -0.04em;
+            max-width: 12ch;
+            text-wrap: balance;
+        }
+
+        .headline {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            line-height: 0.95;
+            letter-spacing: -0.03em;
+            max-width: 14ch;
+            text-wrap: balance;
+        }
+
+        .subcopy,
+        .note,
+        .card p,
+        .panel p,
+        .bar-copy,
+        .directory-chip span {
+            font-size: var(--body-size);
+            line-height: 1.45;
+            color: var(--ink-soft);
+        }
+
+        .subcopy {
+            max-width: 58ch;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.82fr);
+            gap: clamp(0.9rem, 2vw, 2rem);
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        .hero-stack,
+        .panel-stack,
+        .card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.8rem, 1.5vw, 1.25rem);
+            min-height: 0;
+        }
+
+        .signal-map,
+        .poster-panel,
+        .panel,
+        .card,
+        .metric-panel,
+        .result-board,
+        .evidence-panel {
+            position: relative;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(180deg, rgba(18, 31, 53, 0.82), rgba(10, 18, 33, 0.92));
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .signal-map {
+            min-height: min(50vh, 440px);
+            padding: clamp(1rem, 2vw, 1.6rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signal-map::before,
+        .signal-map::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(245, 239, 228, 0.16);
+        }
+
+        .signal-map::before {
+            width: min(28vw, 320px);
+            height: min(28vw, 320px);
+        }
+
+        .signal-map::after {
+            width: min(20vw, 220px);
+            height: min(20vw, 220px);
+            border-color: rgba(99, 223, 213, 0.25);
+        }
+
+        .orbit-core {
+            width: min(16vw, 180px);
+            height: min(16vw, 180px);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 35% 30%, rgba(245, 239, 228, 0.20), rgba(12, 22, 40, 0.98));
+            border: 1px solid rgba(245, 239, 228, 0.24);
+            text-align: center;
+        }
+
+        .orbit-core span {
+            font-family: var(--font-mono);
+            font-size: clamp(0.62rem, 0.9vw, 0.82rem);
+            color: var(--ink-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+
+        .orbit-core strong {
+            display: block;
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 2.4vw, 2.15rem);
+            line-height: 0.95;
+            color: var(--ink);
+        }
+
+        .orbit-tag {
+            position: absolute;
+            padding: 0.55em 0.9em;
+            border-radius: 999px;
+            background: rgba(6, 16, 29, 0.82);
+            border: 1px solid rgba(245, 239, 228, 0.14);
+            font-family: var(--font-mono);
+            font-size: clamp(0.56rem, 0.8vw, 0.72rem);
+            color: var(--ink-soft);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .orbit-a { top: 13%; left: 12%; }
+        .orbit-b { top: 18%; right: 14%; }
+        .orbit-c { bottom: 16%; left: 16%; }
+        .orbit-d { bottom: 12%; right: 18%; }
+
+        .stats-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: clamp(0.55rem, 1vw, 0.9rem);
+        }
+
+        .metric-panel {
+            padding: clamp(0.7rem, 1.2vw, 1rem);
+            min-height: 0;
+            background: linear-gradient(180deg, rgba(245, 239, 228, 0.08), rgba(245, 239, 228, 0.03));
+        }
+
+        .metric-panel strong {
+            display: block;
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 2.4vw, 2rem);
+            line-height: 0.95;
+            color: var(--ink);
+        }
+
+        .metric-panel span {
+            display: block;
+            margin-top: 0.4em;
+            font-family: var(--font-mono);
+            font-size: clamp(0.58rem, 0.78vw, 0.72rem);
+            color: var(--ink-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+
+        .lead-quote {
+            font-family: var(--font-display);
+            font-size: clamp(1.15rem, 2.6vw, 2.3rem);
+            line-height: 1.02;
+            color: var(--ink);
+            max-width: 18ch;
+            text-wrap: balance;
+        }
+
+        .phase-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: clamp(0.45rem, 0.9vw, 0.8rem);
+        }
+
+        .phase-node,
+        .task-card,
+        .surface-card,
+        .baseline-card,
+        .fix-card,
+        .proof-card,
+        .limit-card {
+            padding: clamp(0.85rem, 1.2vw, 1rem);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(180deg, rgba(245, 239, 228, 0.06), rgba(245, 239, 228, 0.025));
+            min-height: 0;
+        }
+
+        .phase-node strong,
+        .task-card strong,
+        .surface-card strong,
+        .baseline-card strong,
+        .fix-card strong,
+        .proof-card strong,
+        .limit-card strong,
+        .directory-chip strong {
+            display: block;
+            font-size: clamp(0.88rem, 1.2vw, 1.08rem);
+            color: var(--ink);
+            margin-bottom: 0.38rem;
+        }
+
+        .task-grid,
+        .surface-grid,
+        .baseline-grid,
+        .fix-grid,
+        .proof-grid,
+        .limit-grid,
+        .directory-grid {
+            display: grid;
+            gap: clamp(0.55rem, 1vw, 0.85rem);
+        }
+
+        .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .surface-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .baseline-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .fix-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .proof-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .limit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .directory-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .task-meta,
+        .card-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55em;
+            font-family: var(--font-mono);
+            font-size: clamp(0.56rem, 0.8vw, 0.72rem);
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--ink-faint);
+            margin-bottom: 0.55rem;
+        }
+
+        .task-card em,
+        .proof-card em,
+        .limit-card em {
+            font-style: normal;
+            font-family: var(--font-display);
+            font-size: clamp(1rem, 2.1vw, 1.8rem);
+            color: var(--accent-cream);
+            display: block;
+            line-height: 0.95;
+            margin-bottom: 0.35rem;
+        }
+
+        .vector-band {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: clamp(0.6rem, 1vw, 1rem);
+            align-items: stretch;
+        }
+
+        .vector-panel,
+        .results-panel,
+        .pvalue-panel,
+        .closing-panel {
+            padding: clamp(0.85rem, 1.2vw, 1rem);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(180deg, rgba(245, 239, 228, 0.05), rgba(245, 239, 228, 0.02));
+            min-height: 0;
+        }
+
+        .vector-bars {
+            display: grid;
+            gap: 0.45rem;
+            margin-top: 0.65rem;
+        }
+
+        .vector-row {
+            display: grid;
+            grid-template-columns: minmax(62px, 80px) 1fr minmax(42px, 52px);
+            gap: 0.55rem;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: clamp(0.54rem, 0.8vw, 0.7rem);
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .vector-track,
+        .bar-track {
+            height: clamp(0.5rem, 0.75vw, 0.72rem);
+            border-radius: 999px;
+            background: rgba(245, 239, 228, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .vector-fill,
+        .bar-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent-copper), var(--accent));
+            box-shadow: 0 0 24px rgba(99, 223, 213, 0.24);
+        }
+
+        .action-constellation {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: clamp(0.45rem, 0.9vw, 0.75rem);
+            margin-top: 0.8rem;
+        }
+
+        .action-pill {
+            padding: 0.75em 0.9em;
+            border-radius: 999px;
+            border: 1px solid rgba(245, 239, 228, 0.13);
+            background: rgba(6, 16, 29, 0.54);
+            font-family: var(--font-mono);
+            font-size: clamp(0.54rem, 0.8vw, 0.7rem);
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            text-align: center;
+        }
+
+        .baseline-card::after,
+        .fix-card::after,
+        .proof-card::after,
+        .limit-card::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(99, 223, 213, 0.5), transparent);
+        }
+
+        .baseline-card,
+        .fix-card,
+        .proof-card,
+        .limit-card {
+            position: relative;
+        }
+
+        .result-board {
+            padding: clamp(1rem, 1.6vw, 1.3rem);
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+            gap: clamp(0.7rem, 1vw, 1rem);
+        }
+
+        .bar-list {
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .bar-row {
+            display: grid;
+            grid-template-columns: minmax(74px, 92px) minmax(52px, 68px) 1fr minmax(120px, 160px);
+            gap: 0.7rem;
+            align-items: center;
+            color: var(--ink-soft);
+            font-size: clamp(0.62rem, 0.88vw, 0.8rem);
+        }
+
+        .bar-row strong {
+            font-size: clamp(0.82rem, 1.08vw, 1rem);
+            color: var(--ink);
+        }
+
+        .score-value {
+            font-family: var(--font-display);
+            font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+            color: var(--accent-cream);
+        }
+
+        .pvalue-list {
+            display: grid;
+            gap: 0.65rem;
+            margin-top: 0.6rem;
+        }
+
+        .pvalue-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: baseline;
+            padding-bottom: 0.45rem;
+            border-bottom: 1px solid rgba(245, 239, 228, 0.08);
+            font-size: clamp(0.62rem, 0.88vw, 0.76rem);
+            color: var(--ink-soft);
+            font-family: var(--font-mono);
+        }
+
+        .verdict {
+            margin-top: 0.9rem;
+            padding: 0.9rem 1rem;
+            border-radius: var(--radius-md);
+            background: rgba(99, 223, 213, 0.08);
+            border: 1px solid rgba(99, 223, 213, 0.18);
+        }
+
+        .verdict strong {
+            display: block;
+            color: var(--ink);
+            margin-bottom: 0.35rem;
+        }
+
+        .directory-chip {
+            padding: clamp(0.8rem, 1.1vw, 1rem);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(180deg, rgba(245, 239, 228, 0.05), rgba(245, 239, 228, 0.02));
+            min-height: 0;
+        }
+
+        .directory-chip code,
+        .results-panel code,
+        .panel code,
+        .fix-card code,
+        .proof-card code,
+        .limit-card code {
+            font-family: var(--font-mono);
+            font-size: clamp(0.58rem, 0.78vw, 0.7rem);
+            color: var(--accent);
+            word-break: break-word;
+        }
+
+        .slide-number {
+            position: absolute;
+            right: clamp(1rem, 2vw, 2rem);
+            top: clamp(0.8rem, 1.5vw, 1.1rem);
+            font-family: var(--font-mono);
+            font-size: clamp(0.56rem, 0.78vw, 0.72rem);
+            color: var(--ink-faint);
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .hero-number {
+            position: absolute;
+            right: clamp(1.6rem, 3vw, 3rem);
+            bottom: clamp(1rem, 2vw, 1.8rem);
+            font-family: var(--font-display);
+            font-size: clamp(4rem, 12vw, 10rem);
+            line-height: 0.8;
+            color: rgba(245, 239, 228, 0.08);
+            letter-spacing: -0.06em;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            left: clamp(0.8rem, 1.5vw, 1.2rem);
+            bottom: clamp(0.8rem, 1.5vw, 1.2rem);
+            z-index: 9998;
+            padding: 0.55rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(6, 16, 29, 0.72);
+            border: 1px solid rgba(245, 239, 228, 0.14);
+            font-family: var(--font-mono);
+            font-size: clamp(0.54rem, 0.75vw, 0.68rem);
+            color: var(--ink-faint);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo),
+                        filter var(--duration-normal) var(--ease-out-expo);
+            filter: blur(10px);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+
+        .slide.visible .reveal:nth-child(1) { transition-delay: 0.08s; }
+        .slide.visible .reveal:nth-child(2) { transition-delay: 0.16s; }
+        .slide.visible .reveal:nth-child(3) { transition-delay: 0.24s; }
+        .slide.visible .reveal:nth-child(4) { transition-delay: 0.32s; }
+        .slide.visible .reveal:nth-child(5) { transition-delay: 0.40s; }
+        .slide.visible .reveal:nth-child(6) { transition-delay: 0.48s; }
+
+        @media (max-width: 980px) {
+            .deck-grid,
+            .vector-band,
+            .result-board,
+            .proof-grid,
+            .task-grid,
+            .surface-grid,
+            .baseline-grid,
+            .fix-grid,
+            .limit-grid,
+            .directory-grid,
+            .stats-ribbon,
+            .phase-strip,
+            .action-constellation {
+                grid-template-columns: 1fr;
+            }
+
+            .result-board,
+            .signal-map {
+                min-height: 0;
+            }
+
+            .nav-dots {
+                right: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" aria-hidden="true"></div>
+    <nav class="nav-dots" aria-label="Slide navigation"></nav>
+    <div class="keyboard-hint">Arrow keys / space / swipe</div>
+
+    <section class="slide visible" data-title="Adaptive Clinical Recruitment">
+        <div class="slide-number">01 / 09</div>
+        <div class="slide-content shell">
+            <div class="deck-grid">
+                <div class="hero-stack">
+                    <span class="section-chip reveal">Protocol Cartography / corrected benchmark package</span>
+                    <p class="eyebrow reveal">NeurIPS 2026 E&amp;D / communication deck</p>
+                    <h1 class="display reveal">Adaptive Clinical Recruitment</h1>
+                    <p class="subcopy reveal">A deterministic long-horizon benchmark for sequential trial planning across screening, follow-up, site allocation, planning, memory use, and delayed consequence.</p>
+                    <div class="stats-ribbon reveal">
+                        <div class="metric-panel">
+                            <strong>180</strong>
+                            <span>simulated days</span>
+                        </div>
+                        <div class="metric-panel">
+                            <strong>3</strong>
+                            <span>public tasks</span>
+                        </div>
+                        <div class="metric-panel">
+                            <strong>8</strong>
+                            <span>action types</span>
+                        </div>
+                        <div class="metric-panel">
+                            <strong>37</strong>
+                            <span>training features</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="signal-map reveal">
+                    <div class="orbit-core">
+                        <div>
+                            <span>scope</span>
+                            <strong>stress test</strong>
+                        </div>
+                    </div>
+                    <div class="orbit-tag orbit-a">plan state</div>
+                    <div class="orbit-tag orbit-b">memory state</div>
+                    <div class="orbit-tag orbit-c">delayed effects</div>
+                    <div class="orbit-tag orbit-d">graded final score</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-number">180</div>
+    </section>
+
+    <section class="slide" data-title="Why it matters">
+        <div class="slide-number">02 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Why this benchmark is different</span>
+            <div class="deck-grid">
+                <div class="panel-stack">
+                    <p class="lead-quote reveal">Workflow-shaped, not toy-shaped.</p>
+                    <p class="subcopy reveal">The environment is built around a patient funnel and operational constraints rather than frame-level rewards. Decisions echo forward through time, which makes interface correctness as important as reward design.</p>
+                    <div class="phase-strip reveal">
+                        <div class="phase-node"><strong>Screening</strong><p class="note">Unscreened candidates appear in <code>available_patients</code>.</p></div>
+                        <div class="phase-node"><strong>Conversion</strong><p class="note">Recontact targets come from <code>recontact_candidates</code>.</p></div>
+                        <div class="phase-node"><strong>Allocation</strong><p class="note">Consented patients wait in <code>allocation_candidates</code>.</p></div>
+                        <div class="phase-node"><strong>Retention</strong><p class="note">Dropout risk and follow-up pressure stay active over time.</p></div>
+                    </div>
+                </div>
+                <div class="poster-panel reveal" style="padding: clamp(1rem, 1.6vw, 1.3rem); display:flex; flex-direction:column; gap:0.8rem; justify-content:center;">
+                    <div class="micro-chip"><strong>Delayed</strong><span>actions can trigger later consequences</span></div>
+                    <div class="micro-chip"><strong>Typed</strong><span>observation, action, state, and step result models</span></div>
+                    <div class="micro-chip"><strong>Graded</strong><span>episodes finish with <code>final_score</code> in <code>(0, 1)</code></span></div>
+                    <div class="micro-chip"><strong>Structured</strong><span>plan, memory, token, and milestone signals stay visible</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-number">02</div>
+    </section>
+
+    <section class="slide" data-title="Task surfaces">
+        <div class="slide-number">03 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Task surfaces</span>
+            <h2 class="headline reveal">Three public tasks, one patient funnel, progressively tighter pressure.</h2>
+            <div class="task-grid reveal">
+                <div class="task-card">
+                    <div class="task-meta">easy_bench / 1 site</div>
+                    <em>80 target</em>
+                    <strong>Basic funnel dynamics</strong>
+                    <p class="note">`$120K` budget. Designed to establish the basic screening and enrollment rhythm.</p>
+                </div>
+                <div class="task-card">
+                    <div class="task-meta">medium_bench / 3 sites</div>
+                    <em>120 target</em>
+                    <strong>Multi-site coordination</strong>
+                    <p class="note">`$150K` budget. Site quality differences start to matter alongside candidate flow.</p>
+                </div>
+                <div class="task-card">
+                    <div class="task-meta">hard_bench / 5 sites</div>
+                    <em>150 target</em>
+                    <strong>Budget and retention pressure</strong>
+                    <p class="note">`$100K` budget. Constraints, uncertainty, and retention costs force sharper trade-offs.</p>
+                </div>
+            </div>
+            <div class="panel reveal" style="padding: clamp(0.9rem, 1.3vw, 1.1rem);">
+                <div class="card-kicker">Funnel logic</div>
+                <div class="phase-strip">
+                    <div class="phase-node"><strong>Contacted</strong><p class="note">candidate enters the episode</p></div>
+                    <div class="phase-node"><strong>Eligible</strong><p class="note">screening and consent status update</p></div>
+                    <div class="phase-node"><strong>Allocated</strong><p class="note">site fit and capacity decide the next move</p></div>
+                    <div class="phase-node"><strong>Enrolled</strong><p class="note">retention and dropout pressure remain live</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-number">03</div>
+    </section>
+
+    <section class="slide" data-title="Interface truth">
+        <div class="slide-number">04 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Interface truth</span>
+            <div class="vector-band">
+                <div class="vector-panel reveal">
+                    <div class="card-kicker">Action interface / 8 implemented types</div>
+                    <h2 class="headline" style="max-width: 11ch;">Action-specific pools are part of the benchmark, not a doc detail.</h2>
+                    <div class="action-constellation">
+                        <div class="action-pill">screen_patient</div>
+                        <div class="action-pill">recontact</div>
+                        <div class="action-pill">allocate_to_site</div>
+                        <div class="action-pill">adjust_strategy</div>
+                        <div class="action-pill">plan_next_phase</div>
+                        <div class="action-pill">summarize_and_index</div>
+                        <div class="action-pill">retrieve_history</div>
+                        <div class="action-pill">stop_recruitment</div>
+                    </div>
+                </div>
+                <div class="vector-panel reveal">
+                    <div class="card-kicker">Feature vector / 37 dimensions</div>
+                    <p class="note">The trainable baselines share one numeric view assembled from timestamp, budget, funnel counts, milestones, constraints, uncertainty, patient-memory summaries, and counterfactual estimates.</p>
+                    <div class="vector-bars">
+                        <div class="vector-row"><span>core</span><div class="vector-track"><div class="vector-fill" style="width: 74%;"></div></div><span>12</span></div>
+                        <div class="vector-row"><span>funnel</span><div class="vector-track"><div class="vector-fill" style="width: 52%;"></div></div><span>5</span></div>
+                        <div class="vector-row"><span>milestone</span><div class="vector-track"><div class="vector-fill" style="width: 40%;"></div></div><span>4</span></div>
+                        <div class="vector-row"><span>constraint</span><div class="vector-track"><div class="vector-fill" style="width: 60%;"></div></div><span>6</span></div>
+                        <div class="vector-row"><span>uncertainty</span><div class="vector-track"><div class="vector-fill" style="width: 34%;"></div></div><span>3</span></div>
+                        <div class="vector-row"><span>memory</span><div class="vector-track"><div class="vector-fill" style="width: 48%;"></div></div><span>5</span></div>
+                        <div class="vector-row"><span>rollout</span><div class="vector-track"><div class="vector-fill" style="width: 22%;"></div></div><span>2</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="surface-grid reveal">
+                <div class="surface-card"><strong>Plan state</strong><p class="note"><code>current_plan</code>, target phase, and follow-through rewards stay explicit.</p></div>
+                <div class="surface-card"><strong>Memory state</strong><p class="note"><code>indexed_memory_summary</code> and retrieved context let memory be part of the interface.</p></div>
+                <div class="surface-card"><strong>Operational signals</strong><p class="note">Milestones, constraints, token use, and counterfactual hints remain observable.</p></div>
+            </div>
+        </div>
+        <div class="hero-number">04</div>
+    </section>
+
+    <section class="slide" data-title="Repo baselines">
+        <div class="slide-number">05 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Repo baselines</span>
+            <h2 class="headline reveal">Four trainable baselines, one shared pure-NumPy actor-critic backbone.</h2>
+            <div class="baseline-grid reveal">
+                <div class="baseline-card"><div class="card-kicker">HCAPO</div><strong>Hierarchical subgoals + hindsight relabeling</strong><p class="note">Planner / executor separation and relabeled credit assignment over long trajectories.</p></div>
+                <div class="baseline-card"><div class="card-kicker">MiRA</div><strong>Milestone-aware potential shaping</strong><p class="note">A learned milestone critic perturbs reward flow without changing the benchmark interface.</p></div>
+                <div class="baseline-card"><div class="card-kicker">KLong</div><strong>Multi-scale temporal aggregation</strong><p class="note">Overlapping trajectory segments and TD(lambda)-style credit propagation.</p></div>
+                <div class="baseline-card"><div class="card-kicker">MemexRL</div><strong>Episodic memory write / read behavior</strong><p class="note">Learns what to store, what to retrieve, and when memory should influence action choice.</p></div>
+            </div>
+            <div class="panel reveal" style="padding: clamp(0.9rem, 1.2vw, 1.05rem);">
+                <p class="note">The current documentation treats these as <strong>repo baselines</strong>. The corrected paper and docs avoid presenting them as externally validated reproductions of named methods.</p>
+            </div>
+        </div>
+        <div class="hero-number">05</div>
+    </section>
+
+    <section class="slide" data-title="Corrections before results">
+        <div class="slide-number">06 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Benchmark trust before benchmark marketing</span>
+            <h2 class="headline reveal">What was corrected before the fresh sweep was allowed to speak.</h2>
+            <div class="fix-grid reveal">
+                <div class="fix-card"><div class="card-kicker">Candidate routing</div><strong>Recontact and allocation now use their own pools.</strong><p class="note">The old path incorrectly reused <code>available_patients</code> for actions that should target screened or consented candidates.</p></div>
+                <div class="fix-card"><div class="card-kicker">Chart robustness</div><strong>Small-seed error bars were repaired.</strong><p class="note">The sweep charts no longer break when seed counts are small or confidence intervals are asymmetric.</p></div>
+                <div class="fix-card"><div class="card-kicker">Artifact refresh</div><strong>Docs images now update with the sweep output.</strong><p class="note">Charts are copied into both <code>data/sweep_results/</code> and <code>docs/images/</code>.</p></div>
+                <div class="fix-card"><div class="card-kicker">Claim cleanup</div><strong>Docs now match the current 8-action benchmark.</strong><p class="note">Old action counts, stale scores, and overclaims were removed before communication assets were rebuilt.</p></div>
+            </div>
+        </div>
+        <div class="hero-number">06</div>
+    </section>
+
+    <section class="slide" data-title="Fresh results">
+        <div class="slide-number">07 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Fresh 5-seed sweep / corrected evaluation path</span>
+            <div class="result-board reveal">
+                <div class="results-panel">
+                    <div class="card-kicker">Mean score / 95% CI</div>
+                    <div class="bar-list">
+                        <div class="bar-row"><strong>HCAPO</strong><span class="score-value">0.2215</span><div class="bar-track"><div class="bar-fill" style="width: 88%;"></div></div><span>[0.2100, 0.2303]</span></div>
+                        <div class="bar-row"><strong>KLong</strong><span class="score-value">0.2152</span><div class="bar-track"><div class="bar-fill" style="width: 86%;"></div></div><span>[0.1977, 0.2286]</span></div>
+                        <div class="bar-row"><strong>MemexRL</strong><span class="score-value">0.2148</span><div class="bar-track"><div class="bar-fill" style="width: 85%;"></div></div><span>[0.1943, 0.2352]</span></div>
+                        <div class="bar-row"><strong>MiRA</strong><span class="score-value">0.2094</span><div class="bar-track"><div class="bar-fill" style="width: 83%;"></div></div><span>[0.2023, 0.2165]</span></div>
+                    </div>
+                </div>
+                <div class="pvalue-panel">
+                    <div class="card-kicker">Pairwise tests</div>
+                    <div class="pvalue-list">
+                        <div class="pvalue-row"><span>HCAPO vs MiRA</span><strong>p = 0.1823</strong></div>
+                        <div class="pvalue-row"><span>HCAPO vs KLong</span><strong>p = 0.3849</strong></div>
+                        <div class="pvalue-row"><span>HCAPO vs MemexRL</span><strong>p = 0.6370</strong></div>
+                        <div class="pvalue-row"><span>MiRA vs KLong</span><strong>p = 0.6674</strong></div>
+                        <div class="pvalue-row"><span>MiRA vs MemexRL</span><strong>p = 0.6656</strong></div>
+                        <div class="pvalue-row"><span>KLong vs MemexRL</span><strong>p = 0.9756</strong></div>
+                    </div>
+                    <div class="verdict">
+                        <strong>No pairwise comparison reaches p &lt; 0.05.</strong>
+                        <p class="note">The honest read is benchmark stress test, not decisive leaderboard separation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-number">07</div>
+    </section>
+
+    <section class="slide" data-title="Verification">
+        <div class="slide-number">08 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Verification and reproducibility</span>
+            <h2 class="headline reveal">The artifact is strongest when read as a reproducible evaluation bundle.</h2>
+            <div class="proof-grid reveal">
+                <div class="proof-card"><div class="card-kicker">Integration</div><em>30 / 30</em><strong>Checks passed across all tasks</strong><p class="note">Observation structure, plan and memory fields, token state, action diversity, and non-zero reward.</p></div>
+                <div class="proof-card"><div class="card-kicker">Tests</div><em>305</em><strong>Core local checks passing</strong><p class="note"><code>76 + 43 + 109 + 77</code> from environment, agent, research, and serving suites.</p></div>
+                <div class="proof-card"><div class="card-kicker">Paper</div><em>9 pages</em><strong>Official NeurIPS E&amp;D build</strong><p class="note">`paper/main.pdf` compiles with the official style and conservative claims.</p></div>
+                <div class="proof-card"><div class="card-kicker">Artifacts</div><em>6 charts</em><strong>Docs and sweep outputs refreshed</strong><p class="note">`docs/images/` and `data/sweep_results/` now stay aligned.</p></div>
+            </div>
+            <div class="directory-grid reveal">
+                <div class="directory-chip"><strong>Report</strong><span>fresh summary and pairwise stats</span><code>data/sweep_results/neurips_report.md</code></div>
+                <div class="directory-chip"><strong>Paper</strong><span>anonymous submission build</span><code>paper/main.pdf</code></div>
+                <div class="directory-chip"><strong>Images</strong><span>regenerated diagrams and charts</span><code>docs/images/</code></div>
+            </div>
+        </div>
+        <div class="hero-number">08</div>
+    </section>
+
+    <section class="slide" data-title="Read it critically">
+        <div class="slide-number">09 / 09</div>
+        <div class="slide-content shell">
+            <span class="section-chip reveal">Read it critically</span>
+            <div class="deck-grid">
+                <div class="card-stack">
+                    <h2 class="headline reveal">Core benchmark strengths, explicit limits, and the right next questions.</h2>
+                    <div class="limit-grid reveal">
+                        <div class="limit-card"><div class="card-kicker">Strongest claim</div><strong>Typed, corrected, and reproducible.</strong><p class="note">Deterministic environment, corrected action routing, refreshed charts, and passing integration checks.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Do not overread</div><strong>Not a finished leaderboard.</strong><p class="note">The current four baselines are close and the present training budget is still small.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Scope boundary</div><strong>Core path over extras.</strong><p class="note">`env.py`, `models.py`, the baselines, the sweep, the tests, and generated artifacts carry the main claim set.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Next work</div><strong>More seeds, more budget, sharper ablations.</strong><p class="note">Future separation should come from stronger training and clearer feature-level analysis, not louder wording.</p></div>
+                    </div>
+                </div>
+                <div class="closing-panel reveal">
+                    <div class="card-kicker">Where to look first</div>
+                    <div class="directory-grid" style="grid-template-columns: 1fr; margin-top: 0.7rem;">
+                        <div class="directory-chip"><strong>README</strong><span>repo truth and current commands</span><code>README.md</code></div>
+                        <div class="directory-chip"><strong>Sweep outputs</strong><span>means, CIs, and p-values</span><code>data/sweep_results/</code></div>
+                        <div class="directory-chip"><strong>Communication assets</strong><span>deck, philosophy, and posters</span><code>docs/communication/</code></div>
+                    </div>
+                    <p class="subcopy" style="margin-top: 1rem; max-width: 32ch;">The benchmark now communicates the same thing everywhere: what is implemented, what was regenerated, and what still needs stronger empirical separation.</p>
+                </div>
+            </div>
+        </div>
+        <div class="hero-number">09</div>
+    </section>
+
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = Array.from(document.querySelectorAll('.slide'));
+                this.progressBar = document.querySelector('.progress-bar');
+                this.navDots = document.querySelector('.nav-dots');
+                this.currentSlide = 0;
+                this.touchStartY = 0;
+                this.lastWheelNav = 0;
+                this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.setupIntersectionObserver();
+                this.setupNavDots();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupScrollTracking();
+                this.updateFromScroll();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.42 });
+
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupNavDots() {
+                this.slides.forEach((slide, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'nav-dot';
+                    button.type = 'button';
+                    button.setAttribute('aria-label', `Go to slide ${index + 1}: ${slide.dataset.title || 'slide'}`);
+                    button.addEventListener('click', () => this.goTo(index));
+                    this.navDots.appendChild(button);
+                });
+                this.dots = Array.from(document.querySelectorAll('.nav-dot'));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (event) => {
+                    if (['ArrowDown', 'PageDown', ' ', 'ArrowRight'].includes(event.key)) {
+                        event.preventDefault();
+                        this.goTo(this.currentSlide + 1);
+                    }
+                    if (['ArrowUp', 'PageUp', 'ArrowLeft'].includes(event.key)) {
+                        event.preventDefault();
+                        this.goTo(this.currentSlide - 1);
+                    }
+                    if (event.key === 'Home') {
+                        event.preventDefault();
+                        this.goTo(0);
+                    }
+                    if (event.key === 'End') {
+                        event.preventDefault();
+                        this.goTo(this.slides.length - 1);
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                document.addEventListener('touchstart', (event) => {
+                    this.touchStartY = event.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (event) => {
+                    const delta = this.touchStartY - event.changedTouches[0].screenY;
+                    if (Math.abs(delta) < 48) return;
+                    this.goTo(delta > 0 ? this.currentSlide + 1 : this.currentSlide - 1);
+                }, { passive: true });
+            }
+
+            setupWheelNav() {
+                window.addEventListener('wheel', (event) => {
+                    const now = Date.now();
+                    if (now - this.lastWheelNav < 850) return;
+                    if (Math.abs(event.deltaY) < 40) return;
+                    this.lastWheelNav = now;
+                    this.goTo(event.deltaY > 0 ? this.currentSlide + 1 : this.currentSlide - 1);
+                }, { passive: true });
+            }
+
+            setupScrollTracking() {
+                window.addEventListener('scroll', () => this.updateFromScroll(), { passive: true });
+                window.addEventListener('resize', () => this.updateFromScroll(), { passive: true });
+            }
+
+            goTo(index) {
+                const targetIndex = Math.max(0, Math.min(this.slides.length - 1, index));
+                this.slides[targetIndex].scrollIntoView({ behavior: this.reduceMotion ? 'auto' : 'smooth', block: 'start' });
+                this.currentSlide = targetIndex;
+                this.updateUI();
+            }
+
+            updateFromScroll() {
+                let nearestIndex = 0;
+                let nearestDistance = Number.POSITIVE_INFINITY;
+                this.slides.forEach((slide, index) => {
+                    const distance = Math.abs(slide.getBoundingClientRect().top);
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestIndex = index;
+                    }
+                });
+                this.currentSlide = nearestIndex;
+                this.updateUI();
+            }
+
+            updateUI() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = `${progress}%`;
+                this.dots.forEach((dot, index) => dot.classList.toggle('active', index === this.currentSlide));
+            }
+        }
+
+        new SlidePresentation();
+    </script>
+</body>
+</html>

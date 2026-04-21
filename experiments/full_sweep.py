@@ -24,6 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+DOCS_IMAGES_DIR = ROOT / "docs" / "images"
+
 import numpy as np
 
 from env import ClinicalRecruitmentEnv
@@ -112,8 +114,32 @@ def run_episode(
         # Build action
         action_kwargs = {"action_type": action_type}
 
-        if action_type in ["screen_patient", "recontact", "allocate_to_site"]:
+        def recommended_phase(current_obs: Dict[str, Any]) -> str:
+            funnel = current_obs.get("current_funnel", {})
+            target = max(1, int(current_obs.get("target_enrollment", 1)))
+            enrolled = int(current_obs.get("enrolled_so_far", 0))
+            progress = enrolled / target
+            constraints = current_obs.get("active_constraints", {})
+            if constraints.get("regulatory_hold_days", 0) or constraints.get("site_bottleneck", False):
+                return "recovery"
+            if current_obs.get("allocation_candidates"):
+                return "allocation"
+            if funnel.get("eligible", 0) > funnel.get("consented", 0) or current_obs.get("recontact_candidates"):
+                return "conversion"
+            if progress >= 0.7 or funnel.get("dropped", 0) > max(2, enrolled // 5):
+                return "retention"
+            return "screening"
+
+        if action_type == "screen_patient":
             patients = obs.get("available_patients", [])
+            if patients:
+                action_kwargs["patient_id"] = patients[0].get("id")
+        elif action_type == "recontact":
+            patients = obs.get("recontact_candidates", [])
+            if patients:
+                action_kwargs["patient_id"] = patients[0].get("id")
+        elif action_type == "allocate_to_site":
+            patients = obs.get("allocation_candidates", [])
             if patients:
                 action_kwargs["patient_id"] = patients[0].get("id")
 
@@ -126,7 +152,7 @@ def run_episode(
             action_kwargs["strategy_change"] = "increase_outreach"
 
         if action_type == "plan_next_phase":
-            action_kwargs["target_phase"] = "screening"
+            action_kwargs["target_phase"] = recommended_phase(obs)
 
         action = Action(**action_kwargs)
         result = env.step(action)
@@ -258,12 +284,13 @@ def run_full_sweep(config: SweepConfig) -> Dict[str, Any]:
         ]
         if scores:
             scores_arr = np.array(scores)
+            mean_score = float(np.mean(scores_arr))
             results[agent_type]["overall"] = {
-                "mean": float(np.mean(scores_arr)),
+                "mean": mean_score,
                 "std": float(np.std(scores_arr, ddof=1)) if len(scores) > 1 else 0.0,
                 "min": float(np.min(scores_arr)),
                 "max": float(np.max(scores_arr)),
-                "ci_95": bootstrap_ci(scores_arr) if len(scores) >= 3 else (0.0, 0.0),
+                "ci_95": bootstrap_ci(scores_arr) if len(scores) >= 3 else (mean_score, mean_score),
             }
 
     return results, all_results
@@ -338,6 +365,13 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
         return
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    DOCS_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+
+    def save_chart(fig, name: str) -> None:
+        fig.savefig(output_dir / f"{name}.png", dpi=150)
+        fig.savefig(output_dir / f"{name}.svg")
+        fig.savefig(DOCS_IMAGES_DIR / f"{name}.png", dpi=150)
+        fig.savefig(DOCS_IMAGES_DIR / f"{name}.svg")
 
     # 1. Agent comparison bar chart
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -347,14 +381,20 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
     ci_lows = []
     ci_highs = []
 
+    max_seed_count = 0
     for agent, data in results.items():
         if "overall" in data:
             agents.append(agent.upper())
             means.append(data["overall"]["mean"])
             stds.append(data["overall"]["std"])
             ci_low, ci_high = data["overall"]["ci_95"]
-            ci_lows.append(data["overall"]["mean"] - ci_low)
-            ci_highs.append(ci_high - data["overall"]["mean"])
+            mean = data["overall"]["mean"]
+            ci_lows.append(max(0.0, mean - ci_low))
+            ci_highs.append(max(0.0, ci_high - mean))
+            max_seed_count = max(
+                max_seed_count,
+                len([s for s in data.get("seeds", {}) if "mean_score" in data["seeds"].get(s, {})]),
+            )
 
     x = np.arange(len(agents))
     colors = ['#4C72B0', '#55A868', '#C44E52', '#8172B2']
@@ -362,7 +402,10 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels(agents)
     ax.set_ylabel("Mean Final Score")
-    ax.set_title("Agent Performance Comparison (5-Seed Average with 95% CI)")
+    if max_seed_count >= 3:
+        ax.set_title(f"Agent Performance Comparison ({max_seed_count}-Seed Average with 95% CI)")
+    else:
+        ax.set_title(f"Agent Performance Comparison ({max_seed_count}-Seed Average)")
     ax.grid(axis='y', alpha=0.3)
 
     for i, (bar, mean, std) in enumerate(zip(bars, means, stds)):
@@ -370,8 +413,7 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
                 f'{mean:.3f}\n(±{std:.3f})', ha='center', va='bottom', fontsize=9)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "agent_comparison.png", dpi=150)
-    plt.savefig(output_dir / "agent_comparison.svg")
+    save_chart(fig, "agent_comparison")
     plt.close()
 
     # 2. Seed-by-seed heatmap
@@ -404,8 +446,7 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
     plt.colorbar(im, label='Final Score')
     ax.set_title("Score by Agent and Seed")
     plt.tight_layout()
-    plt.savefig(output_dir / "seed_heatmap.png", dpi=150)
-    plt.savefig(output_dir / "seed_heatmap.svg")
+    save_chart(fig, "seed_heatmap")
     plt.close()
 
     # 3. Box plot
@@ -432,8 +473,7 @@ def generate_sweep_charts(results: Dict[str, Any], output_dir: Path) -> None:
     ax.set_title("Score Distribution Across Seeds")
     ax.grid(axis='y', alpha=0.3)
     plt.tight_layout()
-    plt.savefig(output_dir / "score_boxplot.png", dpi=150)
-    plt.savefig(output_dir / "score_boxplot.svg")
+    save_chart(fig, "score_boxplot")
     plt.close()
 
     print(f"Charts saved to {output_dir}")
@@ -470,26 +510,47 @@ def run_integration_tests(task_ids: List[str]) -> Dict[str, Any]:
         action_types_used = set()
         
         while not result.done and step_count < 20:
-            # Cycle through different action types
+            # Cycle through different action types while respecting action-specific candidate pools.
             action_types = ["screen_patient", "recontact", "allocate_to_site", "adjust_strategy"]
             action_type = action_types[step_count % len(action_types)]
-            
+
             action_kwargs = {"action_type": action_type}
-            
-            if action_type in ["screen_patient", "recontact", "allocate_to_site"]:
+
+            if action_type == "screen_patient":
                 patients = obs.available_patients
                 if patients:
                     p = patients[0]
-                    action_kwargs["patient_id"] = p.id if hasattr(p, 'id') else p.get("id")
-                    
-            if action_type == "allocate_to_site":
+                    action_kwargs["patient_id"] = p.id if hasattr(p, "id") else p.get("id")
+                else:
+                    action_kwargs = {
+                        "action_type": "adjust_strategy",
+                        "strategy_change": "increase_outreach",
+                    }
+            elif action_type == "recontact":
+                patients = obs.recontact_candidates
+                if patients:
+                    p = patients[0]
+                    action_kwargs["patient_id"] = p.id if hasattr(p, "id") else p.get("id")
+                else:
+                    action_kwargs = {
+                        "action_type": "adjust_strategy",
+                        "strategy_change": "increase_outreach",
+                    }
+            elif action_type == "allocate_to_site":
+                patients = obs.allocation_candidates
                 sites = obs.site_performance
-                if sites:
+                if patients and sites:
+                    p = patients[0]
+                    action_kwargs["patient_id"] = p.id if hasattr(p, "id") else p.get("id")
                     action_kwargs["site_id"] = list(sites.keys())[0]
-                    
-            if action_type == "adjust_strategy":
+                else:
+                    action_kwargs = {
+                        "action_type": "adjust_strategy",
+                        "strategy_change": "increase_outreach",
+                    }
+            elif action_type == "adjust_strategy":
                 action_kwargs["strategy_change"] = "increase_outreach"
-                
+
             action = Action(**action_kwargs)
             result = env.step(action)
             obs = result.observation

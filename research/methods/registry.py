@@ -1,39 +1,43 @@
-"""Paper-to-benchmark mapping for planned long-horizon research integrations."""
+"""Repository method registry for long-horizon research integrations.
+
+The `paper` field is a lightweight provenance note and should not be treated as a
+verified external citation without independent validation.
+"""
 
 METHOD_REGISTRY = [
     {
         "id": "hcapo",
         "name": "HCAPO",
-        "paper": "arXiv:2603.08754",
-        "status": "scaffolded",
+        "paper": "repo:hcapo_agent",
+        "status": "implemented_in_repo",
         "focus": "hierarchical constrained planning and optimization",
     },
     {
         "id": "mira",
         "name": "MiRA",
-        "paper": "arXiv:2603.19685",
-        "status": "scaffolded",
+        "paper": "repo:mira_agent",
+        "status": "implemented_in_repo",
         "focus": "subgoal-driven long-horizon reasoning",
     },
     {
         "id": "klong",
         "name": "KLong",
-        "paper": "arXiv:2602.17547",
-        "status": "scaffolded",
+        "paper": "repo:klong_agent",
+        "status": "implemented_in_repo",
         "focus": "long-context memory and temporal credit assignment",
     },
     {
         "id": "plan_and_act",
         "name": "Plan-and-Act",
-        "paper": "arXiv:2503.09572",
+        "paper": "repo:plan_and_act_runtime",
         "status": "scaffolded",
         "focus": "planner/executor decomposition for long-horizon tasks",
     },
     {
         "id": "memex_rl",
         "name": "MemexRL",
-        "paper": "arXiv:2603.04257",
-        "status": "scaffolded",
+        "paper": "repo:memex_agent",
+        "status": "implemented_in_repo",
         "focus": "episodic memory retrieval for long-horizon RL agents",
     },
     {

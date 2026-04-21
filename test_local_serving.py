@@ -21,32 +21,19 @@ def heuristic_policy(obs: Observation) -> dict:
     # Prioritize based on funnel state
     funnel = obs.current_funnel
     patients = obs.available_patients
+    recontact_candidates = obs.recontact_candidates
+    allocation_candidates = obs.allocation_candidates
     sites = obs.site_performance
-    
-    # If no patients, adjust strategy
-    if not patients:
-        return {"action_type": "adjust_strategy", "strategy_change": "increase_outreach"}
-    
-    # Pick first patient
-    patient = patients[0]
-    patient_id = patient.get("id") if isinstance(patient, dict) else patient.id
     
     # Decision logic
     screened = funnel.get("screened", 0)
     eligible = funnel.get("eligible", 0)
     consented = funnel.get("consented", 0)
-    
-    # Need more screening
-    if screened < 10:
-        return {
-            "action_type": "screen_patient",
-            "patient_id": patient_id,
-            "hypothesis": random.choice(["noise_dominant", "site_bias", "dropout"]),
-            "confidence": 0.7,
-        }
-    
-    # Have eligible patients, try to convert
-    if eligible > consented and sites:
+
+    # Have consented patients, try to allocate
+    if allocation_candidates and sites:
+        patient = allocation_candidates[0]
+        patient_id = patient.get("id") if isinstance(patient, dict) else patient.id
         site_id = list(sites.keys())[0]
         return {
             "action_type": "allocate_to_site",
@@ -55,10 +42,29 @@ def heuristic_policy(obs: Observation) -> dict:
         }
     
     # Recontact for conversion
-    if random.random() < 0.3:
+    if recontact_candidates and random.random() < 0.3:
+        patient = recontact_candidates[0]
+        patient_id = patient.get("id") if isinstance(patient, dict) else patient.id
         return {"action_type": "recontact", "patient_id": patient_id}
+
+    # If no screenable patients remain, adjust strategy to surface more candidates.
+    if not patients:
+        return {"action_type": "adjust_strategy", "strategy_change": "increase_outreach"}
+
+    # Need more screening
+    if screened < 10 or eligible <= consented:
+        patient = patients[0]
+        patient_id = patient.get("id") if isinstance(patient, dict) else patient.id
+        return {
+            "action_type": "screen_patient",
+            "patient_id": patient_id,
+            "hypothesis": random.choice(["noise_dominant", "site_bias", "dropout"]),
+            "confidence": 0.7,
+        }
     
     # Default: screen more
+    patient = patients[0]
+    patient_id = patient.get("id") if isinstance(patient, dict) else patient.id
     return {
         "action_type": "screen_patient",
         "patient_id": patient_id,
@@ -172,8 +178,8 @@ result2 = env2.step(Action(**action2))
 check("state: consecutive steps work", result2 is not None)
 check("state: action has valid type", action2.get("action_type") in [
     "screen_patient", "recontact", "allocate_to_site", "adjust_strategy",
-    "stop_recruitment", "request_budget_extension", "negotiate_site_terms",
-    "plan_next_phase", "summarize_and_index", "retrieve_relevant_history"
+    "stop_recruitment", "plan_next_phase", "summarize_and_index",
+    "retrieve_relevant_history"
 ])
 
 print("\n" + "=" * 70)

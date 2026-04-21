@@ -1,235 +1,81 @@
-# Theme #2 Alignment: Long-Horizon Planning & Instruction Following
+# Theme #2 Alignment
 
-## Overview
+This note maps the current `clinical-recruitment-env` repository to Theme #2 style long-horizon planning requirements. It is intentionally narrower than the older docs: it only describes behavior that is visible in the current benchmark path, current repo baselines, or freshly generated artifacts.
 
-The Clinical Trial Recruitment Environment is designed specifically for **Theme #2: (Super) Long-Horizon Planning & Instruction Following**. This document details how each requirement is addressed.
+## Verified benchmark surfaces
 
----
+- `180`-step episodes in `env.py`
+- `3` public tasks in `openenv.yaml` and `app.py`
+- Typed `Observation`, `Action`, and `State` models in `models.py`
+- `8` implemented action types in `models.py` and `training/neural_policy.py`
+- `37`-dimensional numeric feature vector in `training/neural_policy.py`
+- Fresh sweep outputs in `data/sweep_results/`
+- Regenerated diagrams in `docs/images/`
 
-## Core Requirements Alignment
+## Requirement mapping
 
-### 1. Deep, Multi-Step Reasoning with Sparse/Delayed Rewards
+| Theme #2 idea | Current repo evidence | Notes |
+|---------------|-----------------------|-------|
+| Long-horizon episodes | `env.py`, `openenv.yaml` | Episodes run for up to `180` steps with delayed effects and final graded scores |
+| Delayed feedback | `env.py` delayed-effects queue, milestone updates, dropout handling | Actions can trigger downstream consequences several steps later |
+| Goal decomposition | `plan_next_phase`, `current_plan`, phase targeting in `env.py` | The benchmark has explicit plan state and planner-followthrough shaping |
+| Extended state tracking | `Observation` fields, `State`, patient memory summary, indexed memory summary | The environment carries structured context beyond the scalar reward |
+| Recovery from mistakes | `recontact`, `recovery` phase, constraint handling, plan refresh logic | Recovery is part of the benchmark interface, not just a post-hoc analysis idea |
+| Durable representations | Indexed-memory actions plus repo baselines such as `MemexRL` | The environment and baselines both expose memory-oriented behavior |
+| Multi-scale temporal reasoning | `KLong` baseline and milestone/frontier features | Present in repo baselines and numeric features, not claimed as solved |
+| Business workflow structure | Screening, conversion, allocation, retention, and recovery phases | The task is structured around an operational funnel instead of a short game loop |
+| Token-aware efficiency | `token_budget_remaining`, `token_usage_so_far`, `token_efficiency_score` | Internal accounting exists, but it is not provider-grounded external billing |
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Long episodes | 180-step episodes (180 simulated days) | `env.py:_max_steps = 180` |
-| Sparse rewards | Enrollment rewards (+0.5) are rare | ~5-10 enrollments per episode |
-| Delayed rewards | Milestone bonuses at 25/50/75/100% | `env.py:_check_milestone_bonus()` |
-| Delayed consequences | Consent windows expire in 5-14 days | `env.py:_delayed_effects_queue` |
+## Theme-relevant observation surfaces
 
-**Delayed Effects Queue**:
-```python
-# From env.py
-self._delayed_effects_queue: List[Tuple[int, str, Dict[str, Any]]] = []
-# Effects include:
-# - consent_expiry (5-14 days)
-# - site_negotiation_result (3-7 days)
-# - outreach_wave_response (7-21 days)
-# - regulatory_resolution (14-30 days)
-```
+The current `Observation` model exposes the following categories that matter for long-horizon planning:
 
-### 2. Goal Decomposition
+- Action-specific candidate pools: `available_patients`, `recontact_candidates`, `allocation_candidates`
+- Site state: `site_performance`
+- Long-horizon state: `milestones`, `active_constraints`, `delayed_effects_pending`
+- Planning and memory: `current_plan`, `indexed_memory_summary`, `retrieved_memory_context`
+- Difficulty and uncertainty: `difficulty`, `uncertainty_level`, `uncertainty_components`
+- Token-aware signals: `token_budget_remaining`, `token_usage_so_far`, `token_efficiency_score`
+- Counterfactual guidance: `counterfactual_hint`, `counterfactual_rollout`
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Hierarchical goals | HCAPO agent with subgoal decomposition | `research/methods/hcapo_agent.py` |
-| Milestone tracking | 25%, 50%, 75%, 100% enrollment checkpoints | `models.py:milestones` |
-| Phase planning | Explicit plan_next_phase action | `models.py:Action.target_phase` |
-| Subgoal execution | StrictSubgoalExecutor class | `research/replay.py` |
+## Repo baselines in scope
 
-**Subgoal Structure**:
-```python
-# From research/replay.py
-@dataclass
-class Subgoal:
-    name: str
-    target_metric: str  # e.g., "enrolled_so_far"
-    target_value: float  # e.g., 30 (25% of 120)
-    deadline_step: Optional[int] = None
-    completed: bool = False
-```
+The current docs treat the following as repo baselines, not as externally validated reproductions:
 
-### 3. State Tracking Over Extended Trajectories
+| Baseline | Main mechanism |
+|----------|----------------|
+| `HCAPO` | Hierarchical subgoals with hindsight relabeling |
+| `MiRA` | Milestone-aware potential shaping |
+| `KLong` | Multi-scale temporal aggregation |
+| `MemexRL` | Episodic memory write/read behavior |
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Patient memory | Persistent patient cohort tracking | `env.py:_patient_memory` |
-| Indexed memory | Episodic memory with write/retrieve | `models.py:indexed_memory_summary` |
-| History compression | MemexRL attention-based retrieval | `research/methods/memex_agent.py` |
-| 37-dim state vector | Rich observation space | `training/neural_policy.py:STATE_DIM=37` |
+All four use the shared pure-NumPy actor-critic stack in `training/neural_policy.py`.
 
-**Memory System**:
-```python
-# From env.py
-self._patient_memory: Dict[str, Dict[str, Any]] = {}  # Patient-level tracking
-self._indexed_memory: Dict[str, Dict[str, Any]] = {}  # Episodic memory store
-self._memory_index_counter: int = 0
-```
+## Current empirical status
 
-### 4. Recovery from Early Mistakes
+Fresh `5`-seed sweep summary from `data/sweep_results/neurips_report.json`:
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Recovery curriculum | EarlyMistakeRecoveryCurriculum | `training/curriculum.py` |
-| Hindsight relabeling | HER in HCAPO agent | `research/methods/hcapo_agent.py` |
-| Counterfactual hints | What-if guidance in observation | `models.py:counterfactual_hint` |
-| Recontact mechanism | Re-engage dropped patients | `Action.action_type="recontact"` |
+| Baseline | Mean | Std | 95% CI |
+|----------|------|-----|--------|
+| `HCAPO` | `0.2215` | `0.0127` | `[0.2100, 0.2303]` |
+| `KLong` | `0.2152` | `0.0222` | `[0.1977, 0.2286]` |
+| `MemexRL` | `0.2148` | `0.0270` | `[0.1943, 0.2352]` |
+| `MiRA` | `0.2094` | `0.0095` | `[0.2023, 0.2165]` |
 
-**Recovery Scenarios**:
-```python
-# From training/curriculum.py
-RECOVERY_SCENARIOS = [
-    RecoveryScenario("budget_overrun", budget_threshold=0.3, recovery_actions=["adjust_strategy"]),
-    RecoveryScenario("high_dropout", dropout_threshold=0.2, recovery_actions=["recontact"]),
-    RecoveryScenario("site_bottleneck", site_utilization=0.9, recovery_actions=["negotiate_site_terms"]),
-    RecoveryScenario("missed_milestone", milestone_delay=14, recovery_actions=["screen_patient"]),
-    RecoveryScenario("regulatory_hold", constraint_type="regulatory", recovery_actions=["request_budget_extension"]),
-]
-```
+Important interpretation:
 
-### 5. Beyond Shallow Next-Token Reasoning
+- `HCAPO` is the highest-mean baseline in the current run.
+- No pairwise comparison reaches `p < 0.05`.
+- The repo therefore supports a conservative benchmark claim: the environment is active and challenging, but the current baseline suite does not yet show a clear statistical winner.
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Multi-scale abstraction | KLong with 1/5/20/60 step windows | `research/methods/klong_agent.py` |
-| Potential-based shaping | MiRA learned potential function | `research/methods/mira_agent.py` |
-| TD(λ) learning | Eligibility traces for credit assignment | `research/methods/klong_agent.py` |
-| Trajectory segmentation | Overlapping context windows | `training/trajectory_splitter.py` |
+## What this file does not claim
 
-### 6. Structured Planning and Durable Representations
+- It does not claim a `10`-action interface.
+- It does not claim full `50/50` roadmap completion.
+- It does not claim external-token-grounded Mercor accounting.
+- It does not claim that every auxiliary research module is a validated benchmark contribution.
+- It does not claim significant baseline separation from the current sweep.
 
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Explicit planning | Plan-and-Act separation | `models.py:current_plan` |
-| Phase-based execution | Screening→Conversion→Completion | `env.py:_current_plan` |
-| Skill library | EvolvingSkillLibrary | `research/advanced_features.py` |
-| World models | SiteWorldModel, SkillWorldModel | `research/advanced_features.py` |
+## Bottom line
 
-### 7. Sessions Beyond Context Memory Limits
-
-| Requirement | Implementation | Evidence |
-|-------------|----------------|----------|
-| Episodic memory | MemexRL with learned write gate | `research/methods/memex_agent.py` |
-| Memory retrieval | Attention-based read mechanism | `memex_agent.py:_read_memory()` |
-| Importance scoring | Hindsight-weighted memory | `memex_agent.py:_compute_importance()` |
-| Trajectory splitting | Overlapping segments | `training/trajectory_splitter.py` |
-
-**MemexRL Memory System**:
-```python
-# From research/methods/memex_agent.py
-class MemexRLAgent:
-    def __init__(self):
-        self.memory_size = 1000  # Large episodic buffer
-        self.memory_dim = STATE_DIM + 1  # State + reward
-        self.memory = np.zeros((self.memory_size, self.memory_dim))
-        self.memory_importance = np.zeros(self.memory_size)
-        self.write_gate = NeuralNetwork([STATE_DIM, 32, 1])  # Learned gating
-```
-
----
-
-## Sub-Theme Alignment
-
-### Scale AI: Business Workflow Focus
-
-Clinical trial recruitment **is** a business workflow in the healthcare/pharma sector:
-
-| Business Domain | Mapping |
-|-----------------|---------|
-| **HR/Recruiting** | Patient screening ≈ Candidate screening |
-| **Sales Funnel** | Patient funnel (contact→screen→consent→enroll) |
-| **Project Management** | Trial timeline, milestones, resource allocation |
-| **Resource Management** | Budget, site capacity, staff allocation |
-
-**Key Business Metrics**:
-- Cost per enrolled patient
-- Time to enrollment target
-- Site utilization efficiency
-- Dropout/churn rate
-- ROI on outreach campaigns
-
-### Mercor: Token-Scaled Rewards
-
-The environment implements **capped token-scaled rewards**:
-
-| Feature | Implementation |
-|---------|----------------|
-| Token budget | 12,000 tokens per episode |
-| Per-action costs | 50-500 tokens depending on complexity |
-| Efficiency scoring | Rewards scale inversely with token usage |
-| Budget throttling | Expensive actions penalized when budget low |
-
-**Token Reward Scaling**:
-```python
-# From env.py
-def _compute_reward(self, outcome: Dict[str, Any]) -> float:
-    # Base reward
-    r = outcome_reward
-    
-    # Token efficiency penalty
-    token_penalty = min(0.05, token_cost / max(1, self._token_budget_total) * 1.2)
-    r -= token_penalty
-    
-    # Progress bonus scaled by efficiency
-    if self._token_efficiency_score > 0.5:
-        progress_bonus = min(0.04, self._token_efficiency_score * 0.03)
-        r += progress_bonus
-    
-    # Penalize efficiency degradation without progress
-    if self._token_efficiency_score < efficiency_before and not outcome.get("enrolled"):
-        r -= min(0.02, (efficiency_before - self._token_efficiency_score) * 0.1)
-    
-    return r
-```
-
-**Token Cost by Action**:
-| Action | Token Cost | Rationale |
-|--------|------------|-----------|
-| `screen_patient` | 200-400 | Complex eligibility reasoning |
-| `allocate_to_site` | 150-300 | Site matching logic |
-| `plan_next_phase` | 50-100 | Strategic planning |
-| `summarize_and_index` | 100-200 | Memory compression |
-| `retrieve_relevant_history` | 50-100 | Memory query |
-| `adjust_strategy` | 100-200 | Strategy evaluation |
-
----
-
-## Benchmark Characteristics Summary
-
-| Characteristic | Value | Theme #2 Relevance |
-|----------------|-------|-------------------|
-| Episode length | 180 steps | Long horizon |
-| State dimension | 37 features | Rich state tracking |
-| Action space | 10 discrete | Complex decision space |
-| Reward sparsity | ~5-10 enrollments/episode | Sparse rewards |
-| Delay range | 5-30 days | Delayed consequences |
-| Memory capacity | 1000 entries (MemexRL) | Beyond context limits |
-| Token budget | 12,000 tokens | Token-scaled rewards |
-
----
-
-## Agent Performance on Theme #2 Tasks
-
-| Agent | Mean Score | Key Capability |
-|-------|------------|----------------|
-| **HCAPO** | 0.234 | Hindsight credit assignment, goal decomposition |
-| **MemexRL** | 0.226 | Episodic memory, beyond context limits |
-| **MiRA** | 0.221 | Potential-based shaping, milestone tracking |
-| **KLong** | 0.212 | Multi-scale temporal abstraction |
-
-**Statistical Significance**: HCAPO > KLong (p=0.0075), suggesting hindsight credit assignment is more effective than pure temporal abstraction for this long-horizon task.
-
----
-
-## Conclusion
-
-The Clinical Trial Recruitment Environment directly addresses all Theme #2 requirements:
-
-1. ✅ **Long-horizon planning**: 180-step episodes with sparse milestone rewards
-2. ✅ **Goal decomposition**: Hierarchical subgoals with HCAPO
-3. ✅ **State tracking**: 37-dim observations + episodic memory
-4. ✅ **Error recovery**: Curriculum + hindsight relabeling + recontact
-5. ✅ **Structured planning**: Plan-and-Act separation + skill library
-6. ✅ **Beyond context limits**: MemexRL episodic memory (1000 entries)
-7. ✅ **Business workflow**: Healthcare recruiting funnel (Scale AI)
-8. ✅ **Token-scaled rewards**: 12K budget with efficiency shaping (Mercor)
+The repository aligns with Theme #2 because it provides a long-horizon, typed, workflow-shaped benchmark with explicit planning, memory, delayed effects, and structured recovery surfaces. The strongest current claim is benchmark design and reproducibility, not leaderboard dominance.

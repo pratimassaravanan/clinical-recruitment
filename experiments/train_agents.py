@@ -92,9 +92,33 @@ def run_episode(
         # Build action
         action_kwargs = {"action_type": action_type}
 
+        def recommended_phase(current_obs: Dict[str, Any]) -> str:
+            funnel = current_obs.get("current_funnel", {})
+            target = max(1, int(current_obs.get("target_enrollment", 1)))
+            enrolled = int(current_obs.get("enrolled_so_far", 0))
+            progress = enrolled / target
+            constraints = current_obs.get("active_constraints", {})
+            if constraints.get("regulatory_hold_days", 0) or constraints.get("site_bottleneck", False):
+                return "recovery"
+            if current_obs.get("allocation_candidates"):
+                return "allocation"
+            if funnel.get("eligible", 0) > funnel.get("consented", 0) or current_obs.get("recontact_candidates"):
+                return "conversion"
+            if progress >= 0.7 or funnel.get("dropped", 0) > max(2, enrolled // 5):
+                return "retention"
+            return "screening"
+
         # Add patient_id for patient-specific actions
-        if action_type in ["screen_patient", "recontact", "allocate_to_site"]:
+        if action_type == "screen_patient":
             patients = obs.get("available_patients", [])
+            if patients:
+                action_kwargs["patient_id"] = patients[0].get("id")
+        elif action_type == "recontact":
+            patients = obs.get("recontact_candidates", [])
+            if patients:
+                action_kwargs["patient_id"] = patients[0].get("id")
+        elif action_type == "allocate_to_site":
+            patients = obs.get("allocation_candidates", [])
             if patients:
                 action_kwargs["patient_id"] = patients[0].get("id")
 
@@ -110,7 +134,7 @@ def run_episode(
 
         # Add phase for planning
         if action_type == "plan_next_phase":
-            action_kwargs["target_phase"] = "screening"
+            action_kwargs["target_phase"] = recommended_phase(obs)
 
         action = Action(**action_kwargs)
         result = env.step(action)

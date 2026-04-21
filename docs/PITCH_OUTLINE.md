@@ -1,123 +1,97 @@
-# 3-Minute Pitch: Adaptive Clinical Trial Recruitment
+# 3-Minute Pitch: Adaptive Clinical Recruitment
+
+This pitch outline is written to match the current repo truth. It is safer to emphasize benchmark quality, corrected evaluation, and reproducibility than to claim a breakthrough leaderboard result.
 
 ## Timing Guide
-- **0:00-0:30** - Hook & Problem (30 sec)
-- **0:30-1:15** - Solution (45 sec)
-- **1:15-2:00** - Results (45 sec)
-- **2:00-2:45** - Theme Alignment (45 sec)
-- **2:45-3:00** - Call to Action (15 sec)
 
----
+- `0:00-0:30` Hook and problem
+- `0:30-1:15` What the benchmark exposes
+- `1:15-2:00` Why the artifact is trustworthy
+- `2:00-2:45` Current results
+- `2:45-3:00` Close
 
 ## Script Outline
 
-### [0:00-0:30] HOOK: The $8M/Day Problem
+### `0:00-0:30` Hook
 
-> "80% of clinical trials fail to meet enrollment deadlines. Every day of delay costs up to $8 million dollars. That's not a technology problem - it's a *planning* problem."
+> "Clinical recruitment is a long-horizon operations problem. Screening, follow-up, site allocation, and retention decisions play out over months, not seconds. We built a benchmark that treats that as a sequential planning problem instead of a short-horizon toy task."
 
-**Key point:** Ground in real stakes. This isn't academic - it's a multi-billion dollar industry pain point.
+Key point: frame the problem as workflow planning under delayed effects.
 
----
+### `0:30-1:15` What the benchmark exposes
 
-### [0:30-1:15] SOLUTION: A Long-Horizon Planning Benchmark
+> "Adaptive Clinical Recruitment is a deterministic `180`-step environment with `3` public tasks, typed observations, and `8` implemented action types. Agents manage screening, recontact, site allocation, strategy changes, planning, and indexed memory while handling delayed consequences, site pressure, and budget constraints."
 
-> "We built a 180-step sequential decision environment that captures everything that makes clinical recruitment hard:"
+Points to hit:
 
-**Bullet points to hit:**
-1. **Delayed consequences** - "Actions today affect outcomes 30 days later"
-2. **Non-stationary dynamics** - "Patient pool quality degrades over time"
-3. **Multi-objective optimization** - "Balance speed, budget, and retention"
-4. **Beyond context limits** - "Episodes longer than any transformer's memory"
+1. `180` simulated days per episode
+2. Action-specific candidate pools for screening, recontact, and allocation
+3. Explicit plan state, indexed memory state, and token-efficiency signals
+4. A `37`-dimensional feature vector for the trainable baselines
 
-> "We implemented *all 50 features* from the Theme #2 checklist - delayed effects, milestone tracking, episodic memory, hierarchical planning, error recovery."
+Suggested visual: `docs/images/environment_architecture.png`
 
-**Show diagram:** Environment architecture (patient funnel -> sites -> agent)
+### `1:15-2:00` Why the artifact is trustworthy
 
----
+> "We re-audited the benchmark before reporting results. We fixed the evaluation path so recontact and allocation use the correct candidate pools, regenerated the charts, and aligned the docs to the actual `8`-action interface."
 
-### [1:15-2:00] RESULTS: Hierarchical Planning Wins
+Evidence to mention:
 
-> "We didn't just build a benchmark - we trained 4 research agents and ran rigorous experiments."
+- `30/30` integration checks pass across the three tasks
+- Main diagrams are regenerated from code via `scripts/generate_docs_diagrams.py`
+- The anonymous paper build in `paper/main.pdf` compiles with the official NeurIPS 2026 E&D style
 
-**Key results:**
-- "HCAPO - hierarchical planning - scores **0.234**"
-- "MemexRL - memory retrieval - scores **0.226**"  
-- "KLong - flat baseline - scores **0.212**"
-- "**10% improvement** with hierarchical temporal abstraction"
-- "p-value 0.0075 - survives Bonferroni correction"
+### `2:00-2:45` Current results
 
-> "The finding? Memory helps, but *structured planning* matters more for long horizons."
+> "We ran a fresh `5`-seed sweep over four repo baselines: HCAPO, MiRA, KLong, and MemexRL. HCAPO has the highest mean score at `0.2215`, but no pairwise comparison reaches `p < 0.05`."
 
-**Show chart:** Agent comparison bar chart with error bars
+Numbers to use:
 
----
+- `HCAPO`: `0.2215 +- 0.0127`
+- `KLong`: `0.2152 +- 0.0222`
+- `MemexRL`: `0.2148 +- 0.0270`
+- `MiRA`: `0.2094 +- 0.0095`
 
-### [2:00-2:45] THEME ALIGNMENT: Why This Matters for AI Agents
+Key line:
 
-> "This directly addresses Theme #2's core questions:"
+> "The honest takeaway is not that one method wins. The honest takeaway is that the benchmark is reproducible, non-trivial, and not yet saturated by the current baseline suite."
 
-**Scale AI alignment:**
-> "Business workflows ARE long-horizon planning. Goal decomposition, resource allocation, error recovery - that's what our environment tests."
+Suggested visual: `docs/images/agent_comparison.png`
 
-**Mercor alignment:**
-> "We track token efficiency. Agents learn to minimize reasoning cost while maximizing outcomes - exactly what you want in production."
+### `2:45-3:00` Close
 
-**Technical completeness:**
-- "228 passing tests"
-- "NeurIPS-ready reproducibility report"
-- "One-click Colab training"
-- "Live HuggingFace deployment"
+> "This is the kind of benchmark we need for long-horizon agents: typed interfaces, delayed effects, explicit planning surfaces, and reproducible reports. The next step is not polishing the story. The next step is building stronger agents and sharper ablations on top of a benchmark we can trust."
 
----
+## Backup Q&A
 
-### [2:45-3:00] CALL TO ACTION
+### "Does one method clearly win?"
 
-> "Clinical recruitment is one example. The real opportunity is *any* business workflow with long horizons and delayed feedback. Sales pipelines. Supply chains. Customer success."
+Answer:
 
-> "Try the environment. Train your own agents. Help us build the benchmark suite that AI agents actually need."
+> "Not from the current `5`-seed sweep. HCAPO is highest mean, but no pairwise comparison reaches `p < 0.05`."
 
-**End with:**
-> "Questions? Demo at our HuggingFace Space."
+### "What changed from earlier drafts?"
 
----
+Answer:
 
-## Backup Q&A Prep
+> "We corrected the evaluation path for recontact and allocation, refreshed the charts in both `data/sweep_results/` and `docs/images/`, and removed stale claims about a `10`-action interface and old significance results."
 
-### "How is this different from existing benchmarks?"
+### "Why is this still interesting if the baselines are close?"
 
-> "Most benchmarks have short horizons or dense rewards. Atari averages 500 steps but rewards every frame. We have 180 steps with effects delayed 30+ days. That's qualitatively different planning."
+Answer:
 
-### "Why clinical trials specifically?"
+> "Because a benchmark can be valuable before it produces a decisive leaderboard. Here the value is a clean long-horizon task interface, reproducible reporting, and room for stronger methods to separate later."
 
-> "Three reasons: real stakes ($8M/day), published data for calibration, and it's the canonical long-horizon planning problem in industry. If you can solve recruitment, you can solve any business workflow."
+### "What should reviewers look at first?"
 
-### "What's the hardest part for agents?"
+Answer:
 
-> "Milestone 3 - the 75% checkpoint. Agents need to shift from aggressive screening to retention focus. Most fail because they don't plan that transition."
+> "`README.md`, `data/sweep_results/neurips_report.md`, the regenerated images under `docs/images/`, and `paper/main.pdf`."
 
-### "How do you handle the beyond-context-limit problem?"
+## Visual Checklist
 
-> "Episodic memory system. Agents can write summaries and retrieve them later. We track retrieval relevance and penalize unnecessary memory operations."
-
----
-
-## Visual Aids Checklist
-
-- [ ] Slide 1: Problem statement with $8M stat
-- [ ] Slide 2: Environment architecture diagram
-- [ ] Slide 3: Agent comparison chart with p-values
-- [ ] Slide 4: Theme #2 alignment table
-- [ ] Slide 5: QR code to HuggingFace Space
-
----
-
-## Presenter Notes
-
-- **Energy:** Start strong with the hook. Numbers grab attention.
-- **Pacing:** Slow down for the results section - let stats land.
-- **Gesture:** Point to diagrams, don't just show them.
-- **Close:** Make eye contact on the call to action.
-
----
-
-*Total word count: ~400 words spoken = comfortable 3-minute pace*
+- Slide 1: benchmark framing and why long-horizon workflow tasks matter
+- Slide 2: environment diagram
+- Slide 3: current 5-seed results with the no-significance note
+- Slide 4: verification and reproducibility points
+- Slide 5: repo links or QR code

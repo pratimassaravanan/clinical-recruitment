@@ -1655,6 +1655,55 @@ class ClinicalRecruitmentEnv:
                 }
             )
 
+        recontact_candidates = []
+        recontact_pool = [
+            p
+            for p in self._patients
+            if p["screened"] and not p["enrolled"] and not p["dropped"]
+        ]
+        recontact_pool.sort(
+            key=lambda p: (
+                int(p.get("followup_due_day") is not None),
+                -(p.get("followup_due_day") or 10**6),
+                p.get("priority_score", 0.0),
+            ),
+            reverse=True,
+        )
+        for p in recontact_pool[:5]:
+            recontact_candidates.append(
+                {
+                    "id": p["id"],
+                    "age": p["age"],
+                    "eligible": bool(p.get("eligible", False)),
+                    "consented": bool(p.get("consented", False)),
+                    "dropout_risk": p["dropout_risk"],
+                    "followup_due_day": p.get("followup_due_day"),
+                }
+            )
+
+        allocation_candidates = []
+        allocation_pool = [
+            p
+            for p in self._patients
+            if p.get("consented") and not p.get("enrolled") and not p.get("dropped")
+        ]
+        allocation_pool.sort(
+            key=lambda p: (
+                p.get("priority_score", 0.0),
+                -p.get("dropout_risk", 0.0),
+            ),
+            reverse=True,
+        )
+        for p in allocation_pool[:5]:
+            allocation_candidates.append(
+                {
+                    "id": p["id"],
+                    "age": p["age"],
+                    "dropout_risk": p["dropout_risk"],
+                    "followup_due_day": p.get("followup_due_day"),
+                }
+            )
+
         # Site performance summary
         site_perf = {}
         for sid, site in self._sites.items():
@@ -1734,6 +1783,8 @@ class ClinicalRecruitmentEnv:
             target_enrollment=self._target,
             current_funnel=dict(self._funnel),
             available_patients=available,
+            recontact_candidates=recontact_candidates,
+            allocation_candidates=allocation_candidates,
             site_performance=site_perf,
             recent_events=recent[-5:],
             uncertainty_level=round(self._uncertainty, 3),
@@ -1762,8 +1813,9 @@ class ClinicalRecruitmentEnv:
         )
 
     def _difficulty(self) -> int:
-        if self._task == "hard_bench":
+        task = self._task or ""
+        if task.startswith("hard_bench"):
             return 3
-        elif self._task == "medium_bench":
+        elif task.startswith("medium_bench"):
             return 2
         return 1

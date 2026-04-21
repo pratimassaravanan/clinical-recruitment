@@ -1,77 +1,54 @@
-# Research Method Implementations
+# Research Method Baselines
 
-This directory contains real implementations of paper-inspired long-horizon RL agents.
+This directory contains the repo baselines and helper modules used by the long-horizon experiments.
 
-## Implemented Agents
+## Baselines
 
-### HCAPO (Hierarchical Constrained Actor-critic with Planning Optimization)
-- **File**: `hcapo_agent.py`
-- **Features**:
-  - Hierarchical policy with high-level planner and low-level executor
-  - Hindsight Experience Replay (HER) with goal relabeling
-  - Constraint-aware action selection
-  - Subgoal decomposition based on enrollment milestones
-- **Training**: Real policy gradient updates with hindsight relabeling
+| File | Baseline | Main mechanism |
+|------|----------|----------------|
+| `hcapo_agent.py` | `HCAPO` | Hierarchical subgoals and hindsight relabeling |
+| `mira_agent.py` | `MiRA` | Milestone-aware potential shaping |
+| `klong_agent.py` | `KLong` | Multi-scale temporal aggregation and TD(lambda)-style credit assignment |
+| `memex_agent.py` | `MemexRL` | Episodic memory with learned write/read behavior |
 
-### MiRA (Milestone-based Reward Augmentation)
-- **File**: `mira_agent.py`
-- **Features**:
-  - Learned potential function for reward shaping
-  - Potential-based reward augmentation: F(s,s') = γΦ(s') - Φ(s)
-  - Milestone achievement tracking and bonus
-  - TD-learning for potential critic
-- **Training**: Joint policy and potential critic updates
+These are described throughout the docs as repo baselines inspired by long-horizon RL ideas. They are not presented as externally validated reproductions of external named methods.
 
-### KLong (Long-context Trajectory Processing)
-- **File**: `klong_agent.py`
-- **Features**:
-  - Multi-scale temporal abstraction (1, 5, 20, 60 step windows)
-  - TD(λ) with eligibility traces
-  - Trajectory segmentation with overlap
-  - Context-aware policy and value functions
-- **Training**: Segment-wise policy gradient with eligibility trace updates
+## Shared training stack
 
-### MemexRL (Memory-Augmented RL)
-- **File**: `memex_agent.py`
-- **Features**:
-  - Learned memory write gate (decides when to store)
-  - Attention-based memory retrieval
-  - Memory importance scoring with hindsight
-  - Memory-augmented policy and value function
-- **Training**: Joint policy, write gate, and importance network updates
+All four baselines depend on `training/neural_policy.py`, which currently provides:
 
-## Training Results
+- `ACTION_SPACE` with the benchmark's `8` implemented actions
+- `extract_state_features()` for the `37`-dimensional numeric state vector
+- A shared pure-NumPy actor-critic backbone
 
-Run training with:
+## Fresh sweep snapshot
+
+Current benchmark numbers come from `data/sweep_results/neurips_report.{md,json}`.
+
+| Baseline | Mean | Std | 95% CI |
+|----------|------|-----|--------|
+| `HCAPO` | `0.2215` | `0.0127` | `[0.2100, 0.2303]` |
+| `KLong` | `0.2152` | `0.0222` | `[0.1977, 0.2286]` |
+| `MemexRL` | `0.2148` | `0.0270` | `[0.1943, 0.2352]` |
+| `MiRA` | `0.2094` | `0.0095` | `[0.2023, 0.2165]` |
+
+No pairwise comparison reaches `p < 0.05` in the current `5`-seed sweep.
+
+## Reproduce training and reports
+
 ```bash
 python experiments/train_agents.py --agent all --episodes 50
+python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-episodes 5
 ```
 
-Latest results (50 episodes each):
-- HCAPO: 0.1746 average score
-- MiRA: 0.1817 average score
-- KLong: 0.2064 average score
-- MemexRL: 0.2518 average score
+Single-run training artifacts are written under `data/trained_agents/` and `data/training_results/`.
+The multi-seed benchmark report is written under `data/sweep_results/`.
 
-Trained models saved to `data/trained_agents/`.
-Training curves saved to `data/training_results/`.
+## Other files in this directory
 
-## Architecture
+- `registry.py`: repo-local provenance labels for the baseline families
+- `site_agents.py`: site negotiation helper module
+- `salt.py`: auxiliary step-level advantage helper
+- `oversight.py`: auxiliary oversight helper
 
-All agents share a common neural network infrastructure:
-- `training/neural_policy.py`: NeuralNetwork, ActorCritic base classes
-- Feature extraction: 37-dimensional state vector from observations
-- Gradient clipping for stability
-- Xavier weight initialization
-
-## Tests
-
-```bash
-python test_agents.py
-```
-
-Verifies:
-- Neural network forward/backward passes
-- Actor-critic action selection and value estimation
-- Agent-specific features (hindsight, potential, segmentation, memory)
-- Save/load serialization
+These helpers exist in the repo, but the main benchmark claims are centered on the four baseline agents plus the generated sweep artifacts.

@@ -1,193 +1,138 @@
-# Clinical Trial Recruitment: A Long-Horizon RL Benchmark for Real-World Planning
+# Adaptive Clinical Recruitment: What the Repo Actually Implements Today
 
-**Authors:** Pratima S (pratimassaravanan@gmail.com)  
-**OpenEnv Hackathon 2026 - Theme #2: Long-Horizon Planning**
+**Adaptive Clinical Recruitment** is a long-horizon benchmark for sequential trial-planning decisions. It models the patient funnel over `180` simulated days, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure.
 
----
+This post is intentionally conservative. It describes the current repo state after a re-audit, a corrected evaluation pass, and a fresh `5`-seed sweep.
 
 ## TL;DR
 
-We introduce **Adaptive Clinical Trial Recruitment**, a 180-step sequential decision environment that challenges RL agents with delayed consequences, non-stationary dynamics, and multi-objective optimization. Our experiments show that hierarchical planning (HCAPO) significantly outperforms flat memory approaches - a finding with implications for scaling agents to real-world business workflows.
+- The benchmark has `3` public tasks and `8` implemented action types.
+- The trainable baselines use a `37`-dimensional numeric feature vector.
+- The repo includes four baseline agents: `HCAPO`, `MiRA`, `KLong`, and `MemexRL`.
+- After rerunning the corrected sweep, `HCAPO` has the highest mean score at `0.2215`.
+- No pairwise comparison reaches `p < 0.05`, so the current results do **not** support a strong winner narrative.
 
----
+## What the benchmark exposes
 
-## The Problem: 80% of Clinical Trials Miss Enrollment Deadlines
+At each step, the environment returns a typed `Observation` with:
 
-Clinical trials are the bottleneck of modern medicine. Every day of delay costs pharmaceutical companies **$600K-$8M**, yet enrollment remains stubbornly unpredictable. The core challenge? Patient recruitment is a *long-horizon planning problem* with:
+- Funnel state and action-specific candidate pools
+- Per-site performance metrics
+- Milestones and delayed-effects state
+- Constraint and uncertainty summaries
+- Plan state and indexed-memory summaries
+- Token accounting and token-efficiency signals
+- Counterfactual hints and simple rollout estimates
 
-- **Delayed feedback** - Actions today affect outcomes 5-30 days later
-- **Non-stationary dynamics** - Patient pool quality degrades over time  
-- **Multi-objective tradeoffs** - Speed vs. budget vs. retention
-- **Constraint satisfaction** - Regulatory holds, site capacity limits
+The current action interface contains exactly these `8` actions:
 
-Current RL benchmarks don't capture this complexity. Atari games have short horizons. MuJoCo has dense rewards. Even long-horizon benchmarks like Montezuma's Revenge lack the *business workflow* structure of real planning problems.
+1. `screen_patient`
+2. `recontact`
+3. `allocate_to_site`
+4. `adjust_strategy`
+5. `plan_next_phase`
+6. `summarize_and_index`
+7. `retrieve_relevant_history`
+8. `stop_recruitment`
 
----
+Site negotiation is represented through `adjust_strategy` values such as `negotiate_site_A`, not as a separate ninth or tenth action.
 
-## Our Solution: A Faithful Clinical Recruitment Simulator
+## What changed during the re-audit
 
-### Environment Design
+Before regenerating results, we fixed several issues that made the older docs too optimistic.
 
-| Feature | Value |
-|---------|-------|
-| Episode Length | 180 steps (days) |
-| State Dimension | 37 features |
-| Action Space | 10 discrete actions |
-| Delayed Effects | 5-30 step delays |
-| Milestones | 25%, 50%, 75%, 100% checkpoints |
+1. The experiment path previously used `available_patients` for `recontact` and `allocate_to_site`, even though those actions should draw from their own candidate pools.
+2. The sweep charts could fail on small seed counts because of malformed error bars.
+3. The chart refresh path updated `data/sweep_results/` but could leave `docs/images/` stale.
+4. Several public docs still described a `10`-action interface and repeated an outdated significance claim.
 
-The environment models the **full patient funnel**:
+The current docs and charts now follow the corrected benchmark path.
 
-```
-Contacted -> Screened -> Eligible -> Consented -> Enrolled -> (Retained/Dropped)
-```
+## Fresh 5-seed sweep
 
-Agents must balance aggressive screening (expensive, fast) against careful retention (cheap, slow), while navigating budget constraints and site negotiations.
+The regenerated report lives in `data/sweep_results/neurips_report.{md,json}`.
 
-### Key Innovation: Beyond-Context Planning
+| Baseline | Mean | Std | 95% CI |
+|----------|------|-----|--------|
+| `HCAPO` | `0.2215` | `0.0127` | `[0.2100, 0.2303]` |
+| `KLong` | `0.2152` | `0.0222` | `[0.1977, 0.2286]` |
+| `MemexRL` | `0.2148` | `0.0270` | `[0.1943, 0.2352]` |
+| `MiRA` | `0.2094` | `0.0095` | `[0.2023, 0.2165]` |
 
-Traditional RL struggles when episode length exceeds context window. We implement:
+Pairwise tests from the same report show:
 
-1. **Episodic Memory System** - Write/retrieve from indexed memory bank
-2. **Hierarchical Planning** - Strategic plans decomposed into tactical actions
-3. **Milestone Checkpoints** - Intermediate goals with bonus rewards
-4. **Counterfactual Hints** - "What if you had done X instead?"
+- `HCAPO vs MiRA`: `p = 0.1823`
+- `HCAPO vs KLong`: `p = 0.3849`
+- `HCAPO vs MemexRL`: `p = 0.6370`
+- no comparison reaches `p < 0.05`
 
----
+That means the honest headline is not "hierarchical planning wins." The honest headline is:
 
-## Experiments: Hierarchical Planning Wins
+> The benchmark is active, reproducible, and non-trivial, but the current baseline suite remains tightly clustered.
 
-We trained 4 research agents across 3 random seeds with rigorous statistical testing:
+## Why that is still useful
 
-### Agent Architectures
+This repo is strongest as a benchmark package, not as a settled leaderboard.
 
-| Agent | Key Innovation | Paper Reference |
-|-------|---------------|-----------------|
-| **HCAPO** | Hierarchical critic with temporal abstraction | ICML 2023 |
-| **MiRA** | Memory indexing with relevance attention | NeurIPS 2023 |
-| **KLong** | Explicit uncertainty quantification | ICLR 2024 |
-| **MemexRL** | Large-scale episodic retrieval | AAAI 2024 |
+- The environment interface is typed and deterministic.
+- The action construction path now matches the observation schema.
+- The main diagrams and sweep charts are regenerated from code.
+- The integration checks pass `30/30` across `easy_bench`, `medium_bench`, and `hard_bench`.
 
-### Results
+For a benchmark, that is still a useful result. It means future work can focus on stronger training budgets, ablations, and better long-horizon methods without inheriting stale claims from the docs.
 
-| Agent | Mean Score | Std Dev | vs. Baseline |
-|-------|------------|---------|--------------|
-| HCAPO | **0.234** | 0.010 | +10.4% |
-| MemexRL | 0.226 | 0.008 | +6.6% |
-| MiRA | 0.221 | 0.011 | +4.2% |
-| KLong | 0.212 | 0.015 | baseline |
+## Trying the benchmark
 
-### Statistical Significance
-
-```
-HCAPO vs KLong: p = 0.0075 (significant after Bonferroni)
-Cohen's d = 1.455 (very large effect)
-```
-
-**Key Finding:** Hierarchical temporal abstraction (HCAPO) provides the largest gains in long-horizon settings. Pure memory retrieval (MemexRL, MiRA) helps but doesn't match structured planning.
-
----
-
-## Theme #2 Alignment
-
-### Scale AI Sub-theme: Business Workflow Automation
-
-Our environment directly models business workflows:
-- **Goal decomposition**: 180-day trial -> quarterly milestones -> daily actions
-- **Resource allocation**: Budget management, site capacity planning
-- **Error recovery**: Handling regulatory holds, dropout spikes
-
-### Mercor Sub-theme: Token-Scaled Rewards
-
-We implement token efficiency scoring:
-- Expensive actions (screening) penalized vs. cheap actions (planning)
-- `token_budget_remaining` tracked in observation
-- Optimal agents learn to minimize reasoning cost
-
----
-
-## Technical Highlights
-
-### 50 Features Implemented
-
-We completed **all 50 features** from the Theme #2 checklist:
-
-| Category | Features |
-|----------|----------|
-| Core Long-Horizon | Delayed effects, milestones, memory systems |
-| State Tracking | Non-stationary dynamics, constraint propagation |
-| Goal Decomposition | Hierarchical planning, sub-goal generation |
-| Error Recovery | Constraint violation handling, replanning |
-| Beyond Context | Episodic memory, retrieval-augmented decision making |
-
-### Reproducibility
-
-- **228 unit tests** passing
-- **Multi-seed sweeps** with statistical significance
-- **Colab notebook** for one-click training
-- **Docker deployment** for consistent environments
-
----
-
-## Try It Yourself
-
-### Quick Start
-
-```python
-from env import AdaptiveClinicalRecruitmentEnv
-
-env = AdaptiveClinicalRecruitmentEnv(task="medium_bench")
-obs = env.reset()
-
-for _ in range(180):
-    action = {"action_type": "screen_patient", "parameters": {}}
-    obs = env.step(action)
-    print(f"Day {obs.timestamp}: {obs.enrolled_so_far}/{obs.target_enrollment} enrolled")
-```
-
-### Training with TRL
-
-See `notebooks/training_trl.ipynb` for a complete PPO training pipeline using HuggingFace TRL.
-
-### API Endpoint
+### Local API
 
 ```bash
-curl -X POST "https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment-env/api/step" \
-  -H "Content-Type: application/json" \
-  -d '{"action_type": "screen_patient", "parameters": {}}'
+uvicorn app:app --host 0.0.0.0 --port 7860
 ```
 
----
+### Minimal Python loop
 
-## What's Next?
+```python
+from env import ClinicalRecruitmentEnv
+from models import Action
 
-1. **Multi-agent extension** - Site competition and collaboration
-2. **Real data calibration** - Partner with CROs for validation
-3. **Foundation model integration** - LLM-based planning modules
+env = ClinicalRecruitmentEnv()
+result = env.reset(task="medium_bench")
+obs = result.observation
 
----
+action = Action(
+    action_type="screen_patient",
+    patient_id=obs.available_patients[0]["id"],
+    hypothesis="noise_dominant",
+    confidence=0.7,
+)
 
-## Citation
-
-```bibtex
-@misc{clinical_recruitment_2026,
-  author = {Saravanan, Pratima},
-  title = {Adaptive Clinical Trial Recruitment: A Long-Horizon RL Benchmark},
-  year = {2026},
-  publisher = {HuggingFace},
-  howpublished = {\url{https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment-env}}
-}
+result = env.step(action)
+print(result.reward)
 ```
 
----
+### Reproducing the sweep
+
+```bash
+python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-episodes 5
+```
+
+## What this post does not claim
+
+- It does not claim a `10`-action interface.
+- It does not claim that all `50` roadmap features are implemented and validated.
+- It does not claim externally validated reproductions or benchmark-leading status for external named methods.
+- It does not claim a statistically significant `HCAPO` win.
+- It does not use notebook or TRL claims as evidence for the benchmark results.
+
+## Key files
+
+- `README.md`: current repo overview
+- `docs/theme2_alignment.md`: conservative Theme #2 mapping
+- `docs/theme2_completion_checklist.md`: reality-based status file
+- `data/sweep_results/neurips_report.md`: fresh benchmark summary
+- `paper/main.pdf`: current anonymous NeurIPS E&D paper build
 
 ## Links
 
-- [GitHub Repository](https://github.com/pratimassaravanan/clinical-recruitment-env)
-- [HuggingFace Space](https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment-env)
-- [Training Notebook](notebooks/training_trl.ipynb)
-- [Full Documentation](docs/theme2_alignment.md)
-
----
-
-*Built for the OpenEnv Hackathon 2026. Theme #2: Long-Horizon Planning, Goal Decomposition, and Error Recovery.*
+- GitHub repository: `https://github.com/pratimassaravanan/clinical-recruitment-env`
+- Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment-env`

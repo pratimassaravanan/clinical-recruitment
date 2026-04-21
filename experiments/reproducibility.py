@@ -24,6 +24,7 @@ if str(ROOT) not in sys.path:
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from training.train_offline_policy import train_policy
 
@@ -83,7 +84,7 @@ def paired_t_test(
     x: np.ndarray,
     y: np.ndarray,
 ) -> StatisticalResult:
-    """Perform paired t-test without scipy dependency."""
+    """Perform paired t-test using SciPy's Student t distribution."""
     n = len(x)
     if n != len(y):
         raise ValueError("Arrays must have same length")
@@ -104,14 +105,8 @@ def paired_t_test(
         )
     
     t_stat = mean_diff / (std_diff / math.sqrt(n))
-    
-    # Approximate p-value using normal distribution for large n
-    # For small n, this is conservative
-    from math import erf
     df = n - 1
-    
-    # Two-tailed p-value approximation
-    p_value = 2 * (1 - 0.5 * (1 + erf(abs(t_stat) / math.sqrt(2))))
+    p_value = float(2 * stats.t.sf(abs(t_stat), df=df))
     
     effect = cohens_d(x, y)
     
@@ -130,7 +125,7 @@ def wilcoxon_signed_rank(
     x: np.ndarray,
     y: np.ndarray,
 ) -> StatisticalResult:
-    """Perform Wilcoxon signed-rank test (non-parametric)."""
+    """Perform Wilcoxon signed-rank test using SciPy."""
     n = len(x)
     if n != len(y):
         raise ValueError("Arrays must have same length")
@@ -152,28 +147,7 @@ def wilcoxon_signed_rank(
             notes="All differences are zero",
         )
     
-    # Rank absolute differences
-    abs_diff = np.abs(differences)
-    ranks = np.argsort(np.argsort(abs_diff)) + 1  # Ranks from 1 to n
-    
-    # Calculate W+ (sum of positive ranks)
-    w_plus = np.sum(ranks[differences > 0])
-    w_minus = np.sum(ranks[differences < 0])
-    w_stat = min(w_plus, w_minus)
-    
-    # Normal approximation for p-value
-    mean_w = n * (n + 1) / 4
-    std_w = math.sqrt(n * (n + 1) * (2 * n + 1) / 24)
-    
-    if std_w == 0:
-        z = 0.0
-    else:
-        z = (w_stat - mean_w) / std_w
-    
-    # Two-tailed p-value
-    from math import erf
-    p_value = 2 * (0.5 * (1 + erf(z / math.sqrt(2))))  # CDF of standard normal
-    p_value = min(1.0, p_value)  # Clamp to [0, 1]
+    w_stat, p_value = stats.wilcoxon(x, y, zero_method="wilcox", correction=False, alternative="two-sided", method="auto")
     
     effect = cohens_d(x, y)
     
@@ -466,4 +440,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
