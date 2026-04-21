@@ -81,9 +81,9 @@ def main() -> None:
     IMAGE_DIR.mkdir(parents=True, exist_ok=True)
     summary_df = pd.read_csv(summary_path)
 
-    _save_bar_chart(summary_df, IMAGE_DIR / "benchmark_scores.png")
-    _save_tradeoff_chart(summary_df, IMAGE_DIR / "enrollment_budget_tradeoff.png")
-    _save_long_horizon_chart(summary_df, IMAGE_DIR / "long_horizon_indicators.png")
+    _save_bar_chart(summary_df, IMAGE_DIR / "benchmark_scores.svg")
+    _save_tradeoff_chart(summary_df, IMAGE_DIR / "enrollment_budget_tradeoff.svg")
+    _save_long_horizon_chart(summary_df, IMAGE_DIR / "long_horizon_indicators.svg")
 
     print(f"Charts written to {IMAGE_DIR}")
 

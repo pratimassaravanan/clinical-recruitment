@@ -133,24 +133,24 @@ Task-level highlights from the current local run:
 
 ### Benchmark Score Comparison
 
-![Benchmark Scores](docs/images/benchmark_scores.png)
+![Benchmark Scores](docs/images/benchmark_scores.svg)
 
 ### Enrollment vs Budget Tradeoff
 
-![Enrollment Budget Tradeoff](docs/images/enrollment_budget_tradeoff.png)
+![Enrollment Budget Tradeoff](docs/images/enrollment_budget_tradeoff.svg)
 
 ### Long-Horizon Indicators
 
-![Long Horizon Indicators](docs/images/long_horizon_indicators.png)
+![Long Horizon Indicators](docs/images/long_horizon_indicators.svg)
 
 Research artifacts produced by the local study:
 
 - `data/research_runs.csv`
 - `data/research_summary.csv`
 - `data/leaderboard.csv`
-- `docs/images/benchmark_scores.png`
-- `docs/images/enrollment_budget_tradeoff.png`
-- `docs/images/long_horizon_indicators.png`
+- `docs/images/benchmark_scores.svg`
+- `docs/images/enrollment_budget_tradeoff.svg`
+- `docs/images/long_horizon_indicators.svg`
 
 ## Research Roadmap
 
