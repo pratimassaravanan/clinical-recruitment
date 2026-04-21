@@ -1,0 +1,4 @@
+task,final_score,total_reward,token_efficiency
+medium_bench_stage_30,0.4242,12.8416,0.981
+medium_bench_stage_90,0.4018,28.415,0.912
+medium_bench_stage_180,0.4004,52.5464,0.825

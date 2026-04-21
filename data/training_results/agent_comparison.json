@@ -1,0 +1,41 @@
+{
+  "hcapo": {
+    "agent_type": "hcapo",
+    "episodes": 50,
+    "final_scores": {
+      "easy_bench": 0.13956666666666664,
+      "medium_bench": 0.19540000000000002,
+      "hard_bench": 0.18896666666666664
+    },
+    "overall_avg": 0.17464444444444446,
+    "agent_path": "data\\trained_agents\\hcapo_agent.json",
+    "history_path": "data\\training_results\\hcapo_history.csv"
+  },
+  "mira": {
+    "agent_type": "mira",
+    "episodes": 50,
+    "final_scores": {
+      "easy_bench": 0.1386,
+      "medium_bench": 0.19526666666666667,
+      "hard_bench": 0.21123333333333336
+    },
+    "overall_avg": 0.1817,
+    "agent_path": "data\\trained_agents\\mira_agent.json",
+    "history_path": "data\\training_results\\mira_history.csv"
+  },
+  "klong": {
+    "error": "probabilities contain NaN"
+  },
+  "memex": {
+    "agent_type": "memex",
+    "episodes": 50,
+    "final_scores": {
+      "easy_bench": 0.28173333333333334,
+      "medium_bench": 0.20066666666666666,
+      "hard_bench": 0.2729
+    },
+    "overall_avg": 0.25176666666666664,
+    "agent_path": "data\\trained_agents\\memex_agent.json",
+    "history_path": "data\\training_results\\memex_history.csv"
+  }
+}

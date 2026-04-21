@@ -4,9 +4,17 @@ All traces are pre-computed with fixed seeds for reproducibility.
 Each trace covers 180 simulated days of a clinical trial recruitment period.
 """
 
+import copy
 import random
-import math
+import re
 from typing import List, Dict, Any, Optional
+
+
+PUBLIC_TASKS = ("easy_bench", "medium_bench", "hard_bench")
+PROGRESSIVE_HORIZONS = (30, 90, 180)
+_STAGE_TASK_PATTERN = re.compile(
+    r"^(easy_bench|medium_bench|hard_bench)_stage_(30|90|180)$"
+)
 
 
 def _generate_patient_pool(
@@ -79,6 +87,9 @@ def _generate_events(
         "patient_dropout",
         "site_delay",
         "regulatory_hold",
+        "site_audit",
+        "irb_delay",
+        "consent_form_revision",
         "new_competitor_trial",
         "patient_complaint",
         "screening_backlog",
@@ -180,8 +191,105 @@ def generate_hard_trace() -> Dict[str, Any]:
     }
 
 
-TASK_TRACES = {
+BASE_TASK_TRACES = {
     "easy_bench": generate_easy_trace(),
     "medium_bench": generate_medium_trace(),
     "hard_bench": generate_hard_trace(),
 }
+
+TASK_TRACES = BASE_TASK_TRACES
+
+
+def make_stage_task_id(base_task_id: str, horizon_days: int) -> str:
+    if base_task_id not in BASE_TASK_TRACES:
+        raise KeyError(f"Unknown base task: {base_task_id}")
+    if horizon_days not in PROGRESSIVE_HORIZONS:
+        raise ValueError(f"Unsupported progressive horizon: {horizon_days}")
+    return f"{base_task_id}_stage_{horizon_days}"
+
+
+def resolve_base_task_id(task_id: str) -> str:
+    if task_id in BASE_TASK_TRACES:
+        return task_id
+    match = _STAGE_TASK_PATTERN.match(task_id or "")
+    if match:
+        return match.group(1)
+    return task_id
+
+
+def get_stage_horizon_days(task_id: str) -> Optional[int]:
+    match = _STAGE_TASK_PATTERN.match(task_id or "")
+    if not match:
+        return None
+    return int(match.group(2))
+
+
+def is_known_task(task_id: str) -> bool:
+    return task_id in BASE_TASK_TRACES or _STAGE_TASK_PATTERN.match(task_id or "") is not None
+
+
+def list_progressive_stage_tasks(base_task_id: Optional[str] = None) -> List[str]:
+    task_ids: List[str] = []
+    base_task_ids = [base_task_id] if base_task_id else list(PUBLIC_TASKS)
+    for base_id in base_task_ids:
+        for horizon_days in PROGRESSIVE_HORIZONS:
+            task_ids.append(make_stage_task_id(base_id, horizon_days))
+    return task_ids
+
+
+def _clip_curriculum(curriculum: List[Dict[str, Any]], horizon_days: int) -> List[Dict[str, Any]]:
+    clipped: List[Dict[str, Any]] = []
+    for injection in curriculum:
+        start_day = int(injection.get("start_day", 0))
+        end_day = start_day + int(injection.get("duration", 0))
+        if start_day >= horizon_days:
+            continue
+        clipped_end_day = min(end_day, horizon_days - 1)
+        clipped_injection = dict(injection)
+        clipped_injection["duration"] = max(0, clipped_end_day - start_day)
+        clipped.append(clipped_injection)
+    return clipped
+
+
+def build_progressive_trace(base_task_id: str, horizon_days: int) -> Dict[str, Any]:
+    if base_task_id not in BASE_TASK_TRACES:
+        raise KeyError(f"Unknown base task: {base_task_id}")
+    if horizon_days not in PROGRESSIVE_HORIZONS:
+        raise ValueError(f"Unsupported progressive horizon: {horizon_days}")
+
+    trace = copy.deepcopy(BASE_TASK_TRACES[base_task_id])
+    full_horizon = int(trace.get("deadline_days", 180))
+    if horizon_days >= full_horizon:
+        trace["task_id"] = make_stage_task_id(base_task_id, full_horizon)
+        trace["stage_of"] = base_task_id
+        trace["progressive_stage_days"] = full_horizon
+        trace["max_steps"] = full_horizon
+        return trace
+
+    ratio = horizon_days / max(1, full_horizon)
+    trace["task_id"] = make_stage_task_id(base_task_id, horizon_days)
+    trace["stage_of"] = base_task_id
+    trace["progressive_stage_days"] = horizon_days
+    trace["deadline_days"] = horizon_days
+    trace["max_steps"] = horizon_days
+    trace["target_enrollment"] = max(
+        1,
+        int(round(int(trace.get("target_enrollment", 1)) * ratio)),
+    )
+    trace["budget"] = round(float(trace.get("budget", 0.0)) * (0.35 + 0.65 * ratio), 2)
+    trace["events"] = {
+        day: list(events)
+        for day, events in trace.get("events", {}).items()
+        if int(day) < horizon_days
+    }
+    trace["curriculum"] = _clip_curriculum(trace.get("curriculum", []), horizon_days)
+    return trace
+
+
+def get_task_trace(task_id: str) -> Dict[str, Any]:
+    if task_id in BASE_TASK_TRACES:
+        return copy.deepcopy(BASE_TASK_TRACES[task_id])
+    match = _STAGE_TASK_PATTERN.match(task_id or "")
+    if match:
+        return build_progressive_trace(match.group(1), int(match.group(2)))
+    raise KeyError(f"Unknown task: {task_id}")

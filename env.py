@@ -29,7 +29,12 @@ import random
 from typing import Optional, Dict, Any, List
 
 from models import Observation, Action, State, StepResult
-from load_traces import TASK_TRACES
+from load_traces import (
+    get_stage_horizon_days,
+    get_task_trace,
+    is_known_task,
+    resolve_base_task_id,
+)
 from graders import GRADERS
 
 
@@ -110,26 +115,45 @@ class ClinicalRecruitmentEnv:
         self._uncertainty_components: Dict[str, float] = {}
         self._patient_memory: Dict[str, int] = {}
         self._counterfactual_hint: str = ""
+        self._current_plan: Dict[str, Any] = {}
+        self._indexed_memory: Dict[str, Dict[str, Any]] = {}
+        self._retrieved_memory_context: str = ""
+        self._milestone_potential: float = 0.0
+        self._active_milestone: str = ""
+        self._hindsight_summary: Dict[str, Any] = {}
+        self._site_negotiation_state: Dict[str, Dict[str, Any]] = {}
+        self._oversight_queue: List[Dict[str, Any]] = []
+        self._pareto_frontier: List[Dict[str, float]] = []
+        self._token_budget_total: int = 12000
+        self._token_budget_remaining: int = 12000
+        self._token_usage_so_far: int = 0
+        self._token_efficiency_score: float = 1.0
 
     def reset(self, task: Optional[str] = None) -> StepResult:
         if task is None:
             task = "easy_bench"
-        if task not in TASK_TRACES:
+        if not is_known_task(task):
             raise ValueError(
-                f"Unknown task: {task}. Available: {list(TASK_TRACES.keys())}"
+                "Unknown task: "
+                f"{task}. Available: ['easy_bench', 'medium_bench', 'hard_bench']"
             )
 
         self._task = task
-        self._trace = TASK_TRACES[task]
+        self._trace = get_task_trace(task)
         self._step = 0
-        self._max_steps = 180
+        self._max_steps = int(self._trace.get("max_steps", self._trace.get("deadline_days", 180)))
         self._done = False
         self._total_reward = 0.0
         self._history = []
 
         # Seed RNG deterministically per task
         seeds = {"easy_bench": 42, "medium_bench": 123, "hard_bench": 777}
-        self._rng = random.Random(seeds.get(task, 42))
+        base_task = resolve_base_task_id(task)
+        stage_horizon = get_stage_horizon_days(task)
+        seed = seeds.get(base_task, 42)
+        if stage_horizon is not None:
+            seed += stage_horizon
+        self._rng = random.Random(seed)
 
         # Deep-copy mutable state from trace
         self._patients = copy.deepcopy(self._trace["patients"])
@@ -140,7 +164,7 @@ class ClinicalRecruitmentEnv:
         # Trial parameters
         self._budget_remaining = self._trace["budget"]
         self._target = self._trace["target_enrollment"]
-        self._deadline_days = self._trace["deadline_days"]
+        self._deadline_days = int(self._trace["deadline_days"])
         self._enrolled = 0
 
         # Costs
@@ -211,6 +235,19 @@ class ClinicalRecruitmentEnv:
         }
         self._patient_memory = {}
         self._counterfactual_hint = ""
+        self._current_plan = {}
+        self._indexed_memory = {}
+        self._retrieved_memory_context = ""
+        self._milestone_potential = 0.0
+        self._active_milestone = ""
+        self._hindsight_summary = {}
+        self._site_negotiation_state = {}
+        self._oversight_queue = []
+        self._pareto_frontier = []
+        self._token_budget_total = int(self._trace.get("token_budget", 12000))
+        self._token_budget_remaining = self._token_budget_total
+        self._token_usage_so_far = 0
+        self._token_efficiency_score = 1.0
         self._refresh_long_horizon_state()
 
         obs = self._make_observation()
@@ -233,9 +270,17 @@ class ClinicalRecruitmentEnv:
             "timeline_bonus": 0.0,
             "milestone_bonus": 0.0,
             "delayed_effects_triggered": 0,
+            "plan_bonus": 0.0,
+            "memory_bonus": 0.0,
+            "milestone_potential_delta": 0.0,
+            "plan_followthrough": False,
+            "memory_hit": False,
+            "token_cost": 0,
+            "token_bonus": 0.0,
         }
 
         action_error = None
+        potential_before = self._milestone_potential
 
         # -- Track hypothesis from agent (Upgrade 1) --
         hypothesis = action.hypothesis or "unknown"
@@ -243,6 +288,10 @@ class ClinicalRecruitmentEnv:
         self._hypothesis_history.append(hypothesis)
         self._last_hypothesis = hypothesis
         self._last_confidence = confidence
+        token_cost = self._estimate_token_cost(action)
+        self._token_usage_so_far += token_cost
+        self._token_budget_remaining = max(0, self._token_budget_total - self._token_usage_so_far)
+        outcome["token_cost"] = token_cost
 
         # -- Check curriculum injection (hard bench) --
         in_curriculum = False
@@ -271,6 +320,12 @@ class ClinicalRecruitmentEnv:
             outcome, action_error = self._do_allocate(action, outcome)
         elif action.action_type == "adjust_strategy":
             outcome, action_error = self._do_strategy(action, outcome)
+        elif action.action_type == "plan_next_phase":
+            outcome, action_error = self._do_plan(action, outcome)
+        elif action.action_type == "summarize_and_index":
+            outcome, action_error = self._do_summarize_and_index(action, outcome)
+        elif action.action_type == "retrieve_relevant_history":
+            outcome, action_error = self._do_retrieve_relevant_history(action, outcome)
         elif action.action_type == "stop_recruitment":
             self._done = True
 
@@ -302,6 +357,26 @@ class ClinicalRecruitmentEnv:
 
         self._update_progress_milestones(outcome)
         self._refresh_long_horizon_state()
+        outcome["milestone_potential_delta"] = round(
+            self._milestone_potential - potential_before,
+            4,
+        )
+        if self._current_plan and action.action_type not in {
+            "plan_next_phase",
+            "summarize_and_index",
+            "retrieve_relevant_history",
+            "stop_recruitment",
+        }:
+            outcome["plan_followthrough"] = self._action_matches_phase(
+                action.action_type,
+                self._current_plan.get("target_phase", ""),
+                action.strategy_change,
+            )
+            if outcome["plan_followthrough"]:
+                outcome["plan_bonus"] += 0.015
+                self._current_plan["last_followthrough_step"] = self._step
+            else:
+                outcome["plan_bonus"] -= 0.005
 
         # -- Compute reward (Upgrade 4: includes hypothesis, consistency, commit pressure) --
         reward = self._compute_reward(
@@ -319,6 +394,10 @@ class ClinicalRecruitmentEnv:
                 "strategy": action.strategy_change,
                 "hypothesis": hypothesis,
                 "confidence": round(confidence, 3),
+                "plan_id": action.plan_id,
+                "plan_target_phase": action.target_phase,
+                "memory_key": action.memory_key,
+                "memory_query": action.memory_query,
                 "enrolled": self._enrolled,
                 "budget": round(self._budget_remaining, 2),
                 "reward": round(reward, 4),
@@ -326,6 +405,18 @@ class ClinicalRecruitmentEnv:
                 "screen_success": outcome["screen_success"],
                 "curriculum": in_curriculum,
                 "milestone_bonus": round(outcome["milestone_bonus"], 3),
+                "plan_bonus": round(outcome["plan_bonus"], 3),
+                "memory_bonus": round(outcome["memory_bonus"], 3),
+                "plan_followthrough": outcome["plan_followthrough"],
+                "memory_hit": outcome["memory_hit"],
+                "token_cost": outcome["token_cost"],
+                "token_bonus": round(outcome["token_bonus"], 4),
+                "token_efficiency_score": round(self._token_efficiency_score, 3),
+                "milestone_potential": round(self._milestone_potential, 3),
+                "milestone_potential_delta": round(
+                    outcome["milestone_potential_delta"], 4
+                ),
+                "active_milestone": self._active_milestone,
                 "delayed_effects_triggered": outcome["delayed_effects_triggered"],
                 "error": action_error,
             }
@@ -343,6 +434,8 @@ class ClinicalRecruitmentEnv:
             self._done = True
 
         self._refresh_long_horizon_state()
+        if self._done:
+            self._hindsight_summary = self._build_hindsight_summary()
         obs = self._make_observation()
         info: Dict[str, Any] = {
             "step": self._step,
@@ -353,20 +446,30 @@ class ClinicalRecruitmentEnv:
                 "dropout": outcome["dropout"],
                 "in_curriculum": in_curriculum,
                 "milestone_bonus": round(outcome["milestone_bonus"], 3),
+                "plan_bonus": round(outcome["plan_bonus"], 3),
+                "memory_bonus": round(outcome["memory_bonus"], 3),
+                "token_cost": outcome["token_cost"],
+                "token_bonus": round(outcome["token_bonus"], 4),
+                "milestone_potential_delta": round(
+                    outcome["milestone_potential_delta"], 4
+                ),
                 "delayed_effects_triggered": outcome["delayed_effects_triggered"],
             },
             "last_action_error": action_error,
         }
 
+        if self._done and self._hindsight_summary:
+            info["hindsight_summary"] = self._hindsight_summary
+
         # If done, run grader
         if self._done:
-            grader = GRADERS.get(self._task)
+            grader = GRADERS.get(resolve_base_task_id(self._task or ""))
             if grader:
                 final_score = grader(obs, self._total_reward, self._history)
                 # Strict clamp: must be in (0, 1), never exactly 0.0 or 1.0
                 final_score = min(0.999, max(0.001, float(final_score)))
                 info["final_score"] = final_score
-                info["grader_task"] = self._task
+                info["grader_task"] = resolve_base_task_id(self._task or "")
 
         return StepResult(
             observation=obs,
@@ -390,6 +493,15 @@ class ClinicalRecruitmentEnv:
             active_constraints=dict(self._active_constraints),
             delayed_effects_pending=len(self._delayed_effects),
             uncertainty_components=dict(self._uncertainty_components),
+            current_plan=self._current_plan_snapshot(),
+            indexed_memory_summary=self._summarize_indexed_memory(),
+            retrieved_memory_context=self._retrieved_memory_context,
+            milestone_potential=round(self._milestone_potential, 3),
+            active_milestone=self._active_milestone,
+            hindsight_summary=dict(self._hindsight_summary),
+            token_budget_remaining=self._token_budget_remaining,
+            token_usage_so_far=self._token_usage_so_far,
+            token_efficiency_score=round(self._token_efficiency_score, 3),
         )
 
     def get_history(self) -> List[Dict[str, Any]]:
@@ -621,6 +733,17 @@ class ClinicalRecruitmentEnv:
         elif change.startswith("negotiate_site_"):
             site_key = "site_" + change.replace("negotiate_site_", "")
             if site_key in self._sites:
+                self._site_negotiation_state.setdefault(site_key, {}).update(
+                    {
+                        "offers_made": int(
+                            self._site_negotiation_state.get(site_key, {}).get(
+                                "offers_made", 0
+                            )
+                        )
+                        + 1,
+                        "last_offer_step": self._step,
+                    }
+                )
                 self._schedule_delayed_effect(
                     2,
                     {"type": "site_negotiation", "site_id": site_key},
@@ -630,6 +753,67 @@ class ClinicalRecruitmentEnv:
         else:
             error = "unknown_strategy"
 
+        return outcome, error
+
+    def _do_plan(self, action: Action, outcome: dict) -> tuple:
+        """Create or refresh an explicit high-level plan for the next phase."""
+        error = None
+        valid_phases = {"screening", "conversion", "allocation", "retention", "recovery"}
+        target_phase = (action.target_phase or "").strip().lower()
+        if target_phase not in valid_phases:
+            return outcome, "invalid_target_phase"
+
+        summary = (action.plan_summary or "").strip() or self._default_plan_summary(
+            target_phase
+        )
+        plan_id = (action.plan_id or f"plan-{self._step}-{target_phase}").strip()
+        self._current_plan = {
+            "plan_id": plan_id,
+            "target_phase": target_phase,
+            "summary": summary[:180],
+            "created_step": self._step,
+            "last_followthrough_step": None,
+            "autogenerated": False,
+        }
+        outcome["plan_bonus"] += 0.005
+        return outcome, error
+
+    def _do_summarize_and_index(self, action: Action, outcome: dict) -> tuple:
+        """Write a compact episodic memory entry into an indexed store."""
+        error = None
+        key = (action.memory_key or "").strip().lower()
+        payload = (action.memory_payload or "").strip()
+        if not key:
+            return outcome, "missing_memory_key"
+        if not payload:
+            payload = self._default_memory_payload(key)
+
+        tags = self._infer_memory_tags(key, payload)
+        self._indexed_memory[key] = {
+            "key": key,
+            "summary": payload[:220],
+            "tags": tags,
+            "step": self._step,
+        }
+        return outcome, error
+
+    def _do_retrieve_relevant_history(self, action: Action, outcome: dict) -> tuple:
+        """Retrieve indexed memory entries relevant to the current phase or query."""
+        error = None
+        query = (action.memory_query or "").strip().lower()
+        if not query:
+            return outcome, "missing_memory_query"
+
+        matches = self._retrieve_indexed_memory(query)
+        if matches:
+            self._retrieved_memory_context = " | ".join(matches[:2])[:280]
+            outcome["memory_bonus"] += 0.005
+            outcome["memory_hit"] = True
+        else:
+            self._retrieved_memory_context = (
+                f"No indexed history matched '{query}' at step {self._step}."
+            )
+            outcome["memory_bonus"] -= 0.01
         return outcome, error
 
     # ------- Helper methods -------
@@ -657,6 +841,117 @@ class ClinicalRecruitmentEnv:
                     best_score = score
                     best_id = sid
         return best_id
+
+    def _default_plan_summary(self, target_phase: str) -> str:
+        defaults = {
+            "screening": "Screen high-priority unscreened patients while uncertainty stays manageable.",
+            "conversion": "Recontact eligible candidates before they cool off and convert consent faster.",
+            "allocation": "Allocate consented patients to the strongest available site before delay risk rises.",
+            "retention": "Protect enrolled patients with high dropout risk and avoid fragile conversions.",
+            "recovery": "Recover from active constraints and rebuild pipeline stability before scaling volume.",
+        }
+        return defaults.get(target_phase, "Advance the next long-horizon recruitment phase.")
+
+    def _default_memory_payload(self, key: str) -> str:
+        if "site" in key:
+            site_id = self._pick_best_site() or "site_unknown"
+            site = self._sites.get(site_id, {})
+            return (
+                f"{site_id} snapshot: conv={site.get('conversion_rate', 0):.2f}, "
+                f"wait={site.get('avg_wait_days', 0):.1f}, "
+                f"capacity={site.get('capacity_remaining', 0)}"
+            )
+        if "retention" in key or "dropout" in key:
+            return (
+                f"Retention snapshot: at_risk_enrolled={self._patient_memory.get('at_risk_enrolled', 0)}, "
+                f"dropout_7d={self._rolling_dropout_rate():.2f}"
+            )
+        return (
+            f"Pipeline snapshot: followup_due={self._patient_memory.get('followup_due', 0)}, "
+            f"consented_pending={self._patient_memory.get('consented_pending_allocation', 0)}, "
+            f"active_milestone={self._active_milestone or 'none'}"
+        )
+
+    def _infer_memory_tags(self, key: str, payload: str) -> List[str]:
+        text = f"{key} {payload}".lower()
+        tags = []
+        for tag in ("screening", "conversion", "allocation", "retention", "recovery", "site", "dropout", "milestone"):
+            if tag in text:
+                tags.append(tag)
+        if not tags:
+            tags.append("general")
+        return tags
+
+    def _retrieve_indexed_memory(self, query: str) -> List[str]:
+        query_terms = {term for term in query.lower().replace("_", " ").split() if term}
+        ranked: List[tuple] = []
+        for entry in self._indexed_memory.values():
+            haystack = f"{entry.get('key', '')} {entry.get('summary', '')} {' '.join(entry.get('tags', []))}".lower()
+            overlap = sum(1 for term in query_terms if term in haystack)
+            if overlap <= 0:
+                continue
+            ranked.append((overlap, int(entry.get("step", 0)), entry.get("summary", "")))
+        ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        return [summary for _, _, summary in ranked]
+
+    def _current_plan_snapshot(self) -> Dict[str, Any]:
+        if not self._current_plan:
+            return {}
+        return {
+            "plan_id": self._current_plan.get("plan_id", ""),
+            "target_phase": self._current_plan.get("target_phase", ""),
+            "summary": self._current_plan.get("summary", ""),
+            "created_step": self._current_plan.get("created_step"),
+            "last_followthrough_step": self._current_plan.get("last_followthrough_step"),
+        }
+
+    def _estimate_token_cost(self, action: Action) -> int:
+        if action.token_cost is not None:
+            return max(0, int(action.token_cost))
+        base_costs = {
+            "screen_patient": 18,
+            "recontact": 20,
+            "allocate_to_site": 22,
+            "adjust_strategy": 26,
+            "plan_next_phase": 55,
+            "summarize_and_index": 42,
+            "retrieve_relevant_history": 36,
+            "stop_recruitment": 12,
+        }
+        return base_costs.get(action.action_type, 20)
+
+    def _compute_token_efficiency(self) -> float:
+        progress = self._enrolled / max(1, self._target)
+        usage_ratio = self._token_usage_so_far / max(1, self._token_budget_total)
+        plan_followthrough = sum(1 for item in self._history if item.get("plan_followthrough"))
+        memory_hits = sum(1 for item in self._history if item.get("memory_hit"))
+        quality_bonus = min(0.18, plan_followthrough * 0.01 + memory_hits * 0.015)
+        score = 1.0 - usage_ratio * 0.65 + progress * 0.25 + quality_bonus
+        return round(max(0.0, min(1.0, score)), 3)
+
+    def _summarize_indexed_memory(self) -> Dict[str, int]:
+        summary: Dict[str, int] = {"entries": len(self._indexed_memory)}
+        for entry in self._indexed_memory.values():
+            for tag in entry.get("tags", []):
+                summary[tag] = summary.get(tag, 0) + 1
+        return summary
+
+    def _action_matches_phase(
+        self,
+        action_type: str,
+        target_phase: str,
+        strategy_change: Optional[str],
+    ) -> bool:
+        mapping = {
+            "screening": {"screen_patient"},
+            "conversion": {"recontact"},
+            "allocation": {"allocate_to_site"},
+            "retention": {"recontact"},
+            "recovery": {"adjust_strategy"},
+        }
+        if target_phase == "recovery" and strategy_change:
+            return str(strategy_change).startswith(("tighten_criteria", "negotiate_site_", "focus_site_", "increase_outreach"))
+        return action_type in mapping.get(target_phase, set())
 
     def _process_random_dropout(self) -> bool:
         enrolled_patients = [
@@ -711,6 +1006,17 @@ class ClinicalRecruitmentEnv:
             self._active_constraints["regulatory_hold_days"] = max(
                 int(self._active_constraints.get("regulatory_hold_days", 0)), 2
             )
+        elif evt == "site_audit":
+            affected = self._process_site_delay()
+            if affected:
+                self._active_constraints["site_bottleneck"] = True
+                self._schedule_delayed_effect(5, {"type": "site_recovery", "site_id": affected})
+        elif evt == "irb_delay":
+            self._active_constraints["regulatory_hold_days"] = max(
+                int(self._active_constraints.get("regulatory_hold_days", 0)), 3
+            )
+        elif evt == "consent_form_revision":
+            self._schedule_delayed_effect(2, {"type": "consent_form_revision"})
         elif evt == "site_capacity_reduced":
             affected = self._reduce_random_site_capacity()
             if affected:
@@ -807,10 +1113,18 @@ class ClinicalRecruitmentEnv:
             self._criteria_strictness = min(1.4, self._criteria_strictness + 0.05)
             self._screening_backlog += 1
             self._uncertainty = min(1.0, self._uncertainty + 0.04)
+            self._active_constraints["schema_delta"] = "eligibility tightened"
+        elif effect_type == "consent_form_revision":
+            self._active_constraints["sentiment_pressure"] = round(
+                min(0.4, float(self._active_constraints.get("sentiment_pressure", 0.0)) + 0.04),
+                3,
+            )
         elif effect_type == "site_negotiation":
             site_id = effect.get("site_id")
             site = self._sites.get(site_id or "")
             if site:
+                state = self._site_negotiation_state.setdefault(site_id or "", {})
+                state["counteroffers"] = int(state.get("counteroffers", 0)) + 1
                 site["conversion_rate"] = round(
                     min(0.98, site["conversion_rate"] + 0.04),
                     3,
@@ -818,7 +1132,10 @@ class ClinicalRecruitmentEnv:
                 site["avg_wait_days"] = round(max(1.0, site["avg_wait_days"] - 1.0), 1)
                 site["capacity_remaining"] = min(
                     site["capacity_total"],
-                    site["capacity_remaining"] + 2,
+                    max(
+                        site["capacity_remaining"] + 2,
+                        int(state.get("private_capacity_floor", 1)),
+                    ),
                 )
         elif effect_type == "criteria_relax_tail_risk":
             self._uncertainty = min(
@@ -929,7 +1246,108 @@ class ClinicalRecruitmentEnv:
             ),
         }
         self._patient_memory = self._summarize_patient_memory()
+        self._active_milestone = self._compute_active_milestone()
+        self._milestone_potential = self._compute_milestone_potential()
+        self._trim_or_seed_plan()
+        self._token_efficiency_score = self._compute_token_efficiency()
+        self._update_oversight_and_frontier()
         self._counterfactual_hint = self._build_counterfactual_hint()
+
+    def _update_oversight_and_frontier(self):
+        point = {
+            "enrolled": float(self._enrolled),
+            "budget": float(self._budget_remaining),
+            "token_efficiency": float(self._token_efficiency_score),
+        }
+        self._pareto_frontier.append(point)
+        self._pareto_frontier.sort(
+            key=lambda item: (item["enrolled"], item["budget"], item["token_efficiency"]),
+            reverse=True,
+        )
+        self._pareto_frontier = self._pareto_frontier[:10]
+        if self._active_constraints.get("regulatory_hold_days", 0) > 0 or self._screening_backlog >= 4:
+            self._oversight_queue.append(
+                {
+                    "step": self._step,
+                    "reason": "regulatory_or_backlog_pressure",
+                }
+            )
+            self._oversight_queue = self._oversight_queue[-8:]
+
+    def _compute_active_milestone(self) -> str:
+        progress = self._enrolled / max(1, self._target)
+        for label, threshold in [
+            ("25pct", 0.25),
+            ("50pct", 0.50),
+            ("75pct", 0.75),
+            ("100pct", 1.00),
+        ]:
+            if progress < threshold:
+                return label
+        return "complete"
+
+    def _compute_milestone_potential(self) -> float:
+        progress = self._enrolled / max(1, self._target)
+        consented = self._patient_memory.get("consented_pending_allocation", 0)
+        followup_due = self._patient_memory.get("followup_due", 0)
+        high_priority = self._patient_memory.get("high_priority_candidates", 0)
+        penalties = (
+            int(self._active_constraints.get("regulatory_hold_days", 0)) * 0.05
+            + float(self._active_constraints.get("competitor_pressure", 0.0)) * 0.10
+            + float(self._active_constraints.get("sentiment_pressure", 0.0)) * 0.08
+            + min(0.15, self._screening_backlog * 0.01)
+        )
+        readiness = min(
+            0.55,
+            consented * 0.03 + followup_due * 0.02 + high_priority * 0.015,
+        )
+        pace_bonus = min(0.20, max(0.0, progress - (self._step / max(1, self._max_steps))) * 0.5)
+        potential = 0.20 + progress * 0.35 + readiness + pace_bonus - penalties
+        return round(max(0.0, min(1.0, potential)), 3)
+
+    def _trim_or_seed_plan(self):
+        if self._current_plan:
+            created = int(self._current_plan.get("created_step", self._step))
+            target_phase = self._current_plan.get("target_phase", "")
+            autogenerated = bool(self._current_plan.get("autogenerated", False))
+            if self._active_milestone == "complete":
+                self._current_plan = {}
+                return
+            stale = self._step - created > (18 if autogenerated else 24)
+            frontier_mismatch = autogenerated and not self._phase_matches_frontier(
+                target_phase
+            )
+            if stale or frontier_mismatch:
+                self._current_plan = {}
+
+        if not self._current_plan and self._active_milestone != "complete":
+            target_phase = self._recommend_phase_for_frontier()
+            self._current_plan = {
+                "plan_id": f"autoplan-{self._step}-{target_phase}",
+                "target_phase": target_phase,
+                "summary": self._default_plan_summary(target_phase),
+                "created_step": self._step,
+                "last_followthrough_step": None,
+                "autogenerated": True,
+            }
+
+    def _phase_matches_frontier(self, target_phase: str) -> bool:
+        if self._active_milestone == "complete":
+            return True
+        return target_phase == self._recommend_phase_for_frontier()
+
+    def _recommend_phase_for_frontier(self) -> str:
+        if self._active_constraints.get("regulatory_hold_days", 0) > 0:
+            return "recovery"
+        if self._patient_memory.get("consented_pending_allocation", 0) > 0:
+            return "allocation"
+        if self._patient_memory.get("followup_due", 0) > 0 or self._patient_memory.get(
+            "eligible_pending_consent", 0
+        ) > 0:
+            return "conversion"
+        if self._patient_memory.get("at_risk_enrolled", 0) > 0 and self._task == "hard_bench":
+            return "retention"
+        return "screening"
 
     def _summarize_patient_memory(self) -> Dict[str, int]:
         return {
@@ -964,6 +1382,12 @@ class ClinicalRecruitmentEnv:
                 and not p["enrolled"]
             ),
             "dropped": sum(1 for p in self._patients if p["dropped"]),
+            "high_recontact_pressure": sum(
+                1
+                for p in self._patients
+                if p.get("recontact_attempts", 0) >= 2 and not p["enrolled"] and not p["dropped"]
+            ),
+            "oversight_alerts": len(self._oversight_queue),
         }
 
     def _build_counterfactual_hint(self) -> str:
@@ -990,7 +1414,72 @@ class ClinicalRecruitmentEnv:
             )
         if self._uncertainty_components.get("patient_pool", 0.0) > 0.4:
             return "Counterfactual: tighten criteria briefly to trade volume for stability."
+        if self._pareto_frontier:
+            best = self._pareto_frontier[0]
+            return (
+                "Counterfactual: target a higher-efficiency frontier point with "
+                f"enrolled={int(best['enrolled'])} and budget={best['budget']:.0f}."
+            )
         return "Counterfactual: keep screening high-priority patients while budget remains."
+
+    def _counterfactual_rollout_summary(self) -> Dict[str, float]:
+        next_enroll_if_allocate = min(
+            1.0,
+            self._patient_memory.get("consented_pending_allocation", 0) * 0.35,
+        )
+        next_followup_if_recontact = min(
+            1.0,
+            self._patient_memory.get("followup_due", 0) * 0.25,
+        )
+        return {
+            "allocate_gain_estimate": round(next_enroll_if_allocate, 3),
+            "recontact_gain_estimate": round(next_followup_if_recontact, 3),
+        }
+
+    def _rolling_dropout_rate(self) -> float:
+        recent_drops = [d for d in self._recent_dropouts if d >= self._step - 7]
+        enrolled_count = max(1, self._enrolled)
+        return min(1.0, len(recent_drops) / enrolled_count) if enrolled_count > 0 else 0.0
+
+    def _build_hindsight_summary(self) -> Dict[str, Any]:
+        action_counts: Dict[str, int] = {}
+        phase_followthrough = 0
+        memory_hits = 0
+        for item in self._history:
+            action = item.get("action", "unknown")
+            action_counts[action] = action_counts.get(action, 0) + 1
+            if item.get("plan_followthrough"):
+                phase_followthrough += 1
+            if item.get("memory_hit"):
+                memory_hits += 1
+
+        strongest_action = max(action_counts, key=action_counts.get) if action_counts else "none"
+        weakest_milestone = self._active_milestone if self._active_milestone else "complete"
+        recovery_suggestion = self._build_counterfactual_hint().replace("Counterfactual: ", "")
+        return {
+            "dominant_action": strongest_action,
+            "phase_followthrough_steps": phase_followthrough,
+            "memory_hits": memory_hits,
+            "milestone_potential_final": round(self._milestone_potential, 3),
+            "token_efficiency_score": round(self._token_efficiency_score, 3),
+            "token_usage_so_far": self._token_usage_so_far,
+            "weakest_milestone": weakest_milestone,
+            "recovery_suggestion": recovery_suggestion,
+            "score_proxy": round(
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        (self._enrolled / max(1, self._target)) * 0.6
+                        + phase_followthrough * 0.01
+                        + memory_hits * 0.01,
+                    ),
+                ),
+                3,
+            ),
+            "epistemic": round(min(1.0, self._uncertainty * 0.55 + self._screening_backlog * 0.015), 3),
+            "aleatoric": round(min(1.0, self._uncertainty * 0.45 + self._rolling_dropout_rate() * 0.4), 3),
+        }
 
     def _recompute_patient_priority(self, patient: Dict[str, Any]):
         patient["priority_score"] = round(
@@ -1081,12 +1570,36 @@ class ClinicalRecruitmentEnv:
         elif action_type == "adjust_strategy":
             # Strategy is fine but not productive by itself
             r -= 0.02
+        elif action_type == "plan_next_phase":
+            r -= 0.07
+        elif action_type in ("summarize_and_index", "retrieve_relevant_history"):
+            r -= 0.06
         elif action_type == "stop_recruitment":
             # Handled below in confidence calibration
             pass
         else:
             # Unknown action
             r -= 0.05
+
+        r += outcome.get("plan_bonus", 0.0)
+        r += outcome.get("memory_bonus", 0.0)
+
+        potential_delta = float(outcome.get("milestone_potential_delta", 0.0))
+        if potential_delta >= 0.0:
+            r += min(0.05, potential_delta * 0.45)
+        else:
+            r += max(-0.04, potential_delta * 0.30)
+
+        token_cost = int(outcome.get("token_cost", 0) or 0)
+        efficiency_before = self._token_efficiency_score
+        token_penalty = min(0.05, token_cost / max(1, self._token_budget_total) * 1.2)
+        r -= token_penalty
+        if outcome.get("enrolled") or outcome.get("screen_success") or outcome.get("memory_hit"):
+            progress_bonus = min(0.04, self._token_efficiency_score * 0.03)
+            r += progress_bonus
+            outcome["token_bonus"] += round(progress_bonus - token_penalty, 4)
+        else:
+            outcome["token_bonus"] -= round(token_penalty, 4)
 
         # --- UPGRADE ADDITIONS ---
 
@@ -1110,6 +1623,18 @@ class ClinicalRecruitmentEnv:
             # Uncertainty penalty: penalize stopping when things are still uncertain
             if self._uncertainty > 0.3:
                 r -= 0.15
+
+        # Keep planning/memory scaffolds from farming reward without funnel progress.
+        if action_type in {
+            "plan_next_phase",
+            "summarize_and_index",
+            "retrieve_relevant_history",
+        } and not outcome.get("screen_success") and not outcome.get("enrolled"):
+            r = min(r, -0.01)
+
+        self._token_efficiency_score = self._compute_token_efficiency()
+        if self._token_efficiency_score < efficiency_before and not outcome.get("enrolled"):
+            r -= min(0.02, (efficiency_before - self._token_efficiency_score) * 0.1)
 
         return max(-0.5, min(0.99, r))
 
@@ -1155,11 +1680,7 @@ class ClinicalRecruitmentEnv:
         recent.extend(day_events[:3])
 
         # 7-day rolling dropout rate
-        recent_drops = [d for d in self._recent_dropouts if d >= self._step - 7]
-        enrolled_count = max(1, self._enrolled)
-        dropout_7d = (
-            min(1.0, len(recent_drops) / enrolled_count) if enrolled_count > 0 else 0.0
-        )
+        dropout_7d = self._rolling_dropout_rate()
 
         # --- UPGRADE 3: Causal feedback layer ---
         dominant = "unclear"
@@ -1228,6 +1749,16 @@ class ClinicalRecruitmentEnv:
             uncertainty_components=dict(self._uncertainty_components),
             patient_memory_summary=dict(self._patient_memory),
             counterfactual_hint=self._counterfactual_hint,
+            current_plan=self._current_plan_snapshot(),
+            indexed_memory_summary=self._summarize_indexed_memory(),
+            retrieved_memory_context=self._retrieved_memory_context,
+            milestone_potential=round(self._milestone_potential, 3),
+            active_milestone=self._active_milestone,
+            hindsight_available=bool(self._hindsight_summary),
+            token_budget_remaining=self._token_budget_remaining,
+            token_usage_so_far=self._token_usage_so_far,
+            token_efficiency_score=round(self._token_efficiency_score, 3),
+            counterfactual_rollout=self._counterfactual_rollout_summary(),
         )
 
     def _difficulty(self) -> int:

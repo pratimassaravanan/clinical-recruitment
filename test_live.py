@@ -59,6 +59,23 @@ try:
         "Step has patient_memory_summary",
         "patient_memory_summary" in d.get("observation", {}),
     )
+    check("Step has current_plan", "current_plan" in d.get("observation", {}))
+    check(
+        "Step has indexed_memory_summary",
+        "indexed_memory_summary" in d.get("observation", {}),
+    )
+    check(
+        "Step has milestone_potential",
+        "milestone_potential" in d.get("observation", {}),
+    )
+    check(
+        "Step has token_budget_remaining",
+        "token_budget_remaining" in d.get("observation", {}),
+    )
+    check(
+        "Step has token_efficiency_score",
+        "token_efficiency_score" in d.get("observation", {}),
+    )
 
     # Tasks
     r = c.get(f"{BASE}/tasks")
@@ -71,6 +88,9 @@ try:
     state = r.json()
     check("State has milestones", "milestones" in state)
     check("State has active_constraints", "active_constraints" in state)
+    check("State has current_plan", "current_plan" in state)
+    check("State has indexed_memory_summary", "indexed_memory_summary" in state)
+    check("State has token_usage_so_far", "token_usage_so_far" in state)
 
 except httpx.ConnectError:
     print(f"\n  [FAIL] Cannot connect to {BASE}")

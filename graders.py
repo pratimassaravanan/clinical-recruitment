@@ -47,6 +47,52 @@ def _hypothesis_accuracy_score(history: list, world_type: str = "") -> float:
     return min(1.0, correct / max(1, len(window)))
 
 
+def _plan_followthrough_score(history: list) -> float:
+    plan_steps = [item for item in history if item.get("action") == "plan_next_phase"]
+    if not plan_steps:
+        return 0.0
+    followthrough = sum(1 for item in history if item.get("plan_followthrough"))
+    return min(1.0, followthrough / max(1, len(plan_steps) * 2))
+
+
+def _memory_use_score(history: list) -> float:
+    writes = sum(1 for item in history if item.get("action") == "summarize_and_index")
+    hits = sum(1 for item in history if item.get("memory_hit"))
+    if writes <= 0 and hits <= 0:
+        return 0.0
+    return min(1.0, (writes * 0.4 + hits * 0.6) / max(1.0, writes + 1.0))
+
+
+def _milestone_potential_score(final_obs: Observation, history: list) -> float:
+    deltas = [float(item.get("milestone_potential_delta", 0.0)) for item in history]
+    positive = sum(max(0.0, delta) for delta in deltas)
+    potential = float(getattr(final_obs, "milestone_potential", 0.0) or 0.0)
+    return min(1.0, potential * 0.7 + min(0.3, positive * 0.2))
+
+
+def _hindsight_alignment_score(final_obs: Observation, history: list) -> float:
+    hindsight_available = bool(getattr(final_obs, "hindsight_available", False))
+    if not hindsight_available:
+        return 0.0
+    followthrough = sum(1 for item in history if item.get("plan_followthrough"))
+    memory_hits = sum(1 for item in history if item.get("memory_hit"))
+    return min(1.0, 0.3 + followthrough * 0.02 + memory_hits * 0.03)
+
+
+def _token_efficiency_grade(final_obs: Observation, history: list) -> float:
+    efficiency = float(getattr(final_obs, "token_efficiency_score", 1.0) or 0.0)
+    token_usage = int(getattr(final_obs, "token_usage_so_far", 0) or 0)
+    useful_steps = sum(
+        1
+        for item in history
+        if item.get("screen_success") or item.get("enrolled") or item.get("memory_hit")
+    )
+    if token_usage <= 0:
+        return min(1.0, 0.4 + useful_steps * 0.02)
+    density = useful_steps / max(1, len(history))
+    return min(1.0, efficiency * 0.8 + density * 0.2)
+
+
 def grade_easy_bench(
     final_obs: Observation, total_reward: float, history: list
 ) -> float:
@@ -102,6 +148,13 @@ def grade_easy_bench(
 
     # Hypothesis accuracy (5%)
     score += 0.05 * _hypothesis_accuracy_score(history, final_obs.world_type)
+
+    # Milestone potential / planning quality (5%)
+    score += 0.03 * _milestone_potential_score(final_obs, history)
+    score += 0.02 * _plan_followthrough_score(history)
+
+    # Token efficiency (3%)
+    score += 0.03 * _token_efficiency_grade(final_obs, history)
 
     return round(min(0.999, max(0.001, score)), 4)
 
@@ -166,6 +219,13 @@ def grade_medium_bench(
 
     # Hypothesis accuracy (10%)
     score += 0.10 * _hypothesis_accuracy_score(history, final_obs.world_type)
+
+    # Explicit planning + milestone shaping (10%)
+    score += 0.05 * _plan_followthrough_score(history)
+    score += 0.05 * _milestone_potential_score(final_obs, history)
+
+    # Token efficiency (5%)
+    score += 0.05 * _token_efficiency_grade(final_obs, history)
 
     return round(min(0.999, max(0.001, score)), 4)
 
@@ -255,6 +315,14 @@ def grade_hard_bench(
 
     # Hypothesis accuracy (10%) - did agent identify dropout as dominant?
     score += 0.10 * _hypothesis_accuracy_score(history, final_obs.world_type)
+
+    # Memory + hindsight recovery signals (10%)
+    score += 0.04 * _memory_use_score(history)
+    score += 0.03 * _milestone_potential_score(final_obs, history)
+    score += 0.03 * _hindsight_alignment_score(final_obs, history)
+
+    # Token efficiency under pressure (5%)
+    score += 0.05 * _token_efficiency_grade(final_obs, history)
 
     return round(min(0.999, max(0.001, score)), 4)
 

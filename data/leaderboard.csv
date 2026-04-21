@@ -1,5 +1,5 @@
 policy,mean_score_across_tasks
-rule_based_memory,0.5602666666666667
-conservative_retention,0.5499999999999999
-site_negotiation,0.44870000000000004
-greedy_screen,0.30133333333333334
+rule_based_memory,0.6162333333333333
+conservative_retention,0.5753666666666667
+site_negotiation,0.5499666666666666
+greedy_screen,0.39713333333333334

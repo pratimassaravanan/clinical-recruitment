@@ -1,0 +1,216 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-21T15:01:36.620171",
+    "framework": "Clinical Recruitment Environment",
+    "version": "1.0.0"
+  },
+  "sweep_results": {
+    "hcapo": {
+      "mean": 0.23440000000000003,
+      "std": 0.01760063480897809,
+      "ci_95": [
+        0.2240444444444444,
+        0.2547222222222222
+      ],
+      "n_seeds": 3,
+      "per_seed": {
+        "1": 0.2547222222222222,
+        "7": 0.22404444444444443,
+        "42": 0.22443333333333337
+      }
+    },
+    "mira": {
+      "mean": 0.22137407407407408,
+      "std": 0.0193013986998235,
+      "ci_95": [
+        0.19962222222222223,
+        0.23645555555555556
+      ],
+      "n_seeds": 3,
+      "per_seed": {
+        "1": 0.1996222222222222,
+        "7": 0.22804444444444444,
+        "42": 0.23645555555555559
+      }
+    },
+    "klong": {
+      "mean": 0.2116,
+      "std": 0.013471959905808224,
+      "ci_95": [
+        0.1961222222222222,
+        0.2206888888888889
+      ],
+      "n_seeds": 3,
+      "per_seed": {
+        "1": 0.2206888888888889,
+        "7": 0.2179888888888889,
+        "42": 0.1961222222222222
+      }
+    },
+    "memex": {
+      "mean": 0.22575185185185187,
+      "std": 0.027502467528652926,
+      "ci_95": [
+        0.20217777777777782,
+        0.2559666666666667
+      ],
+      "n_seeds": 3,
+      "per_seed": {
+        "1": 0.2559666666666667,
+        "7": 0.2191111111111111,
+        "42": 0.20217777777777782
+      }
+    }
+  },
+  "statistical_tests": {
+    "comparisons": [
+      {
+        "agent1": "hcapo",
+        "agent2": "mira",
+        "n_pairs": 3,
+        "mean_diff": 0.01302592592592594,
+        "t_stat": 0.6154721559482054,
+        "t_pvalue": 0.5382429521345002,
+        "wilcoxon_stat": 3.0,
+        "wilcoxon_pvalue": 1.0,
+        "cohens_d": 0.7052247319287589,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "hcapo",
+        "agent2": "klong",
+        "n_pairs": 3,
+        "mean_diff": 0.022800000000000015,
+        "t_stat": 2.671783650632735,
+        "t_pvalue": 0.007544927575444227,
+        "wilcoxon_stat": 0.0,
+        "wilcoxon_pvalue": 0.10880943004054566,
+        "cohens_d": 1.454745588375908,
+        "significant_05": true,
+        "significant_01": true,
+        "bonferroni_sig": true,
+        "holm_sig": true
+      },
+      {
+        "agent1": "hcapo",
+        "agent2": "memex",
+        "n_pairs": 3,
+        "mean_diff": 0.008648148148148155,
+        "t_stat": 1.2295570188102773,
+        "t_pvalue": 0.21886303358298553,
+        "wilcoxon_stat": 1.0,
+        "wilcoxon_pvalue": 0.28504940740261275,
+        "cohens_d": 0.3745633524550067,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "mira",
+        "agent2": "klong",
+        "n_pairs": 3,
+        "mean_diff": 0.009774074074074074,
+        "t_stat": 0.5514221246514953,
+        "t_pvalue": 0.5813443374558198,
+        "wilcoxon_stat": 2.0,
+        "wilcoxon_pvalue": 0.5929800980174267,
+        "cohens_d": 0.5872472163397315,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "mira",
+        "agent2": "memex",
+        "n_pairs": 3,
+        "mean_diff": -0.004377777777777786,
+        "t_stat": -0.16217751693129795,
+        "t_pvalue": 0.8711660642949253,
+        "wilcoxon_stat": 3.0,
+        "wilcoxon_pvalue": 1.0,
+        "cohens_d": -0.1842617784685217,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "klong",
+        "agent2": "memex",
+        "n_pairs": 3,
+        "mean_diff": -0.01415185185185186,
+        "t_stat": -1.3277485083282443,
+        "t_pvalue": 0.18426120266054724,
+        "wilcoxon_stat": 0.0,
+        "wilcoxon_pvalue": 0.10880943004054566,
+        "cohens_d": -0.65351380681413,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      }
+    ],
+    "n_comparisons": 6
+  },
+  "integration_tests": {
+    "easy_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 2.6802
+    },
+    "medium_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 1.8704999999999998
+    },
+    "hard_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 1.5921999999999996
+    }
+  }
+}

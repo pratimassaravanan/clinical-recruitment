@@ -1,0 +1,4 @@
+seed,avg_final_score,avg_total_reward,avg_token_efficiency
+1,0.6123,9.3212,1.0
+7,0.3027,3.296,0.999
+21,0.4895,2.9471,0.998

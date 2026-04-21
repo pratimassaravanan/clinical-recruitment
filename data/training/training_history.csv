@@ -1,0 +1,5 @@
+epoch,avg_total_reward,avg_final_score,avg_token_efficiency
+1,0.815,0.299,0.9983
+2,11.3441,0.4042,0.9713
+3,5.786,0.3352,0.9833
+4,13.8864,0.3934,0.9537

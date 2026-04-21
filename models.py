@@ -82,6 +82,52 @@ class Observation(BaseModel):
         default="",
         description="Simple what-if suggestion showing an alternative next move worth testing",
     )
+    current_plan: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Current high-level phase plan for explicit Plan-and-Act execution",
+    )
+    indexed_memory_summary: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Summary of indexed memory entries available to the agent",
+    )
+    retrieved_memory_context: str = Field(
+        default="",
+        description="Most recently retrieved memory context exposed back to the agent",
+    )
+    milestone_potential: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="MiRA-style milestone potential critic score for the current state",
+    )
+    active_milestone: str = Field(
+        default="",
+        description="Currently weakest milestone frontier that should be targeted next",
+    )
+    hindsight_available: bool = Field(
+        default=False,
+        description="Whether an end-of-episode hindsight credit summary is available",
+    )
+    token_budget_remaining: int = Field(
+        default=0,
+        ge=0,
+        description="Remaining inference token budget available to the agent in this episode",
+    )
+    token_usage_so_far: int = Field(
+        default=0,
+        ge=0,
+        description="Cumulative tokens consumed so far by the agent during the episode",
+    )
+    token_efficiency_score: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Mercor-style efficiency score rewarding useful progress at lower token cost",
+    )
+    counterfactual_rollout: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Estimated gain from alternative next moves (allocate vs recontact)",
+    )
 
 
 class Action(BaseModel):
@@ -92,6 +138,9 @@ class Action(BaseModel):
         "recontact",
         "allocate_to_site",
         "adjust_strategy",
+        "plan_next_phase",
+        "summarize_and_index",
+        "retrieve_relevant_history",
         "stop_recruitment",
     ] = Field(description="Type of recruitment action")
     patient_id: Optional[str] = Field(
@@ -113,6 +162,35 @@ class Action(BaseModel):
         ge=0.0,
         le=1.0,
         description="Agent's confidence in its hypothesis (0.0-1.0)",
+    )
+    plan_id: Optional[str] = Field(
+        default=None,
+        description="Optional high-level plan identifier for explicit Plan-and-Act control",
+    )
+    plan_summary: Optional[str] = Field(
+        default=None,
+        description="Natural-language summary for a new or updated high-level plan",
+    )
+    target_phase: Optional[str] = Field(
+        default=None,
+        description="High-level phase target such as screening, conversion, allocation, retention, or recovery",
+    )
+    memory_key: Optional[str] = Field(
+        default=None,
+        description="Key used when writing or updating an indexed memory entry",
+    )
+    memory_query: Optional[str] = Field(
+        default=None,
+        description="Query string used to retrieve relevant indexed memory entries",
+    )
+    memory_payload: Optional[str] = Field(
+        default=None,
+        description="Summary text written into indexed memory during summarize_and_index",
+    )
+    token_cost: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description="Optional estimated token cost attached to the action for token-aware accounting",
     )
 
 
@@ -151,6 +229,15 @@ class State(BaseModel):
     active_constraints: Dict[str, Any] = Field(default_factory=dict)
     delayed_effects_pending: int = Field(default=0, ge=0)
     uncertainty_components: Dict[str, float] = Field(default_factory=dict)
+    current_plan: Dict[str, Any] = Field(default_factory=dict)
+    indexed_memory_summary: Dict[str, int] = Field(default_factory=dict)
+    retrieved_memory_context: str = Field(default="")
+    milestone_potential: float = Field(default=0.0, ge=0.0, le=1.0)
+    active_milestone: str = Field(default="")
+    hindsight_summary: Dict[str, Any] = Field(default_factory=dict)
+    token_budget_remaining: int = Field(default=0, ge=0)
+    token_usage_so_far: int = Field(default=0, ge=0)
+    token_efficiency_score: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class StepResult(BaseModel):

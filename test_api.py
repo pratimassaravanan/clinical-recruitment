@@ -94,6 +94,92 @@ try:
         "observation has counterfactual_hint",
         "counterfactual_hint" in d.get("observation", {}),
     )
+    check("observation has current_plan", "current_plan" in d.get("observation", {}))
+    check(
+        "observation has indexed_memory_summary",
+        "indexed_memory_summary" in d.get("observation", {}),
+    )
+    check(
+        "observation has retrieved_memory_context",
+        "retrieved_memory_context" in d.get("observation", {}),
+    )
+    check(
+        "observation has milestone_potential",
+        "milestone_potential" in d.get("observation", {}),
+    )
+    check(
+        "observation has active_milestone",
+        "active_milestone" in d.get("observation", {}),
+    )
+    check(
+        "observation has hindsight_available",
+        "hindsight_available" in d.get("observation", {}),
+    )
+    check(
+        "observation has token_budget_remaining",
+        "token_budget_remaining" in d.get("observation", {}),
+    )
+    check(
+        "observation has token_usage_so_far",
+        "token_usage_so_far" in d.get("observation", {}),
+    )
+    check(
+        "observation has token_efficiency_score",
+        "token_efficiency_score" in d.get("observation", {}),
+    )
+
+    # 5b. Plan and memory actions
+    print("\n5b. Plan/memory actions")
+    r = c.post(
+        f"{BASE}/step",
+        json={
+            "action_type": "plan_next_phase",
+            "target_phase": "conversion",
+            "plan_id": "api-plan",
+            "plan_summary": "Convert warm leads first",
+            "hypothesis": "noise_dominant",
+            "confidence": 0.6,
+        },
+    )
+    d = r.json()
+    check("plan_next_phase returns 200", r.status_code == 200)
+    check(
+        "plan_next_phase updates current_plan",
+        d.get("observation", {}).get("current_plan", {}).get("target_phase") == "conversion",
+    )
+
+    r = c.post(
+        f"{BASE}/step",
+        json={
+            "action_type": "summarize_and_index",
+            "memory_key": "api_memory",
+            "memory_payload": "conversion followup backlog",
+            "hypothesis": "noise_dominant",
+            "confidence": 0.6,
+        },
+    )
+    d = r.json()
+    check("summarize_and_index returns 200", r.status_code == 200)
+    check(
+        "summarize_and_index updates memory summary",
+        d.get("observation", {}).get("indexed_memory_summary", {}).get("entries", 0) >= 1,
+    )
+
+    r = c.post(
+        f"{BASE}/step",
+        json={
+            "action_type": "retrieve_relevant_history",
+            "memory_query": "conversion followup",
+            "hypothesis": "noise_dominant",
+            "confidence": 0.6,
+        },
+    )
+    d = r.json()
+    check("retrieve_relevant_history returns 200", r.status_code == 200)
+    check(
+        "retrieve_relevant_history exposes context",
+        len(d.get("observation", {}).get("retrieved_memory_context", "")) > 0,
+    )
 
     # 6. State
     print("\n6. State endpoint")
@@ -106,6 +192,11 @@ try:
     check("state() has active_constraints", "active_constraints" in d)
     check("state() has delayed_effects_pending", "delayed_effects_pending" in d)
     check("state() has uncertainty_components", "uncertainty_components" in d)
+    check("state() has current_plan", "current_plan" in d)
+    check("state() has indexed_memory_summary", "indexed_memory_summary" in d)
+    check("state() has milestone_potential", "milestone_potential" in d)
+    check("state() has token_usage_so_far", "token_usage_so_far" in d)
+    check("state() has token_efficiency_score", "token_efficiency_score" in d)
 
 except httpx.ConnectError:
     print("\n  [FAIL] Cannot connect to localhost:7860. Start the server first:")

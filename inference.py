@@ -40,6 +40,10 @@ def _format_action(action: dict) -> str:
     pid = action.get("patient_id", "")
     sid = action.get("site_id", "")
     strat = action.get("strategy_change", "")
+    target_phase = action.get("target_phase", "")
+    memory_key = action.get("memory_key", "")
+    memory_query = action.get("memory_query", "")
+    token_cost = action.get("token_cost", "")
     hyp = action.get("hypothesis", "")
     parts = [atype]
     if pid:
@@ -48,6 +52,14 @@ def _format_action(action: dict) -> str:
         parts.append(sid)
     if strat:
         parts.append(strat)
+    if target_phase:
+        parts.append(f"phase={target_phase}")
+    if memory_key:
+        parts.append(f"mem={memory_key}")
+    if memory_query:
+        parts.append(f"query={memory_query}")
+    if token_cost not in (None, ""):
+        parts.append(f"tok={token_cost}")
     if hyp:
         parts.append(f"hyp={hyp}")
     return "/".join(parts)
@@ -105,10 +117,18 @@ class PolicyState:
     def __init__(self):
         self.patients: Dict[str, Dict[str, Any]] = {}
         self.last_strategy_step: Dict[str, int] = {}
+        self.last_plan_step: int = -999
+        self.last_memory_write_step: int = -999
+        self.last_memory_retrieval_step: int = -999
+        self.token_usage_estimate: int = 0
 
     def reset(self, obs: dict) -> None:
         self.patients = {}
         self.last_strategy_step = {}
+        self.last_plan_step = -999
+        self.last_memory_write_step = -999
+        self.last_memory_retrieval_step = -999
+        self.token_usage_estimate = 0
         self._remember_available_patients(obs)
 
     def _ensure_patient(self, patient_id: str) -> Dict[str, Any]:
@@ -154,6 +174,15 @@ class PolicyState:
     def record_strategy(self, strategy_change: Optional[str], step_num: int) -> None:
         if strategy_change:
             self.last_strategy_step[strategy_change] = step_num
+
+    def planning_recently_used(self, step_num: int, cooldown: int = 8) -> bool:
+        return step_num - self.last_plan_step < cooldown
+
+    def memory_write_recently_used(self, step_num: int, cooldown: int = 10) -> bool:
+        return step_num - self.last_memory_write_step < cooldown
+
+    def memory_retrieval_recently_used(self, step_num: int, cooldown: int = 6) -> bool:
+        return step_num - self.last_memory_retrieval_step < cooldown
 
     def tracked_patients(self, step_num: int, status: str) -> List[str]:
         candidates = []
@@ -207,6 +236,13 @@ class PolicyState:
         action_type = action.get("action_type")
         patient_id = action.get("patient_id")
         self.record_strategy(action.get("strategy_change"), step_num)
+        if action_type == "plan_next_phase":
+            self.last_plan_step = step_num
+        elif action_type == "summarize_and_index":
+            self.last_memory_write_step = step_num
+        elif action_type == "retrieve_relevant_history":
+            self.last_memory_retrieval_step = step_num
+        self.token_usage_estimate += int(action.get("token_cost", 0) or 0)
 
         self._remember_available_patients(prev_obs)
         self._remember_available_patients(next_obs)
@@ -348,6 +384,9 @@ def _normalize_action(
         "recontact",
         "allocate_to_site",
         "adjust_strategy",
+        "plan_next_phase",
+        "summarize_and_index",
+        "retrieve_relevant_history",
         "stop_recruitment",
     }
     action_type = action.get("action_type")
@@ -361,11 +400,34 @@ def _normalize_action(
         "strategy_change": action.get("strategy_change"),
         "hypothesis": action.get("hypothesis"),
         "confidence": action.get("confidence", 0.5),
+        "plan_id": action.get("plan_id"),
+        "plan_summary": action.get("plan_summary"),
+        "target_phase": action.get("target_phase"),
+        "memory_key": action.get("memory_key"),
+        "memory_query": action.get("memory_query"),
+        "memory_payload": action.get("memory_payload"),
+        "token_cost": action.get("token_cost"),
     }
 
-    for key in ("patient_id", "site_id", "strategy_change"):
+    for key in (
+        "patient_id",
+        "site_id",
+        "strategy_change",
+        "plan_id",
+        "plan_summary",
+        "target_phase",
+        "memory_key",
+        "memory_query",
+        "memory_payload",
+    ):
         if normalized.get(key) in (None, "null", "None", ""):
             normalized[key] = None
+
+    token_cost = normalized.get("token_cost")
+    if isinstance(token_cost, (int, float)):
+        normalized["token_cost"] = max(0, int(token_cost))
+    else:
+        normalized["token_cost"] = None
 
     valid_hypotheses = {
         "dropout_dominant",
@@ -415,14 +477,83 @@ def _normalize_action(
             return None
         normalized["patient_id"] = None
         normalized["site_id"] = None
+        normalized["plan_id"] = None
+        normalized["plan_summary"] = None
+        normalized["target_phase"] = None
+        normalized["memory_key"] = None
+        normalized["memory_query"] = None
+        normalized["memory_payload"] = None
+    elif action_type == "plan_next_phase":
+        valid_phases = {"screening", "conversion", "allocation", "retention", "recovery"}
+        phase = normalized.get("target_phase") or _recommended_phase(obs)
+        if phase not in valid_phases:
+            return None
+        normalized["target_phase"] = phase
+        normalized["plan_id"] = normalized.get("plan_id") or f"plan-{step_num}-{phase}"
+        normalized["plan_summary"] = normalized.get("plan_summary") or _plan_summary_for_phase(
+            phase,
+            obs,
+        )
+        normalized["patient_id"] = None
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        normalized["memory_key"] = None
+        normalized["memory_query"] = None
+        normalized["memory_payload"] = None
+    elif action_type == "summarize_and_index":
+        key = normalized.get("memory_key") or _default_memory_key(obs)
+        payload = normalized.get("memory_payload") or _default_memory_payload(obs)
+        if not key or not payload:
+            return None
+        normalized["memory_key"] = key
+        normalized["memory_payload"] = payload
+        normalized["patient_id"] = None
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        normalized["plan_id"] = None
+        normalized["plan_summary"] = None
+        normalized["target_phase"] = None
+        normalized["memory_query"] = None
+    elif action_type == "retrieve_relevant_history":
+        query = normalized.get("memory_query") or _default_memory_query(obs)
+        if not query:
+            return None
+        normalized["memory_query"] = query
+        normalized["patient_id"] = None
+        normalized["site_id"] = None
+        normalized["strategy_change"] = None
+        normalized["plan_id"] = None
+        normalized["plan_summary"] = None
+        normalized["target_phase"] = None
+        normalized["memory_key"] = None
+        normalized["memory_payload"] = None
     else:
         normalized["patient_id"] = None
         normalized["site_id"] = None
         normalized["strategy_change"] = None
+        normalized["plan_id"] = None
+        normalized["plan_summary"] = None
+        normalized["target_phase"] = None
+        normalized["memory_key"] = None
+        normalized["memory_query"] = None
+        normalized["memory_payload"] = None
         progress = obs.get("enrolled_so_far", 0) / max(1, obs.get("target_enrollment", 1))
         normalized["confidence"] = min(normalized["confidence"], max(0.1, progress))
 
     return normalized
+
+
+def _estimated_token_cost(action_type: str) -> int:
+    return {
+        "screen_patient": 18,
+        "recontact": 20,
+        "allocate_to_site": 22,
+        "adjust_strategy": 26,
+        "plan_next_phase": 55,
+        "summarize_and_index": 42,
+        "retrieve_relevant_history": 36,
+        "stop_recruitment": 12,
+    }.get(action_type, 20)
 
 
 # -- Rule-based fallback policy --
@@ -483,6 +614,63 @@ def _infer_confidence(obs: dict, step: int) -> float:
     return max(0.1, min(0.95, base))
 
 
+def _recommended_phase(obs: dict) -> str:
+    constraints = obs.get("active_constraints", {})
+    memory = obs.get("patient_memory_summary", {})
+    if int(constraints.get("regulatory_hold_days", 0)) > 0:
+        return "recovery"
+    if int(memory.get("consented_pending_allocation", 0)) > 0:
+        return "allocation"
+    if int(memory.get("followup_due", 0)) > 0 or int(
+        memory.get("eligible_pending_consent", 0)
+    ) > 0:
+        return "conversion"
+    if int(memory.get("at_risk_enrolled", 0)) > 0 and obs.get("difficulty") == 3:
+        return "retention"
+    return "screening"
+
+
+def _plan_summary_for_phase(phase: str, obs: dict) -> str:
+    active_milestone = obs.get("active_milestone") or "next"
+    summaries = {
+        "screening": f"Push high-priority screening to reach the {active_milestone} frontier.",
+        "conversion": f"Convert warm leads before follow-up windows close and unlock the {active_milestone} milestone.",
+        "allocation": f"Allocate consented patients quickly to preserve momentum toward the {active_milestone} milestone.",
+        "retention": f"Protect fragile enrollments so progress to {active_milestone} does not slip backward.",
+        "recovery": f"Stabilize constraints and recover pipeline health before chasing the {active_milestone} frontier.",
+    }
+    return summaries.get(phase, "Advance the next long-horizon phase.")
+
+
+def _default_memory_key(obs: dict) -> str:
+    phase = _recommended_phase(obs)
+    milestone = obs.get("active_milestone") or "frontier"
+    return f"{phase}_{milestone}"
+
+
+def _default_memory_payload(obs: dict) -> str:
+    memory = obs.get("patient_memory_summary", {})
+    constraints = obs.get("active_constraints", {})
+    return (
+        f"phase={_recommended_phase(obs)} active_milestone={obs.get('active_milestone', '')} "
+        f"followup_due={memory.get('followup_due', 0)} consented_pending={memory.get('consented_pending_allocation', 0)} "
+        f"reg_hold={constraints.get('regulatory_hold_days', 0)} site_bottleneck={constraints.get('site_bottleneck', False)}"
+    )
+
+
+def _default_memory_query(obs: dict) -> str:
+    phase = _recommended_phase(obs)
+    if phase == "allocation":
+        return "allocation consented site"
+    if phase == "conversion":
+        return "conversion followup consent"
+    if phase == "retention":
+        return "retention dropout recovery"
+    if phase == "recovery":
+        return "recovery regulatory site bottleneck"
+    return "screening high priority"
+
+
 def _hard_mode_action(
     obs: dict,
     step: int,
@@ -507,10 +695,15 @@ def _hard_mode_action(
     )
     regulatory_hold_days = int(constraints.get("regulatory_hold_days", 0))
     delayed_effects_pending = int(obs.get("delayed_effects_pending", 0))
+    milestone_potential = float(obs.get("milestone_potential", 0.0) or 0.0)
+    indexed_memory_summary = obs.get("indexed_memory_summary", {})
+    retrieved_memory_context = obs.get("retrieved_memory_context", "")
+    current_plan = obs.get("current_plan", {})
     recontact_ids = policy_state.recontact_candidate_ids(step)
     consented_ids = policy_state.consented_pending_ids(step)
     best_site = _best_site(obs, mode="allocate")
     best_negotiate_site = _best_site(obs, mode="negotiate")
+    recommended_phase = _recommended_phase(obs)
 
     def emit(
         action_type: str,
@@ -518,6 +711,12 @@ def _hard_mode_action(
         site_id: Optional[str] = None,
         strategy_change: Optional[str] = None,
         conf: Optional[float] = None,
+        plan_id: Optional[str] = None,
+        plan_summary: Optional[str] = None,
+        target_phase: Optional[str] = None,
+        memory_key: Optional[str] = None,
+        memory_query: Optional[str] = None,
+        memory_payload: Optional[str] = None,
     ) -> dict:
         return {
             "action_type": action_type,
@@ -526,7 +725,49 @@ def _hard_mode_action(
             "strategy_change": strategy_change,
             "hypothesis": hypothesis,
             "confidence": confidence if conf is None else conf,
+            "plan_id": plan_id,
+            "plan_summary": plan_summary,
+            "target_phase": target_phase,
+            "memory_key": memory_key,
+            "memory_query": memory_query,
+            "memory_payload": memory_payload,
+            "token_cost": _estimated_token_cost(action_type),
         }
+
+    if (
+        current_plan.get("target_phase") != recommended_phase
+        and not policy_state.planning_recently_used(step, cooldown=10)
+    ):
+        return emit(
+            "plan_next_phase",
+            target_phase=recommended_phase,
+            plan_id=f"hard-plan-{step}-{recommended_phase}",
+            plan_summary=_plan_summary_for_phase(recommended_phase, obs),
+            conf=max(confidence, 0.62),
+        )
+
+    if (
+        indexed_memory_summary.get("entries", 0) <= 0
+        and not policy_state.memory_write_recently_used(step, cooldown=12)
+    ):
+        return emit(
+            "summarize_and_index",
+            memory_key=_default_memory_key(obs),
+            memory_payload=_default_memory_payload(obs),
+            conf=max(0.45, confidence - 0.08),
+        )
+
+    if (
+        indexed_memory_summary.get("entries", 0) > 0
+        and not retrieved_memory_context
+        and milestone_potential < 0.65
+        and not policy_state.memory_retrieval_recently_used(step, cooldown=8)
+    ):
+        return emit(
+            "retrieve_relevant_history",
+            memory_query=_default_memory_query(obs),
+            conf=max(0.42, confidence - 0.1),
+        )
 
     if consented_ids and best_site and budget > 1400:
         return emit("allocate_to_site", patient_id=consented_ids[0], site_id=best_site)
@@ -614,6 +855,11 @@ def rule_based_action(
     site_bottleneck = bool(constraints.get("site_bottleneck", False))
     delayed_effects_pending = int(obs.get("delayed_effects_pending", 0))
     focused_site = constraints.get("focused_site", "")
+    current_plan = obs.get("current_plan", {})
+    indexed_memory_summary = obs.get("indexed_memory_summary", {})
+    retrieved_memory_context = obs.get("retrieved_memory_context", "")
+    milestone_potential = float(obs.get("milestone_potential", 0.0) or 0.0)
+    active_milestone = obs.get("active_milestone", "")
 
     def emit(
         action_type: str,
@@ -621,6 +867,12 @@ def rule_based_action(
         site_id: Optional[str] = None,
         strategy_change: Optional[str] = None,
         confidence_override: Optional[float] = None,
+        plan_id: Optional[str] = None,
+        plan_summary: Optional[str] = None,
+        target_phase: Optional[str] = None,
+        memory_key: Optional[str] = None,
+        memory_query: Optional[str] = None,
+        memory_payload: Optional[str] = None,
     ) -> dict:
         return {
             "action_type": action_type,
@@ -629,6 +881,13 @@ def rule_based_action(
             "strategy_change": strategy_change,
             "hypothesis": hypothesis,
             "confidence": confidence_override if confidence_override is not None else confidence,
+            "plan_id": plan_id,
+            "plan_summary": plan_summary,
+            "target_phase": target_phase,
+            "memory_key": memory_key,
+            "memory_query": memory_query,
+            "memory_payload": memory_payload,
+            "token_cost": _estimated_token_cost(action_type),
         }
 
     # Infer hypothesis and confidence
@@ -653,6 +912,46 @@ def rule_based_action(
     focus_strategy = (
         f"focus_site_{_site_suffix(best_allocate_site)}" if best_allocate_site else None
     )
+    recommended_phase = _recommended_phase(obs)
+    plan_phase = current_plan.get("target_phase") if isinstance(current_plan, dict) else None
+
+    if (
+        not plan_phase or plan_phase != recommended_phase
+    ) and not policy_state.planning_recently_used(step):
+        return emit(
+            "plan_next_phase",
+            target_phase=recommended_phase,
+            plan_id=f"plan-{step}-{recommended_phase}",
+            plan_summary=_plan_summary_for_phase(recommended_phase, obs),
+            confidence_override=max(confidence, min(0.85, 0.45 + milestone_potential * 0.4)),
+        )
+
+    if (
+        indexed_memory_summary.get("entries", 0) <= 0
+        or (
+            active_milestone
+            and indexed_memory_summary.get(recommended_phase, 0) <= 0
+            and not policy_state.memory_write_recently_used(step)
+        )
+    ):
+        return emit(
+            "summarize_and_index",
+            memory_key=_default_memory_key(obs),
+            memory_payload=_default_memory_payload(obs),
+            confidence_override=max(0.45, confidence - 0.05),
+        )
+
+    if (
+        indexed_memory_summary.get("entries", 0) > 0
+        and not retrieved_memory_context
+        and milestone_potential < 0.72
+        and not policy_state.memory_retrieval_recently_used(step)
+    ):
+        return emit(
+            "retrieve_relevant_history",
+            memory_query=_default_memory_query(obs),
+            confidence_override=max(0.4, confidence - 0.08),
+        )
 
     # If we have consented patients not yet enrolled, allocate them first.
     if consented_ids and best_allocate_site and budget > 1500:
@@ -828,6 +1127,14 @@ LONG-HORIZON SIGNALS:
 - Active constraints: {active_constraints}
 - Uncertainty components: {uncertainty_components}
 - Patient memory summary: {patient_memory_summary}
+- Current plan: {current_plan}
+- Indexed memory summary: {indexed_memory_summary}
+- Retrieved memory context: {retrieved_memory_context}
+- Milestone potential: {milestone_potential:.2f}
+- Active milestone frontier: {active_milestone}
+- Token budget remaining: {token_budget_remaining}
+- Token usage so far: {token_usage_so_far}
+- Token efficiency score: {token_efficiency_score:.2f}
 - Delayed effects pending: {delayed_effects_pending}
 - Counterfactual hint: {counterfactual_hint}
 
@@ -836,7 +1143,10 @@ AVAILABLE ACTIONS:
 2. recontact (patient_id) - re-engage dropped interest (low cost, uncertain)
 3. allocate_to_site (patient_id, site_id) - assign consented patient to site for enrollment
 4. adjust_strategy (strategy_change) - one of: {strategy_options}
-5. stop_recruitment - end episode early (only when confident enrollment targets are met or unachievable)
+5. plan_next_phase (target_phase, plan_id, plan_summary) - set an explicit high-level next phase
+6. summarize_and_index (memory_key, memory_payload) - store a compact memory entry for later retrieval
+7. retrieve_relevant_history (memory_query) - retrieve indexed history relevant to the current bottleneck
+8. stop_recruitment - end episode early (only when confident enrollment targets are met or unachievable)
 
 REASONING REQUIREMENTS:
 You MUST include a hypothesis about what is driving trial dynamics:
@@ -848,9 +1158,10 @@ You MUST include a hypothesis about what is driving trial dynamics:
 You MUST include a confidence score (0.0-1.0) for your hypothesis.
 IMPORTANT: Be CONSISTENT with your hypothesis. Switching hypotheses too often is penalized.
 IMPORTANT: When stopping recruitment, calibrate your confidence to match actual enrollment progress.
+IMPORTANT: Prefer lower-token actions when they achieve similar progress. Large planning/memory actions should pay for themselves.
 
 Respond with EXACTLY one JSON object:
-{{"action_type": "<action>", "patient_id": "<id or null>", "site_id": "<id or null>", "strategy_change": "<change or null>", "hypothesis": "<hypothesis>", "confidence": <float>}}
+{{"action_type": "<action>", "patient_id": "<id or null>", "site_id": "<id or null>", "strategy_change": "<change or null>", "plan_id": "<id or null>", "plan_summary": "<summary or null>", "target_phase": "<phase or null>", "memory_key": "<key or null>", "memory_query": "<query or null>", "memory_payload": "<payload or null>", "token_cost": <int or null>, "hypothesis": "<hypothesis>", "confidence": <float>}}
 
 No markdown, no explanation."""
 
@@ -909,6 +1220,14 @@ def llm_action(
         active_constraints=obs.get("active_constraints", {}),
         uncertainty_components=obs.get("uncertainty_components", {}),
         patient_memory_summary=obs.get("patient_memory_summary", {}),
+        current_plan=obs.get("current_plan", {}),
+        indexed_memory_summary=obs.get("indexed_memory_summary", {}),
+        retrieved_memory_context=obs.get("retrieved_memory_context", ""),
+        milestone_potential=float(obs.get("milestone_potential", 0.0) or 0.0),
+        active_milestone=obs.get("active_milestone", ""),
+        token_budget_remaining=int(obs.get("token_budget_remaining", 0) or 0),
+        token_usage_so_far=int(obs.get("token_usage_so_far", 0) or 0),
+        token_efficiency_score=float(obs.get("token_efficiency_score", 1.0) or 0.0),
         delayed_effects_pending=obs.get("delayed_effects_pending", 0),
         counterfactual_hint=obs.get("counterfactual_hint", ""),
     )
@@ -969,6 +1288,13 @@ def run_task(task_id: str, client: OpenAI) -> float:
                     "patient_id": None,
                     "site_id": None,
                     "strategy_change": None,
+                    "plan_id": None,
+                    "plan_summary": None,
+                    "target_phase": None,
+                    "memory_key": None,
+                    "memory_query": None,
+                    "memory_payload": None,
+                    "token_cost": _estimated_token_cost("stop_recruitment"),
                     "hypothesis": _infer_hypothesis(obs),
                     "confidence": min(
                         0.95,

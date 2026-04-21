@@ -1,0 +1,59 @@
+% NeurIPS 2026 Style File (Datasets and Benchmarks Track)
+% Based on neurips_2024.sty with minor modifications
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{neurips_2026}[2026/01/01 NeurIPS 2026 submission style]
+
+\RequirePackage{geometry}
+\geometry{
+  textwidth=6.0in,
+  textheight=9.0in,
+  headheight=0pt,
+  headsep=0pt,
+  marginparwidth=0pt,
+  marginparsep=0pt,
+  left=1.25in,
+  top=1.0in
+}
+
+% Fonts
+\RequirePackage{times}
+\RequirePackage{amsmath,amssymb,amsfonts}
+\RequirePackage{microtype}
+
+% Section formatting
+\RequirePackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
+
+% Spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% Title formatting
+\newcommand{\@neuripsauthors}{}
+\newcommand{\@neuripsaffiliations}{}
+
+\renewcommand{\maketitle}{%
+  \begin{center}
+    {\Large\bfseries\@title\par}
+    \vskip 0.5em
+    {\normalsize\@author\par}
+    \vskip 0.3em
+    {\small\@date\par}
+  \end{center}
+  \vskip 1em
+}
+
+% Abstract environment
+\renewenvironment{abstract}{%
+  \begin{center}
+    {\bfseries Abstract}
+  \end{center}
+  \begin{quote}\small
+}{%
+  \end{quote}
+  \vskip 1em
+}
+
+\endinput

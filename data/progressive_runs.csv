@@ -1,0 +1,4 @@
+base_task,task,horizon_days,policy,final_score,total_reward,enrolled,target,budget_remaining,plan_steps,memory_writes,memory_hits,avg_milestone_potential,trajectory_chunks
+medium_bench,medium_bench_stage_30,30,rule_based_memory,0.2968,6.608,0,20,55100.0,0,2,0,0.7612,2
+medium_bench,medium_bench_stage_90,90,rule_based_memory,0.5461,16.9391,9,60,56800.0,0,4,1,0.7506,6
+medium_bench,medium_bench_stage_180,180,rule_based_memory,0.56,35.6013,19,120,60800.0,0,4,1,0.7174,11
