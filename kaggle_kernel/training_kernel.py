@@ -11,19 +11,40 @@ import subprocess, sys
 def pip(*args):
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", *args])
 
-pip("unsloth", "trl>=0.19.0", "transformers>=4.55.0", "datasets>=2.21.0",
-    "accelerate>=0.34.0", "openenv-core>=0.2.1")
+# Kaggle kernel: use standard HF + PEFT LoRA.
+# Falls back to CPU float32 if GPU is incompatible (P100 sm_60).
+pip("--upgrade", "pip")
+# TRL environment_factory requires transformers from main (>=5.2.0)
+pip("git+https://github.com/huggingface/transformers.git@main")
+pip("trl>=0.19.0", "datasets>=2.21.0",
+    "accelerate>=0.34.0", "openenv-core>=0.2.1", "peft>=0.15.0")
 
-# ── 1. Imports ────────────────────────────────────────────────────────
-import json, os, pathlib, torch
-from unsloth import FastLanguageModel
+# ── 1. GPU safety check BEFORE importing torch ──────────────────────
+import json, os, pathlib
+
+# Test GPU compatibility before torch import contaminates the runtime
+_gpu_test = subprocess.run(
+    [sys.executable, "-c",
+     "import torch; t=torch.zeros(1,device='cuda'); print('OK')"],
+    capture_output=True, text=True, timeout=30
+)
+if "OK" not in _gpu_test.stdout:
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    os.environ["TORCHDYNAMO_DISABLE"] = "1"
+    print("GPU incompatible, forcing CPU-only mode")
+else:
+    print("GPU OK")
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import LoraConfig, get_peft_model
 from trl import GRPOConfig, GRPOTrainer
 from datasets import Dataset
 from openenv import GenericEnvClient
 
 # ── 2. Config ─────────────────────────────────────────────────────────
 ENV_URL = os.getenv("ENV_URL", "https://pratimassaravanan-clinical-recruitment.hf.space")
-MODEL_NAME = "unsloth/Qwen3-0.6B-unsloth-bnb-4bit"
+MODEL_NAME = "Qwen/Qwen3-0.6B"
 TASKS = ["easy_bench", "medium_bench", "hard_bench"]
 MAX_SEQ, LORA_R, LORA_ALPHA = 2048, 16, 16
 NUM_GEN, MAX_COMP, BATCH, GRAD_ACC, EPOCHS, LR = 2, 1024, 1, 4, 1, 5e-6
@@ -37,16 +58,31 @@ SYSTEM_PROMPT = (
 
 print(f"ENV_URL: {ENV_URL}")
 print(f"MODEL:   {MODEL_NAME}")
-print(f"GPU:     {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None'}")
+print(f"GPU:     {'hidden (incompatible)' if os.environ.get('CUDA_VISIBLE_DEVICES') == '' else (torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')}")
 
-# ── 3. Load model + LoRA ─────────────────────────────────────────────
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=MODEL_NAME, max_seq_length=MAX_SEQ, load_in_4bit=True, dtype=None)
-model = FastLanguageModel.get_peft_model(
-    model, r=LORA_R, lora_alpha=LORA_ALPHA, lora_dropout=0,
+# ── 3. Load model with LoRA ───────────────────────────────────────────
+USE_GPU = torch.cuda.is_available() and os.environ.get("CUDA_VISIBLE_DEVICES") != ""
+device_map = "auto" if USE_GPU else "cpu"
+dtype = torch.float32  # safe default; bf16 only if GPU confirmed working
+if USE_GPU:
+    try:
+        dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    except Exception:
+        dtype = torch.float16
+print(f"Training device: {'GPU' if USE_GPU else 'CPU'}, dtype={dtype}")
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME, device_map=device_map, torch_dtype=dtype, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+lora_config = LoraConfig(
+    r=LORA_R, lora_alpha=LORA_ALPHA, lora_dropout=0,
     target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
-    bias="none", use_gradient_checkpointing="unsloth", random_state=3407)
-print(f"Model loaded: {MODEL_NAME}")
+    bias="none", task_type="CAUSAL_LM")
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+print(f"Model loaded: {MODEL_NAME} (LoRA r={LORA_R}, device={device_map}, dtype={dtype})")
 
 # ── 4. Environment wrapper ───────────────────────────────────────────
 _H, _C = "noise_dominant", 0.6
@@ -60,6 +96,7 @@ class ClinicalRecruitmentToolEnv:
         self.budget_history, self.hypothesis_history = [], []
 
     def reset(self, **kw):
+        """Reset the environment for a new episode. Not a tool — called by the trainer lifecycle."""
         self.client.connect()
         task = kw.get("task") or kw.get("task_id") or "easy_bench"
         self.last_result = self.client.reset(task=task)
@@ -74,24 +111,72 @@ class ClinicalRecruitmentToolEnv:
         return self._fmt()
 
     def close(self):
+        """Close the environment client. Not a tool — called by the trainer lifecycle."""
         try: self.client.close()
         except Exception: pass
 
-    def screen_patient(self, patient_id, hypothesis=_H, confidence=_C):
+    def screen_patient(self, patient_id: str, hypothesis: str = _H, confidence: float = _C) -> str:
+        """Screen a candidate patient for eligibility.
+
+        Args:
+            patient_id: Patient id from available_patients.
+            hypothesis: Current guess about dominant dynamics.
+            confidence: Confidence in the hypothesis.
+        """
         return self._step(dict(action_type="screen_patient", patient_id=patient_id, hypothesis=hypothesis, confidence=confidence))
-    def recontact(self, patient_id, hypothesis=_H, confidence=_C):
+    def recontact(self, patient_id: str, hypothesis: str = _H, confidence: float = _C) -> str:
+        """Recontact an eligible patient for consent or enrollment.
+
+        Args:
+            patient_id: Patient id from recontact_candidates.
+            hypothesis: Current guess about dominant dynamics.
+            confidence: Confidence in the hypothesis.
+        """
         return self._step(dict(action_type="recontact", patient_id=patient_id, hypothesis=hypothesis, confidence=confidence))
-    def allocate_to_site(self, patient_id, site_id, hypothesis=_H, confidence=_C):
+    def allocate_to_site(self, patient_id: str, site_id: str, hypothesis: str = _H, confidence: float = _C) -> str:
+        """Allocate a consented patient to a recruitment site.
+
+        Args:
+            patient_id: Patient id from allocation_candidates.
+            site_id: Site id from site_performance.
+            hypothesis: Current guess about dominant dynamics.
+            confidence: Confidence in the hypothesis.
+        """
         return self._step(dict(action_type="allocate_to_site", patient_id=patient_id, site_id=site_id, hypothesis=hypothesis, confidence=confidence))
-    def adjust_strategy(self, strategy_change, hypothesis=_H, confidence=_C):
+    def adjust_strategy(self, strategy_change: str, hypothesis: str = _H, confidence: float = _C) -> str:
+        """Adjust recruitment strategy such as increase_outreach or negotiate_site_A.
+
+        Args:
+            strategy_change: Strategy name like increase_outreach or tighten_criteria.
+            hypothesis: Current guess about dominant dynamics.
+            confidence: Confidence in the hypothesis.
+        """
         return self._step(dict(action_type="adjust_strategy", strategy_change=strategy_change, hypothesis=hypothesis, confidence=confidence))
-    def plan_next_phase(self, target_phase, plan_summary="advance the bottleneck"):
+    def plan_next_phase(self, target_phase: str, plan_summary: str = "advance the bottleneck") -> str:
+        """Create or revise the current high-level recruitment plan.
+
+        Args:
+            target_phase: One of screening, conversion, allocation, retention, recovery.
+            plan_summary: Natural-language summary of the plan.
+        """
         return self._step(dict(action_type="plan_next_phase", target_phase=target_phase, plan_summary=plan_summary))
-    def summarize_and_index(self, memory_key, memory_payload):
+    def summarize_and_index(self, memory_key: str, memory_payload: str) -> str:
+        """Write a summary into indexed episodic memory.
+
+        Args:
+            memory_key: Key for the indexed memory item.
+            memory_payload: Summary text to store.
+        """
         return self._step(dict(action_type="summarize_and_index", memory_key=memory_key, memory_payload=memory_payload))
-    def retrieve_relevant_history(self, memory_query):
+    def retrieve_relevant_history(self, memory_query: str) -> str:
+        """Retrieve indexed memory entries relevant to the current bottleneck.
+
+        Args:
+            memory_query: Query string for indexed memory retrieval.
+        """
         return self._step(dict(action_type="retrieve_relevant_history", memory_query=memory_query))
-    def stop_recruitment(self):
+    def stop_recruitment(self) -> str:
+        """End the current recruitment episode early."""
         return self._step(dict(action_type="stop_recruitment"))
 
     def _step(self, action):
@@ -209,7 +294,7 @@ def run_episode(mdl, tok, task="easy_bench", max_actions=20):
         obs_text = env.reset(task=task)
     except Exception as exc:
         return {"task": task, "error": str(exc)}
-    FastLanguageModel.for_inference(mdl)
+    mdl.eval()
     total_r, n = 0.0, 0
     for _ in range(max_actions):
         if env.done:
@@ -259,7 +344,7 @@ ds = Dataset.from_dict({
 })
 
 # Configure and run GRPO
-FastLanguageModel.for_training(model)
+model.train()
 cfg = GRPOConfig(
     output_dir=OUTPUT_DIR,
     num_generations=NUM_GEN,
@@ -270,8 +355,9 @@ cfg = GRPOConfig(
     learning_rate=LR,
     logging_steps=1,
     save_steps=25,
-    bf16=True,
-    optim="adamw_8bit",
+    bf16=USE_GPU and torch.cuda.is_bf16_supported(),
+    fp16=USE_GPU and not torch.cuda.is_bf16_supported() if USE_GPU else False,
+    optim="adamw_torch",
     warmup_ratio=0.1,
     lr_scheduler_type="cosine",
     chat_template_kwargs={"enable_thinking": False},
@@ -309,7 +395,7 @@ for k in CMP:
 lp = f"{OUTPUT_DIR}/lora_adapter"
 model.save_pretrained(lp)
 tokenizer.save_pretrained(lp)
-merged = model.merge_and_unload()
+merged = model.merge_and_unload() if hasattr(model, 'merge_and_unload') else model
 mp = f"{OUTPUT_DIR}/merged_model"
 merged.save_pretrained(mp)
 tokenizer.save_pretrained(mp)
