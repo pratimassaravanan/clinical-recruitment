@@ -1,9 +1,10 @@
-"""Local HTTP API endpoint integration tests for Clinical Recruitment."""
+"""Local HTTP API endpoint integration tests for the current API surface."""
 
 import httpx
+import os
 import sys
 
-BASE = "http://localhost:7860"
+BASE = os.getenv("BASE_URL", "http://127.0.0.1:7860")
 c = httpx.Client(timeout=30)
 checks = []
 
@@ -15,7 +16,7 @@ def check(name, condition, detail=""):
 
 
 print("=" * 60)
-print("LOCAL API TESTS: Clinical Recruitment (localhost:7860)")
+print(f"LOCAL API TESTS: Clinical Recruitment ({BASE})")
 print("=" * 60)
 
 try:
@@ -36,7 +37,11 @@ try:
     print("\n3. Tasks endpoint")
     r = c.get(f"{BASE}/tasks")
     tasks = r.json()
-    check("3 tasks defined", len(tasks) >= 3)
+    check("3 tasks defined", len(tasks) == 3)
+    check(
+        "task ids match current public surface",
+        sorted(tasks.keys()) == ["easy_bench", "hard_bench", "medium_bench"],
+    )
 
     # 4. Reset
     print("\n4. Reset endpoint")
@@ -48,14 +53,16 @@ try:
 
     # 5. Step
     print("\n5. Step endpoint")
-    r = c.post(f"{BASE}/reset", params={"task_id": "easy_bench"})
+    reset_data = c.post(f"{BASE}/reset", params={"task_id": "easy_bench"}).json()
+    available_patients = reset_data.get("observation", {}).get("available_patients", [])
+    patient_id = available_patients[0]["id"] if available_patients else None
+    check("reset() exposes a screenable patient", patient_id is not None)
+
     r = c.post(
         f"{BASE}/step",
         json={
             "action_type": "screen_patient",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": None,
+            "patient_id": patient_id,
             "hypothesis": "noise_dominant",
             "confidence": 0.7,
         },
@@ -199,7 +206,7 @@ try:
     check("state() has token_efficiency_score", "token_efficiency_score" in d)
 
 except httpx.ConnectError:
-    print("\n  [FAIL] Cannot connect to localhost:7860. Start the server first:")
+    print(f"\n  [FAIL] Cannot connect to {BASE}. Start the server first:")
     print("         uvicorn app:app --host 0.0.0.0 --port 7860")
     sys.exit(1)
 

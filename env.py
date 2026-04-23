@@ -1,7 +1,8 @@
 """Core Adaptive Clinical Trial Recruitment environment implementing step/reset/state.
 
-Simulates a 180-day clinical trial recruitment period where agents optimize
-the screening -> enrollment -> retention funnel under budget, time pressure,
+Simulates a 180-step clinical trial recruitment benchmark where each step
+corresponds to one simulated day and agents optimize the
+screening -> enrollment -> retention funnel under budget, time pressure,
 site variability, and non-stationary patient quality.
 
 Upgrades integrated:
@@ -43,8 +44,10 @@ class ClinicalRecruitmentEnv:
 
     The agent manages the patient recruitment funnel:
     screening, site allocation, strategy adjustment, and retention
-    across a 180-day trial recruitment window.
+    across a 180-step trial recruitment window with one simulated day per step.
     """
+
+    SUPPORTS_CONCURRENT_SESSIONS = True
 
     def __init__(self):
         self._task: Optional[str] = None

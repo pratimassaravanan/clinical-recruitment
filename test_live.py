@@ -1,4 +1,4 @@
-"""Live HF Spaces smoke test for Clinical Recruitment."""
+"""Live HF Space smoke test for the current public API surface."""
 
 import httpx
 import sys
@@ -24,6 +24,7 @@ try:
     check("Root returns 200", r.status_code == 200)
     data = r.json()
     check("Name correct", data.get("name") == "adaptive-clinical-recruitment")
+    check("Root lists exactly 3 tasks", len(data.get("tasks", [])) == 3)
 
     # Reset
     r = c.post(f"{BASE}/reset", params={"task_id": "easy_bench"})
@@ -36,10 +37,8 @@ try:
     r = c.post(
         f"{BASE}/step",
         json={
-            "action_type": "screen_patient",
-            "patient_id": "P-1000",
-            "hypothesis": "noise_dominant",
-            "confidence": 0.7,
+            "action_type": "adjust_strategy",
+            "strategy_change": "increase_outreach",
         },
     )
     check("Step returns 200", r.status_code == 200)
@@ -80,7 +79,12 @@ try:
     # Tasks
     r = c.get(f"{BASE}/tasks")
     check("Tasks returns 200", r.status_code == 200)
-    check("3+ tasks", len(r.json()) >= 3)
+    tasks = r.json()
+    check("Tasks returns exactly 3 entries", len(tasks) == 3)
+    check(
+        "Task ids match current public surface",
+        sorted(tasks.keys()) == ["easy_bench", "hard_bench", "medium_bench"],
+    )
 
     # State
     r = c.get(f"{BASE}/state")
@@ -94,7 +98,7 @@ try:
 
 except httpx.ConnectError:
     print(f"\n  [FAIL] Cannot connect to {BASE}")
-    print("         The HF Space may not be deployed yet.")
+    print("         The HF Space may not be deployed yet, or the local Python/httpx TLS stack may be failing the handshake.")
     sys.exit(1)
 except Exception as e:
     print(f"\n  [FAIL] Error: {e}")

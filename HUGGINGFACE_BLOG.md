@@ -2,6 +2,8 @@
 
 **Adaptive Clinical Recruitment** is a long-horizon benchmark for sequential trial-planning decisions. It models the patient funnel over `180` simulated steps, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure.
 
+This writeup stays on Theme #2 only: what the repo currently supports as a benchmark package, without claiming a broader product, clinical, or leaderboard story.
+
 This post is intentionally conservative. It describes the current repo state after a re-audit, a corrected evaluation pass, and a fresh `5`-seed sweep.
 
 ## TL;DR
@@ -68,18 +70,18 @@ Pairwise tests from the same report show:
 
 That means the honest headline is not "hierarchical planning wins." The honest headline is:
 
-> The benchmark is active, reproducible, and non-trivial, but the current baseline suite remains tightly clustered.
+> The repo exposes a real benchmark surface, but the current baseline suite remains too tightly clustered to support a winner claim.
 
-## Why that is still useful
+## What that means
 
-This repo is strongest as a benchmark package, not as a settled leaderboard.
+This repo currently reads best as a benchmark package, not as a settled leaderboard.
 
 - The environment interface is typed and deterministic.
 - The action construction path now matches the observation schema.
 - The main diagrams and sweep charts are regenerated from code.
 - The integration checks pass `30/30` across `easy_bench`, `medium_bench`, and `hard_bench`.
 
-For a benchmark, that is still a useful result. It means future work can focus on stronger training budgets, ablations, and better long-horizon methods without inheriting stale claims from the docs.
+For Theme #2, that is the relevant result. The environment is usable for evaluation work, but the present numbers do not justify a stronger performance claim.
 
 ## Trying the benchmark
 
@@ -134,5 +136,5 @@ python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-epis
 
 ## Links
 
-- GitHub repository: `https://github.com/pratimassaravanan/clinical-recruitment-env`
-- Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment-env`
+- GitHub repository: `https://github.com/pratimassaravanan/clinical-recruitment`
+- Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment`

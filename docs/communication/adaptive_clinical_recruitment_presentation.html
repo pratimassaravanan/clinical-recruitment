@@ -982,10 +982,10 @@
         <div class="slide-content shell">
             <div class="deck-grid">
                 <div class="hero-stack">
-                    <span class="section-chip reveal">Protocol Cartography / corrected benchmark package</span>
+                    <span class="section-chip reveal">Theme #2 / corrected benchmark package</span>
                     <p class="eyebrow reveal">NeurIPS 2026 E&amp;D / communication deck</p>
                     <h1 class="display reveal">Adaptive Clinical Recruitment</h1>
-                    <p class="subcopy reveal">A deterministic long-horizon benchmark for sequential trial planning across screening, follow-up, site allocation, planning, memory use, and delayed consequence.</p>
+                    <p class="subcopy reveal">A deterministic long-horizon benchmark for sequential trial planning across screening, follow-up, site allocation, planning, memory use, and delayed consequences.</p>
                     <div class="stats-ribbon reveal">
                         <div class="metric-panel">
                             <strong>180</strong>
@@ -1009,7 +1009,7 @@
                     <div class="orbit-core">
                         <div>
                             <span>scope</span>
-                            <strong>stress test</strong>
+                            <strong>benchmark</strong>
                         </div>
                     </div>
                     <div class="orbit-tag orbit-a">plan state</div>
@@ -1025,11 +1025,11 @@
     <section class="slide" data-title="Why it matters">
         <div class="slide-number">02 / 09</div>
         <div class="slide-content shell">
-            <span class="section-chip reveal">Why this benchmark is different</span>
+            <span class="section-chip reveal">Why this fits Theme #2</span>
             <div class="deck-grid">
                 <div class="panel-stack">
-                    <p class="lead-quote reveal">Workflow-shaped, not toy-shaped.</p>
-                    <p class="subcopy reveal">The environment is built around a patient funnel and operational constraints rather than frame-level rewards. Decisions echo forward through time, which makes interface correctness as important as reward design.</p>
+                    <p class="lead-quote reveal">Workflow-shaped benchmark, not a toy task.</p>
+                    <p class="subcopy reveal">The environment is built around a patient funnel and operational constraints rather than short-horizon rewards. Decisions echo forward through time, which makes interface correctness as important as reward design.</p>
                     <div class="phase-strip reveal">
                         <div class="phase-node"><strong>Screening</strong><p class="note">Unscreened candidates appear in <code>available_patients</code>.</p></div>
                         <div class="phase-node"><strong>Conversion</strong><p class="note">Recontact targets come from <code>recontact_candidates</code>.</p></div>
@@ -1132,7 +1132,7 @@
         <div class="slide-number">05 / 09</div>
         <div class="slide-content shell">
             <span class="section-chip reveal">Repo baselines</span>
-            <h2 class="headline reveal">Four trainable baselines, one shared pure-NumPy actor-critic backbone.</h2>
+            <h2 class="headline reveal">Four repo baselines, one shared pure-NumPy actor-critic backbone.</h2>
             <div class="baseline-grid reveal">
                 <div class="baseline-card"><div class="card-kicker">HCAPO</div><strong>Hierarchical subgoals + hindsight relabeling</strong><p class="note">Planner / executor separation and relabeled credit assignment over long trajectories.</p></div>
                 <div class="baseline-card"><div class="card-kicker">MiRA</div><strong>Milestone-aware potential shaping</strong><p class="note">A learned milestone critic perturbs reward flow without changing the benchmark interface.</p></div>
@@ -1149,8 +1149,8 @@
     <section class="slide" data-title="Corrections before results">
         <div class="slide-number">06 / 09</div>
         <div class="slide-content shell">
-            <span class="section-chip reveal">Benchmark trust before benchmark marketing</span>
-            <h2 class="headline reveal">What was corrected before the fresh sweep was allowed to speak.</h2>
+            <span class="section-chip reveal">Corrections before reporting results</span>
+            <h2 class="headline reveal">What was corrected before rerunning the sweep.</h2>
             <div class="fix-grid reveal">
                 <div class="fix-card"><div class="card-kicker">Candidate routing</div><strong>Recontact and allocation now use their own pools.</strong><p class="note">The old path incorrectly reused <code>available_patients</code> for actions that should target screened or consented candidates.</p></div>
                 <div class="fix-card"><div class="card-kicker">Chart robustness</div><strong>Small-seed error bars were repaired.</strong><p class="note">The sweep charts no longer break when seed counts are small or confidence intervals are asymmetric.</p></div>
@@ -1164,7 +1164,7 @@
     <section class="slide" data-title="Fresh results">
         <div class="slide-number">07 / 09</div>
         <div class="slide-content shell">
-            <span class="section-chip reveal">Fresh 5-seed sweep / corrected evaluation path</span>
+            <span class="section-chip reveal">Fresh 5-seed sweep / seeds 1, 7, 21, 42, 123</span>
             <div class="result-board reveal">
                 <div class="results-panel">
                     <div class="card-kicker">Mean score / 95% CI</div>
@@ -1187,7 +1187,7 @@
                     </div>
                     <div class="verdict">
                         <strong>No pairwise comparison reaches p &lt; 0.05.</strong>
-                        <p class="note">The honest read is benchmark stress test, not decisive leaderboard separation.</p>
+                        <p class="note">The honest read is a reproducible benchmark with closely clustered baselines, not a decisive leaderboard.</p>
                     </div>
                 </div>
             </div>
@@ -1199,11 +1199,11 @@
         <div class="slide-number">08 / 09</div>
         <div class="slide-content shell">
             <span class="section-chip reveal">Verification and reproducibility</span>
-            <h2 class="headline reveal">The artifact is strongest when read as a reproducible evaluation bundle.</h2>
+            <h2 class="headline reveal">The artifact is strongest when read as a reproducible evaluation bundle, not as deployment evidence.</h2>
             <div class="proof-grid reveal">
                 <div class="proof-card"><div class="card-kicker">Integration</div><em>30 / 30</em><strong>Checks passed across all tasks</strong><p class="note">Observation structure, plan and memory fields, token state, action diversity, and non-zero reward.</p></div>
                 <div class="proof-card"><div class="card-kicker">Tests</div><em>305</em><strong>Core local checks passing</strong><p class="note"><code>76 + 43 + 109 + 77</code> from environment, agent, research, and serving suites.</p></div>
-                <div class="proof-card"><div class="card-kicker">Paper</div><em>9 pages</em><strong>Official NeurIPS E&amp;D build</strong><p class="note">`paper/main.pdf` compiles with the official style and conservative claims.</p></div>
+                <div class="proof-card"><div class="card-kicker">Paper</div><em>9 pages</em><strong>NeurIPS E&amp;D paper build</strong><p class="note">`paper/main.pdf` compiles with the official style and conservative claims.</p></div>
                 <div class="proof-card"><div class="card-kicker">Artifacts</div><em>6 exports</em><strong>Sweep charts refreshed</strong><p class="note">The three sweep charts now stay aligned as PNG and SVG in both `docs/images/` and `data/sweep_results/`.</p></div>
             </div>
             <div class="directory-grid reveal">
@@ -1221,12 +1221,12 @@
             <span class="section-chip reveal">Read it critically</span>
             <div class="deck-grid">
                 <div class="card-stack">
-                    <h2 class="headline reveal">Core benchmark strengths, explicit limits, and the right next questions.</h2>
+                    <h2 class="headline reveal">Core benchmark strengths, explicit limits, and the next questions.</h2>
                     <div class="limit-grid reveal">
-                        <div class="limit-card"><div class="card-kicker">Strongest claim</div><strong>Typed, corrected, and reproducible.</strong><p class="note">Deterministic environment, corrected action routing, refreshed charts, and passing integration checks.</p></div>
-                        <div class="limit-card"><div class="card-kicker">Do not overread</div><strong>Not a finished leaderboard.</strong><p class="note">The current four baselines are close and the present training budget is still small.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Strongest claim</div><strong>Theme #2 benchmark package with reproducible outputs.</strong><p class="note">Deterministic environment, corrected action routing, refreshed charts, and passing integration checks.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Do not overread</div><strong>Not a decisive leaderboard and not a deployment claim.</strong><p class="note">The current four baselines are close and the repo is still a synthetic benchmark.</p></div>
                         <div class="limit-card"><div class="card-kicker">Scope boundary</div><strong>Core path over extras.</strong><p class="note">`env.py`, `models.py`, the baselines, the sweep, the tests, and generated artifacts carry the main claim set.</p></div>
-                        <div class="limit-card"><div class="card-kicker">Next work</div><strong>More seeds, more budget, sharper ablations.</strong><p class="note">Future separation should come from stronger training and clearer feature-level analysis, not louder wording.</p></div>
+                        <div class="limit-card"><div class="card-kicker">Next work</div><strong>More seeds, more budget, sharper ablations.</strong><p class="note">Future separation should come from stronger training and clearer feature-level analysis.</p></div>
                     </div>
                 </div>
                 <div class="closing-panel reveal">
@@ -1236,7 +1236,7 @@
                         <div class="directory-chip"><strong>Sweep outputs</strong><span>means, CIs, and p-values</span><code>data/sweep_results/</code></div>
                         <div class="directory-chip"><strong>Communication assets</strong><span>deck, philosophy, and posters</span><code>docs/communication/</code></div>
                     </div>
-                    <p class="subcopy" style="margin-top: 1rem; max-width: 32ch;">The benchmark now communicates the same thing everywhere: what is implemented, what was regenerated, and what still needs stronger empirical separation.</p>
+                    <p class="subcopy" style="margin-top: 1rem; max-width: 32ch;">The benchmark now says the same thing everywhere: what is implemented, what was regenerated, and what still lacks strong empirical separation.</p>
                 </div>
             </div>
         </div>

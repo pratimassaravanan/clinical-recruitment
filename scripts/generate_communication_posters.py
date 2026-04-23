@@ -483,7 +483,7 @@ def reviewer_focus(
 
 
 def level_one(draw: ImageDraw.ImageDraw, accent: tuple[int, int, int, int]) -> None:
-    card(draw, (104, 620, 1030, 980), "Core loop", "A benchmark for sequential trial planning.", ["One run carries an agent through screening, follow-up, site allocation, and retention pressure over 180 simulated steps."], accent)
+    card(draw, (104, 620, 1030, 980), "Core loop", "A benchmark for sequential trial planning.", ["One run carries an agent through screening, follow-up, site allocation, and retention pressure over 180 simulated steps, with one simulated day per step."], accent)
     stat_box(draw, (104, 1018, 390, 1216), "180", "simulated steps", accent)
     stat_box(draw, (424, 1018, 710, 1216), "3", "public tasks", accent)
     stat_box(draw, (744, 1018, 1030, 1216), "8", "implemented actions", accent)
@@ -510,7 +510,7 @@ def level_three(draw: ImageDraw.ImageDraw, accent: tuple[int, int, int, int]) ->
 
 def level_four(draw: ImageDraw.ImageDraw, accent: tuple[int, int, int, int]) -> None:
     results_focus(draw, (104, 620, 1106, 1810), (1140, 620, 1698, 1810), accent)
-    footer(draw, "Fresh sweep: 5 seeds / 30 training episodes per seed / 15 evaluation episodes per seed.", "Result: HCAPO is highest mean at 0.2215, but confidence intervals overlap and no pairwise test reaches p < 0.05.", "Use this as a stress test narrative, not as proof of decisive baseline dominance.", accent)
+    footer(draw, "Fresh sweep seeds: 1, 7, 21, 42, 123 with 30 training episodes and 15 evaluation episodes per seed.", "Result: HCAPO is highest mean at 0.2215, but confidence intervals overlap and no pairwise test reaches p < 0.05.", "Use this as a stress test narrative, not as proof of decisive baseline dominance.", accent)
 
 
 def level_five(draw: ImageDraw.ImageDraw, accent: tuple[int, int, int, int]) -> None:

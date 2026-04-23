@@ -12,9 +12,9 @@ license: mit
 
 # Adaptive Clinical Trial Recruitment Environment
 
-> A deterministic long-horizon benchmark for sequential trial-planning decisions across screening, recontact, site allocation, planning, and memory use.
+> A long-horizon benchmark for sequential trial-planning decisions across screening, recontact, site allocation, planning, and memory use.
 
-**NeurIPS 2026 Datasets and Benchmarks Track submission package**
+**Hackathon positioning: Theme #2. Not a Wild Card entry.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -30,6 +30,17 @@ license: mit
 - `4` repo baselines: HCAPO, MiRA, KLong, and MemexRL
 
 The repo also contains auxiliary research helpers and reporting scripts. The claims in this README are limited to the core benchmark path, the four trainable baselines, and the regenerated artifacts under `data/sweep_results/`, `docs/images/`, and `paper/`.
+
+## Submission Links
+
+- Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment`
+- Live environment URL: `https://pratimassaravanan-clinical-recruitment.hf.space`
+- Mini-blog draft for Hugging Face Article: `HUGGINGFACE_BLOG.md`
+- Communication deck: `docs/communication/adaptive_clinical_recruitment_presentation.html`
+- Poster pack: `docs/communication/adaptive_clinical_recruitment_posters.pdf`
+- OpenEnv + TRL starter notebook: `notebooks/training_grpo_openenv.ipynb`
+
+The repo keeps a draft copy of the mini-blog in `HUGGINGFACE_BLOG.md` so the same content can be mirrored to a Hugging Face article later if needed.
 
 ## Benchmark Surfaces
 
@@ -82,7 +93,7 @@ These are described as repo baselines inspired by long-horizon RL ideas. The doc
 
 ## Fresh 5-Seed Sweep
 
-Generated from the corrected evaluation path on `2026-04-21`.
+Current 5-seed sweep artifacts were generated on `2026-04-21`.
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|
@@ -93,10 +104,10 @@ Generated from the corrected evaluation path on `2026-04-21`.
 
 No pairwise comparison reaches `p < 0.05`.
 
-- `HCAPO` has the highest mean score in the current run.
+- `HCAPO` has the highest mean in the current sweep, but that is not a statistically significant lead.
 - `HCAPO vs KLong` is `p = 0.3849`, so the older overclaim of clear baseline separation is stale.
 - The current baseline suite is best interpreted as a stress test for the benchmark and evaluation path, not as evidence that one method clearly dominates.
-- Integration checks pass `30/30` across the three tasks.
+- Recorded integration result: `30/30` checks passed across the three tasks.
 
 Fresh outputs live in:
 
@@ -145,7 +156,7 @@ Available endpoints:
 - `GET /state`
 - `GET /tasks`
 
-If `ENABLE_WEB_INTERFACE=true`, the built-in OpenEnv UI is attached at `/web`, and `/dashboard` redirects there.
+The built-in OpenEnv UI is attached at `/web`, and `/dashboard` redirects there. Set `ENABLE_WEB_INTERFACE=false` only if you explicitly want to disable it.
 
 ## Python Usage
 
@@ -204,6 +215,16 @@ python scripts/generate_charts.py
 
 `experiments/full_sweep.py` writes fresh reports to `data/sweep_results/` and refreshes the sweep charts under `docs/images/`.
 
+## OpenEnv GRPO Starter
+
+The current starter notebook is:
+
+```bash
+notebooks/training_grpo_openenv.ipynb
+```
+
+It is a minimal OpenEnv + TRL GRPO bootstrap against the live Space and current `8`-action interface. It should be treated as a starting point for hackathon training runs, not as benchmark evidence by itself.
+
 ## API Example
 
 ```bash
@@ -223,7 +244,7 @@ Episodes finish with a graded `final_score` in `result.info["final_score"]`, cla
 
 ## Verification
 
-Latest local validation run:
+Recorded local validation counts:
 
 | Suite | Result |
 |-------|--------|
@@ -234,8 +255,8 @@ Latest local validation run:
 
 Additional generated artifacts:
 
-- `paper/main.pdf` builds successfully with the official NeurIPS 2026 E&D style file.
-- `scripts/generate_docs_diagrams.py` regenerates the three main benchmark diagrams deterministically.
+- `paper/main.pdf` is included in the repo.
+- `scripts/generate_docs_diagrams.py` is the source for the three main benchmark diagrams.
 - `data/sweep_results/neurips_report.md` contains the current benchmark summary used by the docs.
 
 ## Caveats

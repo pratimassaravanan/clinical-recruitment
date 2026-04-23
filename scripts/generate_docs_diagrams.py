@@ -309,7 +309,7 @@ def generate_environment_architecture() -> Path:
     cursor_y = title_block(
         draw,
         "Clinical Recruitment Environment",
-        "Deterministic 180-day benchmark with a 37-feature observation, 8 implemented actions, and multi-site constraints.",
+        "Deterministic 180-step benchmark with a 37-feature observation, 8 implemented actions, and multi-site constraints.",
     )
 
     chip_x = 72
@@ -387,7 +387,7 @@ def generate_environment_architecture() -> Path:
         funnel_box,
         "Patient funnel and execution flow",
         [
-            "The benchmark models a screening -> enrollment -> retention workflow over 180 simulated steps.",
+            "The benchmark models a screening -> enrollment -> retention workflow over 180 simulated steps, with one simulated day per step.",
             "Action-specific candidate pools support screening, follow-up, and site allocation decisions.",
         ],
         accent=ACCENT_2,
@@ -762,9 +762,9 @@ def generate_training_pipeline() -> Path:
         boxes[4],
         "5. Reports and outputs",
         [
-            "experiments/train_agents.py and experiments/full_sweep.py run multi-agent evaluations.",
+            "experiments/train_agents.py and experiments/full_sweep.py run multi-agent evaluations over seeds 1, 7, 21, 42, and 123.",
             "experiments/reproducibility.py computes bootstrap intervals, paired tests, Wilcoxon, and effect sizes.",
-            "Ablation, appendix, Pareto, and plotting scripts turn results into reports and figures.",
+            "Ablation, appendix, Pareto, and plotting scripts turn results into reports and figures without overstating statistical separation.",
         ],
         accent=ACCENT_5,
         fill=PANEL,

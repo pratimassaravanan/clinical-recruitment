@@ -6,7 +6,32 @@ from huggingface_hub import HfApi, upload_file
 HF_TOKEN = os.getenv("HF_TOKEN")
 HF_REPO_ID = os.getenv("HF_REPO_ID", "pratimassaravanan/clinical-recruitment")
 
-QUICK_FILES = ["README.md", "inference.py", "app.py", "env.py", "graders.py"]
+QUICK_FILES = [
+    "README.md",
+    "inference.py",
+    "app.py",
+    "env.py",
+    "openenv_adapter.py",
+    "graders.py",
+    "openenv.yaml",
+    "notebooks/training_grpo_openenv.ipynb",
+    "data/sweep_results/neurips_report.md",
+    "data/sweep_results/neurips_report.json",
+    "data/sweep_results/significance_tests.json",
+    "docs/theme2_alignment.md",
+    "docs/communication/adaptive_clinical_recruitment_presentation.html",
+    "docs/communication/adaptive_clinical_recruitment_posters.pdf",
+    "docs/communication/poster_level_1_beginner.png",
+    "docs/communication/poster_level_2_mechanics.png",
+    "docs/communication/poster_level_3_implementation.png",
+    "docs/communication/poster_level_4_results.png",
+    "docs/communication/poster_level_5_reviewer.png",
+    "docs/images/environment_architecture.png",
+    "docs/images/agent_architectures.png",
+    "docs/images/training_pipeline.png",
+    "scripts/generate_docs_diagrams.py",
+    "scripts/generate_communication_posters.py",
+]
 
 
 def redeploy():

@@ -1,6 +1,6 @@
 # Theme #2 Completion Checklist
 
-This file replaces the older aspirational roadmap-complete narrative. It is the conservative source of truth for what the current repo supports and what outward-facing docs are safe to claim.
+This file replaces the older aspirational roadmap-complete narrative. It is the deliberately conservative source of truth for what the current repo supports today and what outward-facing docs are safe to claim.
 
 ## Claim Rules
 
@@ -12,23 +12,23 @@ This file replaces the older aspirational roadmap-complete narrative. It is the 
 
 | Area | Status | Primary evidence |
 |------|--------|------------------|
-| `180`-step environment | implemented | `env.py`, `openenv.yaml` |
-| `3` public tasks | implemented | `openenv.yaml`, `app.py` |
-| Typed models | implemented | `models.py` |
-| `8`-action interface | implemented | `models.py`, `training/neural_policy.py` |
-| Action-specific candidate pools | implemented | `models.py`, `env.py`, `train_agents.py`, `full_sweep.py` |
-| `37`-dimensional feature vector | implemented | `training/neural_policy.py` |
-| Four repo baselines | implemented | `research/methods/*_agent.py` |
-| Fresh sweep and stats | implemented | `experiments/full_sweep.py`, `experiments/reproducibility.py` |
-| Regenerated benchmark diagrams | implemented | `scripts/generate_docs_diagrams.py` |
-| Local validation suites | implemented | `test_env.py`, `test_agents.py`, `test_research_modules.py`, `test_local_serving.py` |
-| Anonymous NeurIPS paper build | implemented | `paper/main.tex`, `paper/main.pdf` |
+| `180`-step environment | present in benchmark path | `env.py`, `openenv.yaml` |
+| `3` public tasks | present in benchmark path | `openenv.yaml`, `app.py` |
+| Typed models | present in repo | `models.py` |
+| `8`-action interface | present in benchmark path | `models.py`, `training/neural_policy.py` |
+| Action-specific candidate pools | present in benchmark path | `models.py`, `env.py`, `train_agents.py`, `full_sweep.py` |
+| `37`-dimensional feature vector | present in repo baseline stack | `training/neural_policy.py` |
+| Four repo baselines | present in repo | `research/methods/*_agent.py` |
+| Fresh sweep and stats tooling | present, with current generated outputs | `experiments/full_sweep.py`, `experiments/reproducibility.py`, `data/sweep_results/neurips_report.json` |
+| Benchmark diagrams | generated artifacts present | `scripts/generate_docs_diagrams.py`, `docs/images/` |
+| Local validation suites | test files present in repo | `test_env.py`, `test_agents.py`, `test_research_modules.py`, `test_local_serving.py` |
+| Anonymous paper source and PDF | present in repo | `paper/main.tex`, `paper/main.pdf` |
 
 ## Safe Claims
 
 ### Environment and interface
 
-It is safe to claim that the current benchmark provides:
+It is safe to claim that the current benchmark path provides:
 
 - `180`-step deterministic episodes
 - `easy_bench`, `medium_bench`, and `hard_bench`
@@ -38,11 +38,11 @@ It is safe to claim that the current benchmark provides:
 - Milestones, constraints, delayed effects, and site-level metrics
 - Explicit plan state and indexed-memory state
 - Token budget, token usage, and token-efficiency signals
-- Counterfactual hints and simple rollout estimates
+- Observation fields for counterfactual hints and simple rollout estimates
 
 ### Repo baselines
 
-It is safe to claim that the repo includes four trainable baselines with a shared pure-NumPy actor-critic backbone:
+It is safe to claim that the repo includes four trainable baselines built on a shared pure-NumPy actor-critic stack:
 
 - `HCAPO`
 - `MiRA`
@@ -60,11 +60,13 @@ It is safe to claim that the repo currently provides:
 - `experiments/reproducibility.py` for paired tests, Wilcoxon, effect sizes, and confidence intervals
 - `scripts/generate_docs_diagrams.py` for the three main benchmark diagrams
 - `data/sweep_results/neurips_report.{md,json}` as the current benchmark summary
-- Passing local validation across the four main suites
+- Four main local test suites in the repo
 
 ## Fresh Generated Evidence
 
 The current benchmark numbers come from `data/sweep_results/neurips_report.json`.
+
+The exact `5`-seed sweep values in the current report use seeds `1`, `7`, `21`, `42`, and `123`.
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|
@@ -79,6 +81,7 @@ Interpretation that is safe to repeat:
 - No pairwise comparison reaches `p < 0.05`.
 - The current baseline suite is clustered.
 - Integration checks pass `30/30` across the three tasks.
+- This is benchmark evidence for the current repo state, not evidence of clear baseline separation.
 
 ## Present in Repo, but Describe Carefully
 
@@ -90,9 +93,11 @@ The following files or areas exist, but should be described as auxiliary or expe
 - `experiments/ablate_features.py`
 - `experiments/ablate_horizon.py`
 - `experiments/appendix_report.py`
-- `notebooks/training_trl.ipynb`
+- `notebooks/training_grpo_openenv.ipynb`
 
 These files may be useful, but they are not the core of the current benchmark claim set.
+
+For the notebook specifically: describe it only as a hackathon bootstrap path. Do not present it as benchmark evidence, reproduced training evidence, or performance validation.
 
 ## Claims to Avoid
 
@@ -104,6 +109,7 @@ Do **not** claim any of the following in outward-facing docs:
 - A statistically significant `HCAPO` win from the current sweep
 - Provider-grounded token accounting or external billing integration
 - Notebook, TRL, or Colab workflows as validated evidence for the benchmark results
+- The paper PDF as independent evidence beyond what the code and generated benchmark artifacts support
 
 ## Practical File Map
 
@@ -115,9 +121,10 @@ Do **not** claim any of the following in outward-facing docs:
 - `data/sweep_results/`: current report, raw outputs, and charts
 - `docs/images/`: regenerated diagrams and refreshed sweep charts
 - `paper/main.tex`: current anonymous paper source
+- `notebooks/training_grpo_openenv.ipynb`: hackathon bootstrap notebook only, not benchmark evidence
 
 ## Remaining Work
 
-- Presentation and poster assets still need to be created.
 - Stronger empirical separation will require larger training budgets, more seeds, or sharper ablations.
 - Public docs should continue to follow the benchmark path and generated artifacts rather than older roadmap language.
+- The GRPO starter notebook should be treated as a hackathon bootstrap path, not as benchmark evidence by itself.

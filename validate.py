@@ -19,32 +19,40 @@ print("=" * 60)
 print("PRE-SUBMISSION VALIDATION: Adaptive Clinical Recruitment")
 print("=" * 60)
 
+
+def reset_session(task_id: str) -> dict:
+    response = c.post(BASE + "/reset", params={"task_id": task_id})
+    response.raise_for_status()
+    return response.json()
+
+
+def step_session(action: dict) -> dict:
+    response = c.post(BASE + "/step", json=action)
+    response.raise_for_status()
+    return response.json()
+
 # 1. HF Space deploys and responds
 print("\n1. HF Space deploys and responds to reset()")
 try:
     r = c.get(BASE + "/")
     check("Root returns 200", r.status_code == 200)
-    r = c.post(BASE + "/reset", params={"task_id": "easy_bench"})
-    check("reset() returns 200", r.status_code == 200)
-    d = r.json()
+    d = reset_session("easy_bench")
+    check("reset() returns 200", True)
     check("reset() returns observation", "observation" in d)
     check("reset() returns done=False", d.get("done") is False)
 except Exception as e:
     check("HF Space reachable", False, str(e))
 
-# 2. OpenEnv spec: typed models, step/reset/state
-print("\n2. OpenEnv spec compliance")
+# 2. Current API/OpenEnv surface: step/reset/state
+print("\n2. Current API/OpenEnv surface")
 try:
-    r = c.post(
-        BASE + "/step",
-        json={
-            "action_type": "screen_patient",
-            "patient_id": None,
-            "site_id": None,
-            "strategy_change": None,
-        },
+    reset_session("easy_bench")
+    d = step_session(
+        {
+            "action_type": "adjust_strategy",
+            "strategy_change": "increase_outreach",
+        }
     )
-    d = r.json()
     check("step() returns observation", "observation" in d)
     check("step() returns reward", "reward" in d)
     check("step() returns done", "done" in d)
@@ -58,15 +66,21 @@ try:
 except Exception as e:
     check("API endpoints work", False, str(e))
 
-# 3. 3+ tasks with graders
-print("\n3. 3+ tasks with graders")
+# 3. Exact public task surface
+print("\n3. Exact public task surface")
 try:
     r = c.get(BASE + "/tasks")
     tasks = r.json()
-    check("3+ tasks defined", len(tasks) >= 3, f"found {len(tasks)}")
-    for tid in ["easy_bench", "medium_bench", "hard_bench"]:
-        r = c.post(BASE + "/reset", params={"task_id": tid})
-        check(f"Task '{tid}' resets OK", r.status_code == 200)
+    expected_tasks = ["easy_bench", "medium_bench", "hard_bench"]
+    check("Exactly 3 tasks defined", len(tasks) == 3, f"found {len(tasks)}")
+    check(
+        "Task ids match current public surface",
+        sorted(tasks.keys()) == expected_tasks,
+        f"found {sorted(tasks.keys())}",
+    )
+    for tid in expected_tasks:
+        reset_session(tid)
+        check(f"Task '{tid}' resets OK", True)
 except Exception as e:
     check("Tasks endpoint works", False, str(e))
 
@@ -74,21 +88,16 @@ except Exception as e:
 print("\n4. Grader scores in 0.0-1.0 range")
 try:
     for tid in ["easy_bench", "medium_bench", "hard_bench"]:
-        r = c.post(BASE + "/reset", params={"task_id": tid})
-        last = r.json()
+        last = reset_session(tid)
         for _ in range(10):
             if last.get("done"):
                 break
-            r = c.post(
-                BASE + "/step",
-                json={
-                    "action_type": "screen_patient",
-                    "patient_id": None,
-                    "site_id": None,
-                    "strategy_change": None,
-                },
+            last = step_session(
+                {
+                    "action_type": "adjust_strategy",
+                    "strategy_change": "increase_outreach",
+                }
             )
-            last = r.json()
         reward = last.get("reward", -1)
         check(
             f"Task '{tid}' reward is float",
@@ -174,6 +183,10 @@ check("env.py exists", os.path.isfile(os.path.join(_DIR, "env.py")))
 check("graders.py exists", os.path.isfile(os.path.join(_DIR, "graders.py")))
 check("load_traces.py exists", os.path.isfile(os.path.join(_DIR, "load_traces.py")))
 check("app.py exists", os.path.isfile(os.path.join(_DIR, "app.py")))
+check(
+    "GRPO starter notebook exists",
+    os.path.isfile(os.path.join(_DIR, "notebooks", "training_grpo_openenv.ipynb")),
+)
 check(
     "server/__init__.py exists",
     os.path.isfile(os.path.join(_DIR, "server", "__init__.py")),

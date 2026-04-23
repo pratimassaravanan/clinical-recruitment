@@ -1,6 +1,7 @@
 # Research Method Baselines
 
 This directory contains the repo baselines and helper modules used by the long-horizon experiments.
+They support a Theme #2 style long-horizon benchmark interpretation, but only as repo-local baselines over the current environment rather than externally validated reproductions.
 
 ## Baselines
 
@@ -17,13 +18,14 @@ These are described throughout the docs as repo baselines inspired by long-horiz
 
 All four baselines depend on `training/neural_policy.py`, which currently provides:
 
+- benchmark episodes that run for up to `180` steps across `3` public tasks
 - `ACTION_SPACE` with the benchmark's `8` implemented actions
 - `extract_state_features()` for the `37`-dimensional numeric state vector
 - A shared pure-NumPy actor-critic backbone
 
 ## Fresh sweep snapshot
 
-Current benchmark numbers come from `data/sweep_results/neurips_report.{md,json}`.
+Current benchmark numbers come from `data/sweep_results/neurips_report.{md,json}` and should be read as the current repo sweep snapshot, not as a reproduction claim.
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|

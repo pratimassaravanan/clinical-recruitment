@@ -23,14 +23,14 @@
 \maketitle
 
 \begin{abstract}
-Clinical recruitment creates delayed feedback by construction: screening, follow-up, site allocation, and budget decisions can affect outcomes weeks later, and those outcomes arrive under uncertainty. We present the \textbf{Adaptive Clinical Recruitment} benchmark, a deterministic 180-step environment for sequential trial-planning decisions with three public task difficulties, typed observations, delayed effects, milestone tracking, and site-level constraints. The core benchmark exposes 8 implemented action types and a 37-dimensional numeric feature vector used by the trainable baselines. The repository also contains four repo baselines aimed at different long-horizon behaviors: hierarchical subgoals with hindsight relabeling, milestone-based shaping, multi-scale temporal aggregation, and episodic memory. We regenerate all reported results from the corrected evaluation path and run a fresh 5-seed sweep (30 training episodes per seed, 15 evaluation episodes per seed). The highest mean score is 0.2215, but no pairwise comparison reaches $p < 0.05$; under the current training budget, the baseline suite is best read as a check on environment and evaluation behavior rather than as evidence that one approach clearly wins. The submission artifact includes code, regenerated charts, and a passing integration suite for all three tasks.
+Clinical recruitment creates delayed feedback by construction: screening, follow-up, site allocation, and budget decisions can affect outcomes weeks later, and those outcomes arrive under uncertainty. We present the \textbf{Adaptive Clinical Recruitment} benchmark, a deterministic 180-step environment for sequential trial-planning decisions with three public task difficulties, typed observations, delayed effects, milestone tracking, and site-level constraints. The core benchmark exposes 8 implemented action types and a 37-dimensional numeric feature vector used by the trainable baselines. The repository also contains four repo baselines aimed at different long-horizon behaviors: hierarchical subgoals with hindsight relabeling, milestone-based shaping, multi-scale temporal aggregation, and episodic memory. We rerun the current repository code from the corrected evaluation path and report a fresh 5-seed sweep (30 training episodes per seed, 15 evaluation episodes per seed). The highest mean score in that sweep is 0.2215, but no pairwise comparison reaches $p < 0.05$; under the current training budget, the baseline suite is better read as a sanity check on environment and evaluation behavior than as evidence that one approach clearly wins. The submission artifact includes code, regenerated charts, and a basic passing integration suite for all three tasks.
 \end{abstract}
 
 \section{Introduction}
 
 Patient recruitment is one of the main reasons clinical trials miss timelines and overspend budget \citep{fogel2018}. Unlike short-horizon benchmark domains, recruitment decisions are shaped by delayed conversions, dropout risk, site capacity, and non-stationary candidate pools. A benchmark in this space should therefore test more than immediate reward optimization: it should expose planning state, require action-specific candidate selection, and make it easy to reproduce both environment behavior and evaluation outputs.
 
-This paper presents an anonymized NeurIPS E\&D submission package for the \textbf{Adaptive Clinical Recruitment} repository. The aim is not to argue for a new best-performing algorithm. The contribution is a benchmark package whose claims stay close to the code, regenerated artifacts, and validation outputs currently present in the repository.
+This paper presents an anonymized NeurIPS E\&D submission package for the \textbf{Adaptive Clinical Recruitment} repository. The aim is not to argue for a new best-performing algorithm, a validated reproduction of any named method, or a deployment-ready simulator. The contribution is a benchmark artifact whose claims stay close to the code, regenerated artifacts, and validation outputs currently present in the repository.
 
 Our main contributions are:
 
@@ -38,7 +38,7 @@ Our main contributions are:
   \item A deterministic 180-step recruitment environment with three task levels, delayed effects, milestone tracking, site-level metrics, token accounting, and typed observations.
   \item A clearly scoped action interface with 8 implemented action types and action-specific candidate pools for screening, recontact, and allocation.
   \item Four repo baselines that instantiate distinct long-horizon mechanisms using a shared pure-NumPy actor-critic backbone.
-  \item A fresh 5-seed sweep, regenerated charts, and 30/30 passing integration checks across the task suite.
+  \item A fresh 5-seed sweep, regenerated charts, and 30/30 passing integration checks across the three public tasks.
 \end{enumerate}
 
 \section{Benchmark Design}
@@ -102,13 +102,13 @@ Rewards combine screening success, enrollment gain, dropout penalty, budget effi
 
 \subsection{Core Scope Versus Experimental Extras}
 
-The repository contains additional research helpers beyond the core benchmark path, including offline analysis modules, counterfactual simulation utilities, curriculum managers, and reporting stubs. In this paper, we treat only the following as core benchmark components: \texttt{env.py}, \texttt{models.py}, the four trainable baselines, \texttt{experiments/full\_sweep.py}, \texttt{experiments/reproducibility.py}, and the test scripts used for validation. We do \emph{not} treat modules such as \texttt{training/async\_rl.py}, \texttt{training/progressive\_rl.py}, or \texttt{experiments/appendix\_report.py} as validated benchmark contributions.
+The repository contains additional research helpers beyond the core benchmark path, including offline analysis modules, counterfactual simulation utilities, curriculum managers, and reporting stubs. In this paper, we treat only the following as the code paths directly supporting the paper's claims: \texttt{env.py}, \texttt{models.py}, the four trainable baselines, \texttt{experiments/full\_sweep.py}, \texttt{experiments/reproducibility.py}, and the test scripts used for validation. We do \emph{not} treat modules such as \texttt{training/async\_rl.py}, \texttt{training/progressive\_rl.py}, or \texttt{experiments/appendix\_report.py} as benchmark-backed contributions.
 
 \section{Repository Baselines and Evaluation Protocol}
 
 \subsection{Repo Baselines}
 
-The repository includes four trainable baselines built on a shared pure-NumPy actor-critic implementation. We describe them as repo baselines rather than strict reproductions of external named methods.
+The repository includes four trainable baselines built on a shared pure-NumPy actor-critic implementation. We describe them as repo baselines rather than strict reproductions or faithful implementations of external named methods.
 
 \begin{table}[t]
   \centering
@@ -126,7 +126,7 @@ The repository includes four trainable baselines built on a shared pure-NumPy ac
   \end{tabularx}
 \end{table}
 
-All four baselines use the same 37-dimensional feature extractor from \texttt{training/neural\_policy.py}. Before regenerating the reported results, we corrected the evaluation path so that \texttt{recontact} and \texttt{allocate\_to\_site} choose patients from their action-specific candidate pools instead of from the unscreened screening pool. All results reported below were regenerated after that correction.
+All four baselines use the same 37-dimensional feature extractor from \texttt{training/neural\_policy.py}. Before rerunning the reported sweep, we corrected the evaluation path so that \texttt{recontact} and \texttt{allocate\_to\_site} choose patients from their action-specific candidate pools instead of from the unscreened screening pool. All results reported below were regenerated after that code-path correction.
 
 \subsection{Training and Compute}
 
@@ -136,7 +136,7 @@ All reported experiments were executed locally on a 12th Gen Intel Core i5-1245U
 
 \section{Results}
 
-Table~\ref{tab:results} and Figure~\ref{fig:results} summarize the regenerated 5-seed sweep. HCAPO attains the highest mean score, but the four baselines remain tightly clustered and their confidence intervals overlap.
+Table~\ref{tab:results} and Figure~\ref{fig:results} summarize the regenerated 5-seed sweep. HCAPO has the highest sample mean in this run, but the four baselines remain tightly clustered and their confidence intervals overlap.
 
 \begin{table}[t]
   \centering
@@ -161,21 +161,21 @@ Table~\ref{tab:results} and Figure~\ref{fig:results} summarize the regenerated 5
   \label{fig:results}
 \end{figure}
 
-No pairwise comparison reaches $p < 0.05$. The smallest $p$-value is 0.1823 for HCAPO versus MiRA. HCAPO versus KLong, a comparison overstated in older drafts, now yields $p = 0.3849$. The conservative reading is that all four baselines make partial progress on the benchmark, but the repository does not yet provide statistical evidence that one baseline is clearly ahead of the others.
+No pairwise comparison reaches $p < 0.05$. The smallest $p$-value is 0.1823 for HCAPO versus MiRA. HCAPO versus KLong, a comparison overstated in older drafts, now yields $p = 0.3849$. With only five seed-level observations per baseline, these tests are low-power and descriptive. The current data do not support claims of statistical separation or a clear winner; they show that the four repo baselines land in a similar score range under this budget.
 
-The integration suite passes 10/10 checks on each of \texttt{easy\_bench}, \texttt{medium\_bench}, and \texttt{hard\_bench}, for a total of 30/30 checks. These checks validate observation structure, site metrics, milestone exposure, plan and memory fields, token-budget state, multi-step execution, action diversity, and non-zero reward accumulation.
+The integration suite passes 10/10 checks on each of \texttt{easy\_bench}, \texttt{medium\_bench}, and \texttt{hard\_bench}, for a total of 30/30 checks. These are 20-step smoke checks for observation structure, site metrics, milestone exposure, plan and memory fields, token-budget state, multi-step execution, action diversity, and non-zero reward accumulation. They are useful for catching interface regressions, but they are not evidence of full behavioral correctness, clinical realism, or deployment readiness.
 
 \section{Interpretation and Limitations}
 
-The current repository is strongest as an evaluation package: the environment interface is typed and deterministic, the action construction path is now consistent with the observation schema, and the reported figures can be regenerated from a short CPU run. The benchmark is less mature as an empirical leaderboard. Baseline means are close, variance remains non-trivial, and the present training budget is small.
+The current repository is strongest as a compact evaluation artifact: the environment interface is typed and deterministic, the action construction path is now consistent with the observation schema, and the reported figures can be rerun from a short CPU job. The benchmark is less mature as an empirical leaderboard. Baseline means are close, variance remains non-trivial, and the present training budget is small.
 
-Several limitations matter for reviewers. First, the environment is synthetic and should not be treated as a deployment proxy for actual clinical operations. Second, some repository modules remain scaffolds or offline research helpers rather than validated benchmark components. Third, the training stack uses simple pure-NumPy neural networks rather than stronger modern RL backbones. Finally, because the baselines are clustered, stronger evaluation protocols (more seeds, larger training budgets, and ablations over individual state channels) are still needed.
+Several limitations matter for reviewers. First, the environment is synthetic and should not be treated as a deployment proxy for actual clinical operations. Second, some repository modules remain scaffolds or offline research helpers rather than benchmark-backed components. Third, the training stack uses simple pure-NumPy neural networks rather than stronger modern RL backbones. Finally, five seeds and 30 training episodes per seed are enough to expose code-path issues, but not enough to support strong ranking claims; stronger evaluation protocols (more seeds, larger training budgets, and ablations over individual state channels) are still needed.
 
-The broader impact is mixed. A reproducible workflow benchmark can help stress-test long-horizon agents for planning, memory, and delayed effects, but any real-world use in healthcare operations would raise questions about fairness, patient autonomy, and inappropriate automation. For that reason, we position this artifact as a research benchmark only.
+The broader impact is mixed. A workflow benchmark can help stress-test long-horizon agents for planning, memory, and delayed effects, but any real-world use in healthcare operations would raise questions about fairness, patient autonomy, and inappropriate automation. For that reason, we position this artifact as a research benchmark only.
 
 \section{Conclusion}
 
-The \textbf{Adaptive Clinical Recruitment} repository provides a reproducible long-horizon benchmark package with a deterministic 180-step environment, a corrected 8-action interface, four repo baselines, fresh 5-seed sweep outputs, and passing integration checks across three task difficulties. The current evidence does \emph{not} show statistically significant separation among the baselines, which is itself informative: future work on this benchmark should emphasize stronger training protocols, sharper ablations, and a continued separation between core benchmark claims and experimental scaffolds.
+The \textbf{Adaptive Clinical Recruitment} repository provides a long-horizon benchmark artifact with a deterministic 180-step environment, a corrected 8-action interface, four repo baselines, fresh 5-seed sweep outputs, and passing integration checks across three task difficulties. The current evidence does \emph{not} show statistically significant separation among the baselines, and it should not be read as establishing a winner. Future work on this benchmark should emphasize stronger training protocols, sharper ablations, and a continued separation between core benchmark claims and experimental scaffolds.
 
 \begin{thebibliography}{10}
 
@@ -233,7 +233,7 @@ In \emph{IEEE/RSJ International Conference on Intelligent Robots and Systems}, 2
 
 \begin{table}[h]
   \centering
-  \caption{Complete pairwise comparisons from the fresh 5-seed sweep. None reach $p < 0.05$.}
+  \caption{Complete pairwise comparisons from the fresh 5-seed sweep. None reach $p < 0.05$, so these comparisons are descriptive rather than decisive.}
   \label{tab:pairwise}
   \begin{tabular}{lccc}
     \toprule
@@ -253,7 +253,7 @@ In \emph{IEEE/RSJ International Conference on Intelligent Robots and Systems}, 2
 
 \begin{table}[h]
   \centering
-  \caption{Integration checks regenerated from \texttt{data/sweep\_results/integration\_tests.json}.}
+  \caption{Integration checks regenerated from \texttt{data/sweep\_results/integration\_tests.json}. Each row is a 20-step smoke check rather than a full 180-step episode.}
   \label{tab:integration}
   \begin{tabular}{lccc}
     \toprule

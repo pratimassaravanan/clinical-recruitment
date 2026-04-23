@@ -1,13 +1,20 @@
 """FastAPI application exposing OpenEnv endpoints for Adaptive Clinical Recruitment."""
 
 import os
+import uuid
+from threading import Lock
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from env import ClinicalRecruitmentEnv
 from models import Action, Observation
+from openenv_adapter import (
+    ClinicalRecruitmentAction,
+    ClinicalRecruitmentObservation,
+    ClinicalRecruitmentOpenEnv,
+)
 
 app = FastAPI(
     title="Adaptive Clinical Trial Recruitment Environment",
@@ -23,12 +30,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-env = ClinicalRecruitmentEnv()
-
 TASKS = ["easy_bench", "medium_bench", "hard_bench"]
-ENABLE_WEB_INTERFACE = os.environ.get("ENABLE_WEB_INTERFACE", "false").lower() == "true"
+ENABLE_WEB_INTERFACE = os.environ.get("ENABLE_WEB_INTERFACE", "true").lower() == "true"
 web_interface_enabled = False
 web_interface_error = None
+SESSION_COOKIE = "acr_session_id"
+_sessions: dict[str, ClinicalRecruitmentEnv] = {}
+_session_lock = Lock()
+
+
+def _create_session() -> tuple[str, ClinicalRecruitmentEnv]:
+    session_id = uuid.uuid4().hex
+    env = ClinicalRecruitmentEnv()
+    with _session_lock:
+        _sessions[session_id] = env
+    return session_id, env
+
+
+def _get_session_env(request: Request) -> ClinicalRecruitmentEnv:
+    session_id = request.cookies.get(SESSION_COOKIE)
+    if not session_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No active session. Call /reset first.",
+        )
+    with _session_lock:
+        env = _sessions.get(session_id)
+    if env is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Session expired or missing. Call /reset first.",
+        )
+    return env
+
+
+def _drop_session(session_id: str | None) -> None:
+    if not session_id:
+        return
+    with _session_lock:
+        _sessions.pop(session_id, None)
 
 
 @app.get("/")
@@ -50,27 +90,44 @@ async def health():
 
 
 @app.post("/reset")
-async def reset(task_id: str = Query(default="easy_bench")):
+async def reset(request: Request, response: Response, task_id: str = Query(default="easy_bench")):
+    session_id = None
     try:
+        existing_session_id = request.cookies.get(SESSION_COOKIE)
+        if existing_session_id:
+            _drop_session(existing_session_id)
+
+        session_id, env = _create_session()
         result = env.reset(task=task_id)
+        response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
         return result.model_dump()
     except ValueError as e:
+        _drop_session(session_id)
+        response.delete_cookie(SESSION_COOKIE)
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/step")
-async def step(action: Action):
+async def step(action: Action, request: Request, response: Response):
     try:
+        session_id = request.cookies.get(SESSION_COOKIE)
+        env = _get_session_env(request)
         result = env.step(action)
+        if result.done:
+            _drop_session(session_id)
+            response.delete_cookie(SESSION_COOKIE)
         return result.model_dump()
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/state")
-async def state():
+async def state(request: Request):
     try:
+        env = _get_session_env(request)
         return env.state().model_dump()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -103,7 +160,12 @@ def _attach_openenv_web_routes() -> tuple:
     try:
         from openenv.core.env_server import create_web_interface_app
 
-        web_app = create_web_interface_app(ClinicalRecruitmentEnv, Action, Observation)
+        web_app = create_web_interface_app(
+            ClinicalRecruitmentOpenEnv,
+            ClinicalRecruitmentAction,
+            ClinicalRecruitmentObservation,
+            max_concurrent_envs=int(os.environ.get("OPENENV_MAX_CONCURRENT_ENVS", "16")),
+        )
         existing_routes = {
             (
                 tuple(sorted(getattr(route, "methods", set()) or [])),
