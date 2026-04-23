@@ -1,7 +1,7 @@
 """Deterministic patient pool and event traces for Clinical Recruitment environment.
 
 All traces are pre-computed with fixed seeds for reproducibility.
-Each trace covers 180 simulated days of a clinical trial recruitment period.
+Each trace covers 180 simulated steps of a clinical trial recruitment period.
 """
 
 import copy

@@ -24,7 +24,7 @@ Key point: frame the problem as workflow planning under delayed effects.
 
 Points to hit:
 
-1. `180` simulated days per episode
+1. `180` simulated steps per episode
 2. Action-specific candidate pools for screening, recontact, and allocation
 3. Explicit plan state, indexed memory state, and token-efficiency signals
 4. A `37`-dimensional feature vector for the trainable baselines

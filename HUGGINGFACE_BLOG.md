@@ -1,6 +1,6 @@
 # Adaptive Clinical Recruitment: What the Repo Actually Implements Today
 
-**Adaptive Clinical Recruitment** is a long-horizon benchmark for sequential trial-planning decisions. It models the patient funnel over `180` simulated days, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure.
+**Adaptive Clinical Recruitment** is a long-horizon benchmark for sequential trial-planning decisions. It models the patient funnel over `180` simulated steps, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure.
 
 This post is intentionally conservative. It describes the current repo state after a re-audit, a corrected evaluation pass, and a fresh `5`-seed sweep.
 

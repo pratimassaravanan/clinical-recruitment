@@ -334,7 +334,7 @@ def generate_environment_architecture() -> Path:
         agent_box,
         "Agent loop",
         [
-            "Chooses one action for each simulated day.",
+            "Chooses one action for each simulated step.",
             "Receives the typed observation from env.py and models.py.",
             "Can plan ahead, write memory, and retrieve indexed history.",
         ],
@@ -387,7 +387,7 @@ def generate_environment_architecture() -> Path:
         funnel_box,
         "Patient funnel and execution flow",
         [
-            "The benchmark models a screening -> enrollment -> retention workflow over 180 simulated days.",
+            "The benchmark models a screening -> enrollment -> retention workflow over 180 simulated steps.",
             "Action-specific candidate pools support screening, follow-up, and site allocation decisions.",
         ],
         accent=ACCENT_2,
