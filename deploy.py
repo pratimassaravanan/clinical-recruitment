@@ -14,6 +14,7 @@ FILES = [
     "graders.py",
     "load_traces.py",
     "openenv_adapter.py",
+    "client.py",
     "inference.py",
     "openenv.yaml",
     "pyproject.toml",
@@ -69,6 +70,7 @@ FILES = [
     "scripts/generate_communication_posters.py",
     "server/__init__.py",
     "server/app.py",
+    "scripts/kaggle_grpo_train.py",
 ]
 
 
