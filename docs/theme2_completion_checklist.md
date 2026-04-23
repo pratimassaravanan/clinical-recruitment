@@ -19,7 +19,7 @@ This file replaces the older aspirational roadmap-complete narrative. It is the 
 | Action-specific candidate pools | present in benchmark path | `models.py`, `env.py`, `train_agents.py`, `full_sweep.py` |
 | `37`-dimensional feature vector | present in repo baseline stack | `training/neural_policy.py` |
 | Four repo baselines | present in repo | `research/methods/*_agent.py` |
-| Fresh sweep and stats tooling | present, with current generated outputs | `experiments/full_sweep.py`, `experiments/reproducibility.py`, `data/sweep_results/neurips_report.json` |
+| Fresh sweep and stats tooling | present, with current generated outputs | `experiments/full_sweep.py`, `experiments/reproducibility.py`, `data/sweep_results/benchmark_report.json` |
 | Benchmark diagrams | generated artifacts present | `scripts/generate_docs_diagrams.py`, `docs/images/` |
 | Local validation suites | test files present in repo | `test_env.py`, `test_agents.py`, `test_research_modules.py`, `test_local_serving.py` |
 | Anonymous paper source and PDF | present in repo | `paper/main.tex`, `paper/main.pdf` |
@@ -59,12 +59,12 @@ It is safe to claim that the repo currently provides:
 - `experiments/full_sweep.py` for multi-seed sweeps
 - `experiments/reproducibility.py` for paired tests, Wilcoxon, effect sizes, and confidence intervals
 - `scripts/generate_docs_diagrams.py` for the three main benchmark diagrams
-- `data/sweep_results/neurips_report.{md,json}` as the current benchmark summary
+- `data/sweep_results/benchmark_report.{md,json}` as the current benchmark summary
 - Four main local test suites in the repo
 
 ## Fresh Generated Evidence
 
-The current benchmark numbers come from `data/sweep_results/neurips_report.json`.
+The current benchmark numbers come from `data/sweep_results/benchmark_report.json`.
 
 The exact `5`-seed sweep values in the current report use seeds `1`, `7`, `21`, `42`, and `123`.
 

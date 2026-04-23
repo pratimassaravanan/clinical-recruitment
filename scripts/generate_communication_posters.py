@@ -457,7 +457,7 @@ def reviewer_focus(
 
     draw.text((right_box[0] + 34, y + 18), "LOOK HERE FIRST", font=font(DISPLAY, 30), fill=PALETTE["ink_faint"])
     path_y = y + 72
-    for item in ["README.md", "data/sweep_results/neurips_report.md", "paper/main.pdf", "docs/images/"]:
+    for item in ["README.md", "data/sweep_results/benchmark_report.md", "paper/main.pdf", "docs/images/"]:
         panel = (right_box[0] + 34, path_y, right_box[2] - 34, path_y + 84)
         rounded_panel(draw, panel, fill=PALETTE["panel_strong"], outline=accent[:3] + (84,), radius=22, width=2, shadow=False)
         draw.text((panel[0] + 22, panel[1] + 24), item, font=font(DISPLAY, 24), fill=PALETTE["cream"])

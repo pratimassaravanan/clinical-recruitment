@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES_DIR = ROOT / "docs" / "images"
-SWEEP_REPORT = ROOT / "data" / "sweep_results" / "neurips_report.json"
+SWEEP_REPORT = ROOT / "data" / "sweep_results" / "benchmark_report.json"
 
 BG = "#F7F9FC"
 TEXT = "#122033"
@@ -507,7 +507,7 @@ def generate_agent_architectures() -> Path:
         "Repo-verified architecture summary for the four long-horizon agents used in the sweep report.",
     )
     banner_text = (
-        "Scores loaded from data/sweep_results/neurips_report.json"
+        "Scores loaded from data/sweep_results/benchmark_report.json"
         if score_map
         else "Architecture summary grounded in repo code paths"
     )
@@ -775,7 +775,7 @@ def generate_training_pipeline() -> Path:
         draw,
         (boxes[4][0] + 26, boxes[4][1] + 620, boxes[4][2] - 26, boxes[4][1] + 770),
         "Example report",
-        "neurips_report.md stores the mean scores and pairwise comparisons used in the docs.",
+        "benchmark_report.md stores the mean scores and pairwise comparisons used in the docs.",
         fill="#F0FDFA",
         accent=ACCENT_5,
         caption_font_size=18,

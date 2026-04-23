@@ -3,7 +3,7 @@
 Runs:
 1. Multi-seed training sweep for all agents (HCAPO, MiRA, KLong, MemexRL)
 2. Generates training charts and comparison visualizations
-3. Produces NeurIPS-ready reproducibility report with statistical significance
+3. Produces benchmark reproducibility report with statistical significance
 4. Integration testing with inference loop
 """
 
@@ -583,15 +583,15 @@ def run_integration_tests(task_ids: List[str]) -> Dict[str, Any]:
     return results
 
 
-def generate_neurips_report(
+def generate_benchmark_report(
     sweep_results: Dict[str, Any],
     significance: Dict[str, Any],
     integration: Dict[str, Any],
     output_path: Path,
 ) -> None:
-    """Generate NeurIPS-ready reproducibility report."""
+    """Generate benchmark reproducibility report."""
     print("\n" + "=" * 70)
-    print("GENERATING NEURIPS-READY REPORT")
+    print("GENERATING BENCHMARK REPORT")
     print("=" * 70)
 
     report = {
@@ -627,7 +627,7 @@ def generate_neurips_report(
     # Generate markdown summary
     md_path = output_path.with_suffix(".md")
     with open(md_path, "w") as f:
-        f.write("# NeurIPS Reproducibility Report\n\n")
+        f.write("# Benchmark Reproducibility Report\n\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
         f.write("## Summary Statistics\n\n")
@@ -727,12 +727,12 @@ def main():
     with open(config.output_dir / "integration_tests.json", "w") as f:
         json.dump(integration, f, indent=2, default=str)
 
-    # 5. Generate NeurIPS report
-    generate_neurips_report(
+    # 5. Generate benchmark report
+    generate_benchmark_report(
         sweep_results,
         significance,
         integration,
-        config.output_dir / "neurips_report.json",
+        config.output_dir / "benchmark_report.json",
     )
 
     # Final summary

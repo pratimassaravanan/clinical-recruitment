@@ -52,7 +52,7 @@ The current docs and charts now follow the corrected benchmark path.
 
 ## Fresh 5-seed sweep
 
-The regenerated report lives in `data/sweep_results/neurips_report.{md,json}`.
+The regenerated report lives in `data/sweep_results/benchmark_report.{md,json}`.
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|
@@ -131,8 +131,8 @@ python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-epis
 - `README.md`: current repo overview
 - `docs/theme2_alignment.md`: conservative Theme #2 mapping
 - `docs/theme2_completion_checklist.md`: reality-based status file
-- `data/sweep_results/neurips_report.md`: fresh benchmark summary
-- `paper/main.pdf`: current anonymous NeurIPS E&D paper build
+- `data/sweep_results/benchmark_report.md`: fresh benchmark summary
+- `paper/main.pdf`: current anonymous paper build
 
 ## Links
 

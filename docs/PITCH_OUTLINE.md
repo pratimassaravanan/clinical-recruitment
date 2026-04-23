@@ -43,7 +43,7 @@ Evidence to mention:
 
 - `30/30` integration checks pass across the three tasks
 - Main diagrams are regenerated from code via `scripts/generate_docs_diagrams.py`
-- The anonymous paper build in `paper/main.pdf` compiles with the official NeurIPS 2026 E&D style
+- The anonymous paper build in `paper/main.pdf` compiles with the official anonymous paper style
 
 ### `2:00-2:45` Current results
 
@@ -106,7 +106,7 @@ Answer:
 
 Answer:
 
-> "`README.md`, `docs/theme2_alignment.md`, `data/sweep_results/neurips_report.md`, and the regenerated images under `docs/images/`."
+> "`README.md`, `docs/theme2_alignment.md`, `data/sweep_results/benchmark_report.md`, and the regenerated images under `docs/images/`."
 
 ## Visual Checklist
 

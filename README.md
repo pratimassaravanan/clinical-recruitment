@@ -111,7 +111,7 @@ No pairwise comparison reaches `p < 0.05`.
 
 Fresh outputs live in:
 
-- `data/sweep_results/neurips_report.{md,json}`
+- `data/sweep_results/benchmark_report.{md,json}`
 - `data/sweep_results/sweep_results.{csv,json}`
 - `data/sweep_results/significance_tests.json`
 - `data/sweep_results/integration_tests.json`
@@ -257,7 +257,7 @@ Additional generated artifacts:
 
 - `paper/main.pdf` is included in the repo.
 - `scripts/generate_docs_diagrams.py` is the source for the three main benchmark diagrams.
-- `data/sweep_results/neurips_report.md` contains the current benchmark summary used by the docs.
+- `data/sweep_results/benchmark_report.md` contains the current benchmark summary used by the docs.
 
 ## Caveats
 

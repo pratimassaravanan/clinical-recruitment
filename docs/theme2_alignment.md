@@ -53,7 +53,7 @@ All four use the shared pure-NumPy actor-critic stack in `training/neural_policy
 
 ## Current empirical status
 
-Fresh `5`-seed sweep summary from `data/sweep_results/neurips_report.json`:
+Fresh `5`-seed sweep summary from `data/sweep_results/benchmark_report.json`:
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|

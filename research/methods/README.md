@@ -25,7 +25,7 @@ All four baselines depend on `training/neural_policy.py`, which currently provid
 
 ## Fresh sweep snapshot
 
-Current benchmark numbers come from `data/sweep_results/neurips_report.{md,json}` and should be read as the current repo sweep snapshot, not as a reproduction claim.
+Current benchmark numbers come from `data/sweep_results/benchmark_report.{md,json}` and should be read as the current repo sweep snapshot, not as a reproduction claim.
 
 | Baseline | Mean | Std | 95% CI |
 |----------|------|-----|--------|
