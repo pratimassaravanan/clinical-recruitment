@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-grpo-t4-20260424",
-  "title": "Clinical SFT+GRPO Training",
+  "id": "kaushiksarav/clinical-sft-grpo-20260424-2353",
+  "title": "Clinical SFT GRPO 20260424-2353",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",
