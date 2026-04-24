@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-"""Clinical Recruitment GRPO Training — Kaggle T4 GPU Kernel (Cleaned)"""
+"""Clinical Recruitment GRPO Training — Single .py for Lightning AI / Colab / Kaggle.
 
-# ── 0. Install deps (MUST run before imports) ────────────────────────
-import subprocess, sys, os
+Usage:
+    pip install unsloth --no-deps trl>=0.19.0 "transformers>=5.2.0,<=5.5.0" \
+        datasets>=2.21.0 accelerate>=0.34.0 "openenv-core[core]>=0.2.1"
+    python train.py
+
+Requires: T4/A10/L4/A100 GPU with fp16 support.
+"""
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # single GPU — avoids DDP issues with GRPO
+
+import subprocess, sys
 
 def pip(*args):
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", *args])
@@ -13,7 +22,6 @@ pip("--no-deps", "trl>=0.19.0")
 pip("transformers>=5.2.0,<=5.5.0")
 pip("datasets>=2.21.0", "accelerate>=0.34.0", "openenv-core[core]>=0.2.1")
 
-# ── 1. Imports (after pip installs) ──────────────────────────────────
 import json, pathlib, torch, warnings
 from unsloth import FastLanguageModel
 from trl import GRPOConfig, GRPOTrainer
@@ -24,24 +32,37 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", message="Both `max_new_tokens`")
 warnings.filterwarnings("ignore", message=".*max_length.*max_new_tokens.*")
 
-# ── 2. Verify GPU ────────────────────────────────────────────────────
 assert torch.cuda.is_available(), "No CUDA GPU found!"
 gpu = torch.cuda.get_device_name(0)
 print(f"GPU: {gpu} | CUDA: {torch.version.cuda} | PyTorch: {torch.__version__}")
 
-# ── 3. Config ─────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────
 ENV_URL = os.getenv("ENV_URL", "https://pratimassaravanan-clinical-recruitment.hf.space")
-MODEL_NAME = "unsloth/Qwen3-4B-unsloth-bnb-4bit"
+MODEL_NAME = os.getenv("MODEL_NAME", "unsloth/Qwen3-4B-unsloth-bnb-4bit")
 TASKS = ["easy_bench", "medium_bench", "hard_bench"]
-MAX_SEQ, LORA_R, LORA_ALPHA = 2048, 16, 16
-NUM_GEN, MAX_COMP, BATCH, GRAD_ACC, EPOCHS, LR = 4, 1024, 2, 4, 1, 5e-6
-OUTPUT_DIR = "grpo_clinical_recruitment"
-RESULTS_DIR = pathlib.Path("data/training_outputs")
+MAX_SEQ      = int(os.getenv("MAX_SEQ", "2048"))
+LORA_R       = int(os.getenv("LORA_R", "16"))
+LORA_ALPHA   = int(os.getenv("LORA_ALPHA", "16"))
+NUM_GEN      = int(os.getenv("NUM_GEN", "4"))
+MAX_COMP     = int(os.getenv("MAX_COMP", "1024"))
+BATCH        = int(os.getenv("BATCH", "2"))
+GRAD_ACC     = int(os.getenv("GRAD_ACC", "4"))
+EPOCHS       = int(os.getenv("EPOCHS", "1"))
+LR           = float(os.getenv("LR", "5e-6"))
+NUM_PROMPTS  = int(os.getenv("NUM_PROMPTS", "48"))
+EVAL_STEPS   = int(os.getenv("EVAL_STEPS", "30"))
+OUTPUT_DIR   = os.getenv("OUTPUT_DIR", "grpo_clinical_recruitment")
+RESULTS_DIR  = pathlib.Path(os.getenv("RESULTS_DIR", "data/training_outputs"))
+
 SYSTEM_PROMPT = ("You are a long-horizon clinical trial recruitment agent. "
                  "Use tools to manage screening, recontact, allocation, planning, and memory.")
 _H, _C = "noise_dominant", 0.6
 
-# ── 4. Load model ────────────────────────────────────────────────────
+print(f"ENV_URL: {ENV_URL}")
+print(f"MODEL:   {MODEL_NAME}")
+print(f"CONFIG:  batch={BATCH} grad_acc={GRAD_ACC} lr={LR} epochs={EPOCHS} prompts={NUM_PROMPTS}")
+
+# ── Load model ────────────────────────────────────────────────────────
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name=MODEL_NAME, max_seq_length=MAX_SEQ, load_in_4bit=True, dtype=None)
 model = FastLanguageModel.get_peft_model(
@@ -50,7 +71,7 @@ model = FastLanguageModel.get_peft_model(
     bias="none", use_gradient_checkpointing="unsloth", random_state=3407)
 model.print_trainable_parameters()
 
-# ── 5. Environment wrapper ───────────────────────────────────────────
+# ── Environment wrapper ──────────────────────────────────────────────
 class ClinicalRecruitmentToolEnv:
     """OpenEnv tool-call environment for Clinical Recruitment."""
 
@@ -59,7 +80,6 @@ class ClinicalRecruitmentToolEnv:
         self.reward = self.initial_budget = 0.0
         self.done = False
         self.last_result = self.last_observation = None
-        # IMPORTANT: separate list objects (not shared reference)
         self.action_history = []
         self.enrollment_history = []
         self.budget_history = []
@@ -83,12 +103,8 @@ class ClinicalRecruitmentToolEnv:
 
     def close(self):
         """Close client. Called by trainer lifecycle."""
-        try:
-            self.client.close()
-        except Exception:
-            pass
-
-    # TRL needs docstrings + type hints + Args on ALL tool methods for JSON schema generation
+        try: self.client.close()
+        except Exception: pass
 
     def screen_patient(self, patient_id: str, hypothesis: str = _H, confidence: float = _C) -> str:
         """Screen a candidate patient for eligibility.
@@ -162,8 +178,7 @@ class ClinicalRecruitmentToolEnv:
         return self._step({"action_type": "stop_recruitment"})
 
     def _step(self, action):
-        if self.done:
-            raise ValueError("Episode finished.")
+        if self.done: raise ValueError("Episode finished.")
         self.last_result = self.client.step(action)
         self.last_observation = self.last_result.observation
         self.reward, self.done = float(self.last_result.reward or 0), bool(self.last_result.done)
@@ -171,8 +186,7 @@ class ClinicalRecruitmentToolEnv:
         obs = self.last_observation or {}
         self.enrollment_history.append(obs.get("enrolled_so_far", 0))
         self.budget_history.append(obs.get("budget_remaining", 0))
-        if h := action.get("hypothesis"):
-            self.hypothesis_history.append(h)
+        if h := action.get("hypothesis"): self.hypothesis_history.append(h)
         return self._fmt()
 
     def _fmt(self):
@@ -182,20 +196,15 @@ class ClinicalRecruitmentToolEnv:
                 f"avail={len(o.get('available_patients', []))} recontact={len(o.get('recontact_candidates', []))} "
                 f"allocate={len(o.get('allocation_candidates', []))} funnel={o.get('current_funnel', {})}")
 
-# ── 6. Reward functions ──────────────────────────────────────────────
-# TRL calls these with EITHER (environments=...) OR (prompts=..., completions=..., completion_ids=...)
-# We need to handle both signatures.
-
+# ── Reward functions (dual-signature for TRL compatibility) ──────────
 def reward_enrollment_progress(prompts=None, completions=None, environments=None, **_):
     """Fraction of target enrollment reached."""
-    if environments is None:
-        return [0.0] * len(prompts or completions)
+    if environments is None: return [0.0] * len(prompts or completions)
     return [min(1.0, (e.last_observation or {}).get("enrolled_so_far", 0) / max(1, (e.last_observation or {}).get("target_enrollment", 100))) for e in environments]
 
 def reward_budget_efficiency(prompts=None, completions=None, environments=None, **_):
     """Enrollment per unit budget spent."""
-    if environments is None:
-        return [0.0] * len(prompts or completions)
+    if environments is None: return [0.0] * len(prompts or completions)
     r = []
     for e in environments:
         o = e.last_observation or {}
@@ -207,8 +216,7 @@ def reward_budget_efficiency(prompts=None, completions=None, environments=None, 
 
 def reward_screening_accuracy(prompts=None, completions=None, environments=None, **_):
     """Enrolled-to-screened ratio minus dropout penalty."""
-    if environments is None:
-        return [0.0] * len(prompts or completions)
+    if environments is None: return [0.0] * len(prompts or completions)
     r = []
     for e in environments:
         f = (e.last_observation or {}).get("current_funnel", {})
@@ -218,20 +226,16 @@ def reward_screening_accuracy(prompts=None, completions=None, environments=None,
 
 def reward_action_diversity(prompts=None, completions=None, environments=None, **_):
     """Fraction of 8 action types used."""
-    if environments is None:
-        return [0.0] * len(prompts or completions)
+    if environments is None: return [0.0] * len(prompts or completions)
     return [min(1, len(set(e.action_history)) / 8) if e.action_history else 0.0 for e in environments]
 
 def reward_hypothesis_consistency(prompts=None, completions=None, environments=None, **_):
     """Penalizes switching, rewards correct world-type match."""
-    if environments is None:
-        return [0.0] * len(prompts or completions)
+    if environments is None: return [0.0] * len(prompts or completions)
     r = []
     for e in environments:
         hs = e.hypothesis_history
-        if len(hs) < 2:
-            r.append(0.5)
-            continue
+        if len(hs) < 2: r.append(0.5); continue
         sw = sum(1 for i in range(1, len(hs)) if hs[i] != hs[i - 1])
         con = 1.0 if sw <= 1 else max(0.2, 1 - (sw - 1) * 0.2)
         wt = (e.last_observation or {}).get("world_type", "")
@@ -239,9 +243,11 @@ def reward_hypothesis_consistency(prompts=None, completions=None, environments=N
         r.append(min(1.0, con * 0.8 + bonus))
     return r
 
-REWARD_FUNCS = [reward_enrollment_progress, reward_budget_efficiency, reward_screening_accuracy, reward_action_diversity, reward_hypothesis_consistency]
+REWARD_FUNCS = [reward_enrollment_progress, reward_budget_efficiency,
+                reward_screening_accuracy, reward_action_diversity,
+                reward_hypothesis_consistency]
 
-# ── 7. Eval helper (your cleaner tokenization) ──────────────────────
+# ── Eval helper ──────────────────────────────────────────────────────
 def _parse_action(resp, obs):
     if "screen" in resp and obs.get("available_patients"):
         return {"action_type": "screen_patient", "patient_id": obs["available_patients"][0]["id"], "hypothesis": _H, "confidence": _C}
@@ -259,114 +265,103 @@ def _parse_action(resp, obs):
         return {"action_type": "screen_patient", "patient_id": obs["available_patients"][0]["id"], "hypothesis": _H, "confidence": _C}
     return {"action_type": "adjust_strategy", "strategy_change": "increase_outreach", "hypothesis": _H, "confidence": _C}
 
-def run_episode(mdl, tok, task="easy_bench", n=30):
+def run_episode(mdl, tok, task="easy_bench", n=None):
+    n = n or EVAL_STEPS
     env = ClinicalRecruitmentToolEnv()
-    try:
-        obs_text = env.reset(task=task)
-    except Exception as e:
-        return {"task": task, "error": str(e)}
-
+    try: obs_text = env.reset(task=task)
+    except Exception as e: return {"task": task, "error": str(e)}
     FastLanguageModel.for_inference(mdl)
     total_r, steps = 0.0, 0
-
     for _ in range(n):
-        if env.done:
-            break
-        msgs = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"State: {obs_text}\nChoose next action."},
-        ]
-        # Your cleaner single-call tokenization with truncation
+        if env.done: break
+        msgs = [{"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"State: {obs_text}\nChoose next action."}]
         input_ids = tok.apply_chat_template(
             msgs, tokenize=True, add_generation_prompt=True, enable_thinking=False,
-            max_length=MAX_SEQ, truncation=True, return_tensors="pt",
-        ).to(mdl.device)
-
+            max_length=MAX_SEQ, truncation=True, return_tensors="pt").to(mdl.device)
         with torch.no_grad():
-            out = mdl.generate(
-                input_ids=input_ids, max_new_tokens=256, do_sample=False,
-                pad_token_id=tok.pad_token_id or tok.eos_token_id,
-            )
+            out = mdl.generate(input_ids=input_ids, max_new_tokens=256, do_sample=False,
+                               pad_token_id=tok.pad_token_id or tok.eos_token_id)
         resp = tok.decode(out[0][input_ids.shape[1]:], skip_special_tokens=True).lower()
         try:
             obs_text = env._step(_parse_action(resp, env.last_observation or {}))
-            total_r += env.reward
-            steps += 1
-        except Exception:
-            break
-
+            total_r += env.reward; steps += 1
+        except Exception: break
     fo = env.last_observation or {}
-    res = {
-        "task": task, "actions": steps, "total_reward": round(total_r, 4),
-        "enrolled": fo.get("enrolled_so_far", 0), "target": fo.get("target_enrollment", 100),
-    }
+    res = {"task": task, "actions": steps, "total_reward": round(total_r, 4),
+           "enrolled": fo.get("enrolled_so_far", 0), "target": fo.get("target_enrollment", 100)}
     for fn in REWARD_FUNCS:
-        res[fn.__name__.replace("reward_", "")] = round(fn([env])[0], 4)
+        res[fn.__name__.replace("reward_", "")] = round(fn(environments=[env])[0], 4)
     env.close()
     return res
 
 # ══════════════════════════════════════════════════════════════════════
-# 8. MAIN
+# MAIN
 # ══════════════════════════════════════════════════════════════════════
-sep = "=" * 60
+if __name__ == "__main__":
+    sep = "=" * 60
 
-print(f"\n{sep}\nBEFORE TRAINING\n{sep}")
-before = {}
-for t in TASKS:
-    r = run_episode(model, tokenizer, t)
-    before[t] = r
-    print(f"  [{t}] enrolled={r.get('enrolled',0)}/{r.get('target',0)} reward={r.get('total_reward',0)}")
+    # Before training
+    print(f"\n{sep}\nBEFORE TRAINING\n{sep}")
+    before = {}
+    for t in TASKS:
+        r = run_episode(model, tokenizer, t)
+        before[t] = r
+        print(f"  [{t}] enrolled={r.get('enrolled',0)}/{r.get('target',0)} reward={r.get('total_reward',0)}")
 
-ds = Dataset.from_dict({
-    "prompt": [[{"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": "Improve recruitment."}] for _ in range(48)],
-    "task_id": [TASKS[i % 3] for i in range(48)],
-})
+    # Dataset
+    ds = Dataset.from_dict({
+        "prompt": [[{"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": "Improve recruitment."}] for _ in range(NUM_PROMPTS)],
+        "task_id": [TASKS[i % 3] for i in range(NUM_PROMPTS)],
+    })
 
-FastLanguageModel.for_training(model)
-cfg = GRPOConfig(
-    output_dir=OUTPUT_DIR, num_generations=NUM_GEN, max_completion_length=MAX_COMP,
-    per_device_train_batch_size=BATCH, gradient_accumulation_steps=GRAD_ACC,
-    num_train_epochs=EPOCHS, learning_rate=LR, logging_steps=1, save_steps=50,
-    bf16=False, fp16=True, optim="adamw_8bit",
-    warmup_steps=2, lr_scheduler_type="cosine",
-    report_to="none",
-)
-trainer = GRPOTrainer(
-    model=model, processing_class=tokenizer, train_dataset=ds,
-    reward_funcs=REWARD_FUNCS, environment_factory=ClinicalRecruitmentToolEnv, args=cfg,
-)
-print(f"\n{sep}\nGRPO TRAINING on {gpu}\n{sep}")
-trainer.train()
+    # Train
+    FastLanguageModel.for_training(model)
+    cfg = GRPOConfig(
+        output_dir=OUTPUT_DIR, num_generations=NUM_GEN, max_completion_length=MAX_COMP,
+        per_device_train_batch_size=BATCH, gradient_accumulation_steps=GRAD_ACC,
+        num_train_epochs=EPOCHS, learning_rate=LR, logging_steps=1, save_steps=50,
+        bf16=False, fp16=True, optim="adamw_8bit",
+        warmup_steps=2, lr_scheduler_type="cosine",
+        report_to="none",
+    )
+    trainer = GRPOTrainer(
+        model=model, processing_class=tokenizer, train_dataset=ds,
+        reward_funcs=REWARD_FUNCS, environment_factory=ClinicalRecruitmentToolEnv, args=cfg,
+    )
+    print(f"\n{sep}\nGRPO TRAINING on {gpu}\n{sep}")
+    trainer.train()
 
-print(f"\n{sep}\nAFTER TRAINING\n{sep}")
-after = {}
-for t in TASKS:
-    r = run_episode(model, tokenizer, t)
-    after[t] = r
-    print(f"  [{t}] enrolled={r.get('enrolled',0)}/{r.get('target',0)} reward={r.get('total_reward',0)}")
+    # After training
+    print(f"\n{sep}\nAFTER TRAINING\n{sep}")
+    after = {}
+    for t in TASKS:
+        r = run_episode(model, tokenizer, t)
+        after[t] = r
+        print(f"  [{t}] enrolled={r.get('enrolled',0)}/{r.get('target',0)} reward={r.get('total_reward',0)}")
 
-CMP = ["total_reward", "enrolled", "enrollment_progress", "budget_efficiency",
-       "screening_accuracy", "action_diversity", "hypothesis_consistency"]
-print(f"\n{sep}\nCOMPARISON\n{sep}")
-for t in TASKS:
-    b, a = before.get(t, {}), after.get(t, {})
-    print(f"\n  [{t}]")
-    for k in CMP:
-        bv, av = b.get(k, 0), a.get(k, 0)
-        if isinstance(bv, (int, float)) and isinstance(av, (int, float)):
-            print(f"    {k:>25}  {bv:>10.4f}  {av:>10.4f}  {'+' if av - bv >= 0 else ''}{av - bv:>9.4f}")
+    # Comparison
+    CMP = ["total_reward", "enrolled", "enrollment_progress", "budget_efficiency",
+           "screening_accuracy", "action_diversity", "hypothesis_consistency"]
+    print(f"\n{sep}\nCOMPARISON\n{sep}")
+    for t in TASKS:
+        b, a = before.get(t, {}), after.get(t, {})
+        print(f"\n  [{t}]")
+        for k in CMP:
+            bv, av = b.get(k, 0), a.get(k, 0)
+            if isinstance(bv, (int, float)) and isinstance(av, (int, float)):
+                print(f"    {k:>25}  {bv:>10.4f}  {av:>10.4f}  {'+' if av - bv >= 0 else ''}{av - bv:>9.4f}")
 
-lp = f"{OUTPUT_DIR}/lora_adapter"
-model.save_pretrained(lp)
-tokenizer.save_pretrained(lp)
-merged = model.merge_and_unload()
-mp = f"{OUTPUT_DIR}/merged_model"
-merged.save_pretrained(mp)
-tokenizer.save_pretrained(mp)
-print(f"\nLoRA -> {lp} | Merged -> {mp}")
+    # Save
+    lp = f"{OUTPUT_DIR}/lora_adapter"
+    model.save_pretrained(lp); tokenizer.save_pretrained(lp)
+    merged = model.merge_and_unload()
+    mp = f"{OUTPUT_DIR}/merged_model"
+    merged.save_pretrained(mp); tokenizer.save_pretrained(mp)
+    print(f"\nLoRA -> {lp} | Merged -> {mp}")
 
-RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-(RESULTS_DIR / "grpo_results.json").write_text(
-    json.dumps({"before": before, "after": after, "model": MODEL_NAME, "env_url": ENV_URL, "gpu": gpu}, indent=2))
-print(f"\n{sep}\nDONE\n{sep}")
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "grpo_results.json").write_text(
+        json.dumps({"before": before, "after": after, "model": MODEL_NAME, "env_url": ENV_URL, "gpu": gpu}, indent=2))
+    print(f"\n{sep}\nDONE\n{sep}")

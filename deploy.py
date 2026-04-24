@@ -71,6 +71,7 @@ FILES = [
     "server/__init__.py",
     "server/app.py",
     "scripts/kaggle_grpo_train.py",
+    "notebooks/colab_grpo_training.ipynb",
 ]
 
 
