@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-sft-grpo-20260424-2353",
-  "title": "Clinical SFT GRPO 20260424-2353",
+  "id": "kaushiksarav/clinical-deepseek-r1-dual-gpu",
+  "title": "Clinical DeepSeek R1 Dual GPU Training",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",
