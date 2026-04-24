@@ -1,9 +1,9 @@
 {
   "id": "kaushiksarav/clinical-recruitment-grpo-training",
   "title": "Clinical Recruitment GRPO Training",
-  "code_file": "training_kernel.py",
+  "code_file": "training_notebook.ipynb",
   "language": "python",
-  "kernel_type": "script",
+  "kernel_type": "notebook",
   "is_private": false,
   "enable_gpu": true,
   "enable_internet": true,
