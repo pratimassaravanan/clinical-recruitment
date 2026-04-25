@@ -48,9 +48,10 @@ class ClinicalRecruitmentState(State):
 class ClinicalRecruitmentOpenEnv(Environment):
     """Wrap the benchmark env in the OpenEnv Environment interface."""
 
-    # Each instance wraps a single ClinicalRecruitmentEnv.
-    # Concurrency is achieved by creating one instance per session in app.py.
-    SUPPORTS_CONCURRENT_SESSIONS = False
+    # Each instance wraps a single ClinicalRecruitmentEnv with isolated state.
+    # The OpenEnv web interface creates one instance per session, so concurrent
+    # sessions are safe even though each individual instance is single-session.
+    SUPPORTS_CONCURRENT_SESSIONS = True
 
     def __init__(self):
         super().__init__()
