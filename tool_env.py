@@ -23,9 +23,6 @@ from typing import Any, Dict, Optional
 from env import ClinicalRecruitmentEnv
 from models import Action
 
-# Default env URL for remote evaluation (not used during GRPO — env runs in-process)
-_DEFAULT_ENV_URL = "https://pratimassaravanan-clinical-recruitment.hf.space"
-
 
 class ClinicalRecruitmentToolEnv:
     """TRL environment_factory-compatible wrapper.

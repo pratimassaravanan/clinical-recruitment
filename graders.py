@@ -98,40 +98,44 @@ def grade_easy_bench(
 ) -> float:
     """Grade easy bench: stable patient pool, generous budget/time.
 
-    Scoring (0.0-1.0):
-      - Enrollment rate: 0.35 weight (% of target reached)
-      - Budget efficiency: 0.20 weight (budget remaining / initial)
-      - Screening accuracy: 0.20 weight (eligible / screened ratio)
+    Scoring (0.0-1.0), weights sum to 1.00:
+      - Enrollment rate: 0.30 weight (% of target reached)
+      - Budget efficiency: 0.17 weight (budget remaining / initial)
+      - Screening accuracy: 0.17 weight (eligible / screened ratio)
       - Timeline: 0.10 weight (enrolled before deadline)
       - Hypothesis consistency: 0.10 weight (stable reasoning)
       - Hypothesis accuracy: 0.05 weight (correct world model)
+      - Milestone potential: 0.03 weight
+      - Plan follow-through: 0.02 weight
+      - Token efficiency: 0.03 weight
+      - Memory use: 0.03 weight
     """
     score = 0.0
 
-    # Enrollment rate (35%) - how much of target was reached
+    # Enrollment rate (30%) - how much of target was reached
     target = final_obs.target_enrollment
     enrolled = final_obs.enrolled_so_far
     if target > 0:
         enrollment_pct = min(1.0, enrolled / target)
-        score += 0.35 * enrollment_pct
+        score += 0.30 * enrollment_pct
 
-    # Budget efficiency (20%) - reward for not exhausting budget
+    # Budget efficiency (17%) - reward for not exhausting budget
     # BUT: only award if agent actually took productive actions (screened >= 10 patients)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
     budget_frac = max(0, final_obs.budget_remaining) / 120000.0
     if screened >= 10:
         if budget_frac >= 0.20:
-            score += 0.20
+            score += 0.17
         elif budget_frac >= 0.0:
-            score += 0.20 * (budget_frac / 0.20)
+            score += 0.17 * (budget_frac / 0.20)
     # else: 0 — no free points for doing nothing
 
-    # Screening accuracy (20%) - eligible / screened ratio
+    # Screening accuracy (17%) - eligible / screened ratio
     eligible = funnel.get("eligible", 0)
     if screened > 0:
         accuracy = eligible / screened
-        score += 0.20 * min(1.0, accuracy / 0.7)
+        score += 0.17 * min(1.0, accuracy / 0.7)
     else:
         score += 0.0
 
@@ -164,30 +168,33 @@ def grade_medium_bench(
 ) -> float:
     """Grade medium bench: multiple sites, moderate dropout, uncertainty.
 
-    Scoring (0.0-1.0):
-      - Enrollment rate: 0.30 weight
-      - Retention: 0.20 weight (enrolled - dropped / enrolled)
+    Scoring (0.0-1.0), weights sum to 1.00:
+      - Enrollment rate: 0.25 weight
+      - Retention: 0.15 weight (enrolled - dropped / enrolled)
       - Site utilization: 0.15 weight (used multiple sites effectively)
-      - Budget efficiency: 0.15 weight
+      - Budget efficiency: 0.10 weight
       - Hypothesis consistency: 0.10 weight
       - Hypothesis accuracy: 0.10 weight
+      - Plan follow-through: 0.05 weight
+      - Milestone potential: 0.05 weight
+      - Token efficiency: 0.05 weight
     """
     score = 0.0
 
-    # Enrollment rate (30%)
+    # Enrollment rate (25%)
     target = final_obs.target_enrollment
     enrolled = final_obs.enrolled_so_far
     if target > 0:
         enrollment_pct = min(1.0, enrolled / target)
-        score += 0.30 * enrollment_pct
+        score += 0.25 * enrollment_pct
 
-    # Retention (20%) - low dropout
+    # Retention (15%) - low dropout
     funnel = final_obs.current_funnel
     total_enrolled_ever = funnel.get("enrolled", 0) + funnel.get("dropped", 0)
     dropped = funnel.get("dropped", 0)
     if total_enrolled_ever > 0:
         retention = 1.0 - (dropped / total_enrolled_ever)
-        score += 0.20 * max(0.0, retention)
+        score += 0.15 * max(0.0, retention)
     else:
         score += 0.0
 
@@ -204,15 +211,15 @@ def grade_medium_bench(
     elif len(sites_used) == 1:
         score += 0.15 * 0.3
 
-    # Budget efficiency (15%) - only if agent engaged (screened >= 15)
+    # Budget efficiency (10%) - only if agent engaged (screened >= 15)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
     budget_frac = max(0, final_obs.budget_remaining) / 150000.0
     if screened >= 15:
         if budget_frac >= 0.15:
-            score += 0.15
+            score += 0.10
         elif budget_frac >= 0.0:
-            score += 0.15 * (budget_frac / 0.15)
+            score += 0.10 * (budget_frac / 0.15)
 
     # Hypothesis consistency (10%)
     score += 0.10 * _hypothesis_consistency_score(history)
@@ -235,44 +242,48 @@ def grade_hard_bench(
 ) -> float:
     """Grade hard bench: tight budget, high dropout, curriculum injections.
 
-    Scoring (0.0-1.0):
-      - Enrollment rate: 0.20 weight
-      - Retention: 0.15 weight
-      - Budget efficiency: 0.15 weight
+    Scoring (0.0-1.0), weights sum to 1.00:
+      - Enrollment rate: 0.15 weight
+      - Retention: 0.10 weight
+      - Budget efficiency: 0.10 weight
       - Dropout recovery: 0.10 weight (bounced back after high-dropout events)
       - Curriculum response: 0.10 weight (exploited easy-pool resets)
       - Strategy adaptation: 0.10 weight (used strategy changes effectively)
       - Hypothesis consistency: 0.10 weight (stable reasoning under chaos)
       - Hypothesis accuracy: 0.10 weight (identified dropout as dominant)
+      - Memory use: 0.04 weight
+      - Milestone potential: 0.03 weight
+      - Hindsight alignment: 0.03 weight
+      - Token efficiency: 0.05 weight
     """
     score = 0.0
 
-    # Enrollment rate (20%)
+    # Enrollment rate (15%)
     target = final_obs.target_enrollment
     enrolled = final_obs.enrolled_so_far
     if target > 0:
         enrollment_pct = min(1.0, enrolled / target)
-        score += 0.20 * enrollment_pct
+        score += 0.15 * enrollment_pct
 
-    # Retention (15%)
+    # Retention (10%)
     funnel = final_obs.current_funnel
     total_enrolled_ever = funnel.get("enrolled", 0) + funnel.get("dropped", 0)
     dropped = funnel.get("dropped", 0)
     if total_enrolled_ever > 0:
         retention = 1.0 - (dropped / total_enrolled_ever)
-        score += 0.15 * max(0.0, retention)
+        score += 0.10 * max(0.0, retention)
     else:
         score += 0.0
 
-    # Budget efficiency (15%) - only if agent engaged (screened >= 20)
+    # Budget efficiency (10%) - only if agent engaged (screened >= 20)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
     budget_frac = max(0, final_obs.budget_remaining) / 100000.0
     if screened >= 20:
         if budget_frac >= 0.10:
-            score += 0.15
+            score += 0.10
         elif budget_frac >= 0.0:
-            score += 0.15 * (budget_frac / 0.10)
+            score += 0.10 * (budget_frac / 0.10)
 
     # Dropout recovery (10%) - after a dropout event, did enrollment increase in next 10 steps?
     dropout_steps = [i for i, h in enumerate(history) if h.get("dropout")]

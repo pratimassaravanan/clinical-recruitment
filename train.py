@@ -153,7 +153,6 @@ sft_trainer.train()
 print("SFT complete!")
 
 # ── Eval using in-process env (not HTTP) ──────────────────────────────
-from tool_env import ClinicalRecruitmentToolEnv
 
 
 def try_parse_json_action(resp: str) -> dict | None:
@@ -180,7 +179,11 @@ def try_parse_json_action(resp: str) -> dict | None:
 
 def heuristic_fallback(obs: dict) -> dict:
     """Pure heuristic action from observation state — no model involved."""
-    _H, _C = "noise_dominant", 0.6
+    # Use world_type from observation to set correct hypothesis
+    wt = obs.get("world_type", "noise")
+    hyp_map = {"noise": "noise_dominant", "site_bias": "site_bias", "dropout": "dropout_dominant"}
+    _H = hyp_map.get(wt, "noise_dominant")
+    _C = 0.6
     sites = obs.get("site_performance", {})
     if obs.get("allocation_candidates") and sites:
         best = max(sites.keys(), key=lambda s: sites[s].get("conversion_rate", 0) * max(1, sites[s].get("capacity_remaining", 0)))
