@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Clinical Recruitment SFT Training — Uses pre-generated traces + proper OpenEnv eval.
+"""Clinical Recruitment SFT Training — Uses pre-generated traces + local env eval.
 
-FIX #2:  Eval uses ClinicalRecruitmentToolEnv (in-process), not raw HTTP.
-FIX #5:  10% validation split, early stopping patience, sane epoch count.
+FIX #2:  Eval uses the in-process environment, not raw HTTP.
+FIX #5:  10% validation split, eval checkpoints, sane epoch count.
 FIX #6:  Eval reports both raw JSON parse rate AND heuristic-fallback metrics separately.
 
 Usage:
@@ -18,18 +18,27 @@ Usage:
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-import subprocess, sys
-def pip(*a): subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", *a])
-pip("--upgrade", "pip")
-pip("unsloth")
-pip("--no-deps", "trl>=0.19.0")
-pip("transformers>=5.2.0,<=5.5.0")
-pip("datasets>=2.21.0", "accelerate>=0.34.0")
+import json, pathlib, re, warnings, random
 
-import json, pathlib, re, torch, warnings, random
-from unsloth import FastLanguageModel
-from trl import SFTConfig, SFTTrainer
-from datasets import Dataset
+_TRAINING_INSTALL_CMD = (
+    'pip install -r requirements.txt -r requirements-research.txt numpy '
+    'unsloth "trl>=0.19.0" "transformers>=5.2.0,<=5.5.0" '
+    '"datasets>=2.21.0" "accelerate>=0.34.0"'
+)
+
+try:
+    import torch
+    from datasets import Dataset
+    from trl import SFTConfig, SFTTrainer
+    from unsloth import FastLanguageModel
+except ImportError as exc:
+    missing = getattr(exc, "name", None) or str(exc)
+    raise SystemExit(
+        "train.py requires a CUDA-enabled PyTorch environment and the training extras. "
+        f"Missing import: {missing}. Install them first with: {_TRAINING_INSTALL_CMD}"
+    ) from exc
+
+from load_traces import PUBLIC_TASKS
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", message=".*max_new_tokens.*")
@@ -40,7 +49,7 @@ gpu = torch.cuda.get_device_name(0)
 print(f"GPU: {gpu} | CUDA: {torch.version.cuda} | PyTorch: {torch.__version__}")
 
 # ── Config ────────────────────────────────────────────────────────────
-MODEL_NAME   = os.getenv("MODEL_NAME", "unsloth/Qwen3-4B-unsloth-bnb-4bit")
+MODEL_NAME   = os.getenv("MODEL_NAME", "unsloth/gemma-4-E4B-it-unsloth-bnb-4bit")
 TRACES_FILE  = os.getenv("TRACES_FILE", "data/sft_traces_5k.json")
 MAX_SEQ      = int(os.getenv("MAX_SEQ", "2048"))
 LORA_R       = int(os.getenv("LORA_R", "16"))
@@ -49,11 +58,11 @@ SFT_EPOCHS   = int(os.getenv("SFT_EPOCHS", "10"))  # was 50 — reduced to avoid
 SFT_LR       = float(os.getenv("SFT_LR", "5e-5"))  # was 1e-4 — reduced for stability
 SFT_BATCH    = int(os.getenv("SFT_BATCH", "1"))
 SFT_GRAD_ACC = int(os.getenv("SFT_GRAD_ACC", "4"))
-EVAL_STEPS   = int(os.getenv("EVAL_STEPS", "50"))
+EPISODE_EVAL_STEPS = int(os.getenv("EVAL_STEPS", "50"))
 VAL_SPLIT    = float(os.getenv("VAL_SPLIT", "0.1"))  # 10% validation split
 OUTPUT_DIR   = os.getenv("OUTPUT_DIR", "train_output")
 RESULTS_DIR  = pathlib.Path(os.getenv("RESULTS_DIR", "data/training_outputs"))
-TASKS        = ["easy_bench", "medium_bench", "hard_bench"]
+TASKS        = list(PUBLIC_TASKS)
 
 SYSTEM_PROMPT = """You are a clinical trial recruitment agent. Output ONLY a JSON action object.
 
@@ -79,6 +88,25 @@ model = FastLanguageModel.get_peft_model(
 model.generation_config.max_length = None
 model.print_trainable_parameters()
 
+
+def apply_chat_template(messages, *, tokenize: bool, add_generation_prompt: bool, **kwargs):
+    """Use non-thinking mode when the chat template supports it."""
+    try:
+        return tokenizer.apply_chat_template(
+            messages,
+            tokenize=tokenize,
+            add_generation_prompt=add_generation_prompt,
+            enable_thinking=False,
+            **kwargs,
+        )
+    except TypeError:
+        return tokenizer.apply_chat_template(
+            messages,
+            tokenize=tokenize,
+            add_generation_prompt=add_generation_prompt,
+            **kwargs,
+        )
+
 # ── Load pre-generated traces ─────────────────────────────────────────
 print(f"\nLoading traces from {TRACES_FILE}...")
 traces_path = pathlib.Path(TRACES_FILE)
@@ -100,7 +128,7 @@ print("\nBuilding SFT dataset...")
 sft_data = []
 for trace in all_traces:
     try:
-        text = tokenizer.apply_chat_template(trace, tokenize=False, add_generation_prompt=False)
+        text = apply_chat_template(trace, tokenize=False, add_generation_prompt=False)
         sft_data.append({"text": text})
     except Exception:
         pass
@@ -232,7 +260,7 @@ def run_eval(mdl, tok, task: str, n: int = 50):
                     f"funnel={obs_dict.get('current_funnel', {})}")
         msgs = [{"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": obs_text}]
-        input_ids = tok.apply_chat_template(
+        input_ids = apply_chat_template(
             msgs, tokenize=True, add_generation_prompt=True,
             max_length=MAX_SEQ, truncation=True, return_tensors="pt").to(mdl.device)
         with torch.no_grad():
@@ -306,7 +334,7 @@ def run_eval(mdl, tok, task: str, n: int = 50):
 print(f"\n{'='*60}\nEVALUATION (in-process env, no HTTP)\n{'='*60}")
 results = {}
 for t in TASKS:
-    r = run_eval(model, tokenizer, t, n=EVAL_STEPS)
+    r = run_eval(model, tokenizer, t, n=EPISODE_EVAL_STEPS)
     results[t] = r
     print(f"  [{t}] enrolled={r['enrolled']}/{r['target']} reward={r['total_reward']} json_parse={r['json_parse_rate']:.1%}\n")
 

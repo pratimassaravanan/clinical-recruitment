@@ -6,6 +6,18 @@ Grading includes hypothesis accuracy and reasoning consistency (Upgrades 1-4).
 from models import Observation
 
 
+def _initial_budget(final_obs: Observation) -> float:
+    return max(1.0, float(getattr(final_obs, "initial_budget", 0.0) or 0.0))
+
+
+def _episode_horizon(final_obs: Observation, history: list) -> int:
+    max_steps = int(getattr(final_obs, "max_steps", 0) or 0)
+    if max_steps > 0:
+        return max_steps
+    remaining = int(getattr(final_obs, "time_to_deadline_days", 0) or 0)
+    return max(1, len(history) + remaining)
+
+
 def _hypothesis_consistency_score(history: list) -> float:
     """Score the agent's hypothesis consistency. Fewer switches = better."""
     hypotheses = [
@@ -123,7 +135,7 @@ def grade_easy_bench(
     # BUT: only award if agent actually took productive actions (screened >= 10 patients)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
-    budget_frac = max(0, final_obs.budget_remaining) / 120000.0
+    budget_frac = max(0, final_obs.budget_remaining) / _initial_budget(final_obs)
     if screened >= 10:
         if budget_frac >= 0.20:
             score += 0.17
@@ -141,10 +153,11 @@ def grade_easy_bench(
 
     # Timeline (10%) - bonus for finishing early
     days_used = len(history)
+    max_steps = _episode_horizon(final_obs, history)
     if enrolled >= target:
-        time_frac = 1.0 - (days_used / 180.0)
+        time_frac = max(0.0, 1.0 - (days_used / max_steps))
         score += 0.10 * time_frac
-    elif days_used < 180:
+    elif days_used < max_steps:
         score += 0.10 * (enrolled / max(1, target)) * 0.5
 
     # Hypothesis consistency (10%)
@@ -215,7 +228,7 @@ def grade_medium_bench(
     # Budget efficiency (10%) - only if agent engaged (screened >= 15)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
-    budget_frac = max(0, final_obs.budget_remaining) / 150000.0
+    budget_frac = max(0, final_obs.budget_remaining) / _initial_budget(final_obs)
     if screened >= 15:
         if budget_frac >= 0.15:
             score += 0.10
@@ -279,7 +292,7 @@ def grade_hard_bench(
     # Budget efficiency (10%) - only if agent engaged (screened >= 20)
     funnel = final_obs.current_funnel
     screened = funnel.get("screened", 0)
-    budget_frac = max(0, final_obs.budget_remaining) / 100000.0
+    budget_frac = max(0, final_obs.budget_remaining) / _initial_budget(final_obs)
     if screened >= 20:
         if budget_frac >= 0.10:
             score += 0.10

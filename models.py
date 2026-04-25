@@ -14,6 +14,9 @@ class Observation(BaseModel):
     )
     enrolled_so_far: int = Field(description="Total patients successfully enrolled")
     target_enrollment: int = Field(description="Target number of patients to enroll")
+    task_id: str = Field(default="", description="Canonical task identifier for the current episode")
+    max_steps: int = Field(default=180, ge=1, description="Maximum number of steps in the current episode")
+    initial_budget: float = Field(default=0.0, ge=0.0, description="Starting budget for the current episode")
     current_funnel: Dict[str, int] = Field(
         default_factory=dict,
         description="Funnel counts: contacted, screened, eligible, consented, enrolled, dropped",
@@ -227,9 +230,11 @@ class State(BaseModel):
     task: str = Field(default="")
     step: int = Field(default=0)
     max_steps: int = Field(default=180)
+    time_to_deadline_days: int = Field(default=0)
     done: bool = Field(default=True)
     enrolled_so_far: int = Field(default=0)
     target_enrollment: int = Field(default=100)
+    initial_budget: float = Field(default=0.0)
     budget_remaining: float = Field(default=0.0)
     total_reward: float = Field(default=0.0)
     history: List[Dict[str, Any]] = Field(default_factory=list)

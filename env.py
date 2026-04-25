@@ -132,7 +132,7 @@ class ClinicalRecruitmentEnv:
         self._token_usage_so_far: int = 0
         self._token_efficiency_score: float = 1.0
 
-    def reset(self, task: Optional[str] = None) -> StepResult:
+    def reset(self, task: Optional[str] = None, seed: Optional[int] = None) -> StepResult:
         if task is None:
             task = "easy_bench"
         if not is_known_task(task):
@@ -149,13 +149,14 @@ class ClinicalRecruitmentEnv:
         self._total_reward = 0.0
         self._history = []
 
-        # Seed RNG deterministically per task
-        seeds = {"easy_bench": 42, "medium_bench": 123, "hard_bench": 777}
-        base_task = resolve_base_task_id(task)
-        stage_horizon = get_stage_horizon_days(task)
-        seed = seeds.get(base_task, 42)
-        if stage_horizon is not None:
-            seed += stage_horizon
+        # Default to deterministic per-task seeds, but honor explicit callers.
+        if seed is None:
+            seeds = {"easy_bench": 42, "medium_bench": 123, "hard_bench": 777}
+            base_task = resolve_base_task_id(task)
+            stage_horizon = get_stage_horizon_days(task)
+            seed = seeds.get(base_task, 42)
+            if stage_horizon is not None:
+                seed += stage_horizon
         self._rng = random.Random(seed)
 
         # Deep-copy mutable state from trace
@@ -486,9 +487,11 @@ class ClinicalRecruitmentEnv:
             task=self._task or "",
             step=self._step,
             max_steps=self._max_steps,
+            time_to_deadline_days=max(0, self._deadline_days - self._step),
             done=self._done,
             enrolled_so_far=self._enrolled,
             target_enrollment=self._target,
+            initial_budget=round(float(self._trace.get("budget", 0.0)), 2),
             budget_remaining=round(self._budget_remaining, 2),
             total_reward=round(self._total_reward, 4),
             history=self._history[-10:],
@@ -1785,6 +1788,9 @@ class ClinicalRecruitmentEnv:
             time_to_deadline_days=max(0, self._deadline_days - self._step),
             enrolled_so_far=self._enrolled,
             target_enrollment=self._target,
+            task_id=self._task or "",
+            max_steps=self._max_steps,
+            initial_budget=round(float(self._trace.get("budget", 0.0)), 2),
             current_funnel=dict(self._funnel),
             available_patients=available,
             recontact_candidates=recontact_candidates,

@@ -1,6 +1,6 @@
 # Theme #2 Alignment
 
-This note maps the current `clinical-recruitment-env` repository to Theme #2 style long-horizon planning requirements. It is intentionally narrow: it only describes behavior that is visible in the current benchmark path, current repo baselines, or freshly generated artifacts, and it should be read as a best-fit Theme #2 mapping rather than a claim of complete requirement coverage.
+This note maps the current `clinical-recruitment-env` repository to Theme #2 style long-horizon planning and data-driven decision-making requirements. It is intentionally narrow: it only describes behavior that is visible in the current benchmark path, current repo baselines, or freshly generated artifacts, and it should be read as a best-fit Theme #2 mapping rather than a claim of complete requirement coverage.
 
 ## Verified benchmark surfaces
 
@@ -23,6 +23,7 @@ This note maps the current `clinical-recruitment-env` repository to Theme #2 sty
 | Recovery from mistakes | `recontact`, `recovery` phase, constraint handling, plan refresh logic | Recovery-oriented actions are part of the interface; this does not imply broad robustness to all failure modes |
 | Durable representations | Indexed-memory actions plus repo baselines such as `MemexRL` | The repo exposes memory-oriented state and action surfaces, not a validated durable-memory solution |
 | Multi-scale temporal reasoning | `KLong` baseline and milestone/frontier features | Present in repo baselines and numeric features, not claimed as solved or statistically dominant |
+| Lightweight world-state modeling | `world_type`, `hypothesis_accuracy`, `uncertainty_components`, `counterfactual_rollout` | The core path exposes structured world-state signals and what-if summaries, but not a full scientific workflow loop or general-purpose world model |
 | Business workflow structure | Screening, conversion, allocation, retention, and recovery phases | The benchmark is workflow-shaped and operational, but still a bounded simulation with `3` tasks |
 | Token-aware efficiency | `token_budget_remaining`, `token_usage_so_far`, `token_efficiency_score` | Internal accounting exists, but it is not provider-grounded external billing |
 
@@ -80,4 +81,4 @@ Important interpretation:
 
 ## Bottom line
 
-Theme #2 is the best fit for the current repository because the benchmark is long-horizon, typed, and workflow-shaped, with explicit planning, memory, delayed-effects, and recovery-oriented surfaces. The strongest repo-truth is about benchmark structure and reproducible evaluation surfaces, not complete Theme #2 coverage or leaderboard dominance.
+Theme #2 is the best fit for the current repository because the benchmark is long-horizon, typed, workflow-shaped, and centered on strategic resource allocation, with explicit planning, memory, delayed-effects, recovery-oriented surfaces, and lightweight world-state signals. The strongest repo-truth is about benchmark structure, a live evaluation surface, and reproducible reports, not complete Theme #2 coverage or leaderboard dominance.

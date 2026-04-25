@@ -20,6 +20,9 @@ This file replaces the older aspirational roadmap-complete narrative. It is the 
 | `37`-dimensional feature vector | present in repo baseline stack | `training/neural_policy.py` |
 | Four repo baselines | present in repo | `research/methods/*_agent.py` |
 | Fresh sweep and stats tooling | present, with current generated outputs | `experiments/full_sweep.py`, `experiments/reproducibility.py`, `data/sweep_results/benchmark_report.json` |
+| Live HF Space URL | present in submission path | `README.md`, `server/app.py` |
+| Committed pilot LLM training artifact | present, but limited | `data/training_outputs/sft_grpo_results.json` |
+| Offline progressive training artifacts | present for lightweight baselines | `data/training/training_history.csv`, `data/training/training_eval.csv` |
 | Benchmark diagrams | generated artifacts present | `scripts/generate_docs_diagrams.py`, `docs/images/` |
 | Local validation suites | test files present in repo | `test_env.py`, `test_agents.py`, `test_research_modules.py`, `test_local_serving.py` |
 | Anonymous paper source and PDF | present in repo | `paper/main.tex`, `paper/main.pdf` |
@@ -61,6 +64,18 @@ It is safe to claim that the repo currently provides:
 - `scripts/generate_docs_diagrams.py` for the three main benchmark diagrams
 - `data/sweep_results/benchmark_report.{md,json}` as the current benchmark summary
 - Four main local test suites in the repo
+
+### Training evidence
+
+It is safe to claim that the repo currently provides:
+
+- a live judge-facing environment URL at `https://pratimassaravanan-clinical-recruitment.hf.space`
+- a committed pilot LLM training artifact in `data/training_outputs/sft_grpo_results.json`
+- measurable pilot SFT improvement in that artifact: loss `0.858 -> 0.745` and action diversity `1 -> 5`
+- explicit documentation that the pilot GRPO phase failed because the older reward path did not receive the required `environments` context
+- separate progressive offline-policy training CSVs in `data/training/`
+
+It is **not** safe to collapse those into one generic "training success" claim. The pilot artifact is early evidence, and the offline-policy CSVs are not LLM fine-tuning evidence.
 
 ## Fresh Generated Evidence
 
@@ -110,6 +125,7 @@ Do **not** claim any of the following in outward-facing docs:
 - Provider-grounded token accounting or external billing integration
 - Notebook, TRL, or Colab workflows as validated evidence for the benchmark results
 - The paper PDF as independent evidence beyond what the code and generated benchmark artifacts support
+- The current post-fix `5k`-trace T4/Colab rerun as complete unless new outputs are checked in
 
 ## Practical File Map
 
@@ -119,6 +135,8 @@ Do **not** claim any of the following in outward-facing docs:
 - `research/methods/`: repo baselines and helper modules
 - `experiments/full_sweep.py`: current multi-seed report generator
 - `data/sweep_results/`: current report, raw outputs, and charts
+- `data/training_outputs/sft_grpo_results.json`: committed pilot LLM training artifact
+- `data/training/`: lightweight progressive offline-policy training outputs
 - `docs/images/`: regenerated diagrams and refreshed sweep charts
 - `paper/main.tex`: current anonymous paper source
 - `notebooks/training_grpo_openenv.ipynb`: hackathon bootstrap notebook only, not benchmark evidence

@@ -1,8 +1,8 @@
-# Adaptive Clinical Recruitment: What the Repo Actually Implements Today
+# Adaptive Clinical Recruitment: A Workflow-Shaped OpenEnv Benchmark With Honest Training Evidence
 
-**Adaptive Clinical Recruitment** is a long-horizon benchmark for sequential trial-planning decisions. It models the patient funnel over `180` simulated steps, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure.
+**Adaptive Clinical Recruitment** is a long-horizon OpenEnv benchmark for data-driven trial-planning decisions. It models the patient funnel over `180` simulated steps, exposes typed observations and actions, and lets agents balance screening, follow-up, site allocation, planning, memory use, and budget pressure from a live environment URL.
 
-This writeup stays on Theme #2 only: what the repo currently supports as a benchmark package, without claiming a broader product, clinical, or leaderboard story.
+This writeup stays on Theme #2 only: what the repo currently supports as a benchmark package, what training evidence is committed today, and what is still missing from the strongest possible submission story.
 
 This post is intentionally conservative. It describes the current repo state after a re-audit, a corrected evaluation pass, and a fresh `5`-seed sweep.
 
@@ -11,8 +11,21 @@ This post is intentionally conservative. It describes the current repo state aft
 - The benchmark has `3` public tasks and `8` implemented action types.
 - The trainable baselines use a `37`-dimensional numeric feature vector.
 - The repo includes four baseline agents: `HCAPO`, `MiRA`, `KLong`, and `MemexRL`.
+- The live environment is already hosted at `https://pratimassaravanan-clinical-recruitment.hf.space`.
+- The repo contains a committed pilot T4 training artifact showing measurable SFT improvement, but not end-to-end task success yet.
 - After rerunning the corrected sweep, `HCAPO` has the highest mean score at `0.2215`.
 - No pairwise comparison reaches `p < 0.05`, so the current results do **not** support a strong winner narrative.
+
+## Why this is an interesting training target
+
+Clinical recruitment is not a one-step prediction problem. It is a workflow-shaped resource-allocation loop:
+
+- which patients to screen first
+- when to spend effort on recontact
+- which sites deserve scarce capacity
+- when to change strategy under budget and dropout pressure
+
+Those decisions play out over weeks or months of simulated time, with delayed effects, constraint pressure, and recovery actions. That makes the environment a better fit for Theme #2 than a short-horizon reward toy.
 
 ## What the benchmark exposes
 
@@ -72,16 +85,39 @@ That means the honest headline is not "hierarchical planning wins." The honest h
 
 > The repo exposes a real benchmark surface, but the current baseline suite remains too tightly clustered to support a winner claim.
 
+## Current training evidence
+
+The repository also contains committed training artifacts, but they need to be described carefully.
+
+- `data/training_outputs/sft_grpo_results.json` captures an earlier small-scale Tesla T4 `SFT -> GRPO` pilot.
+- Safe conclusions from that file:
+  - SFT loss fell from `0.858` to `0.745` (`13.2%`)
+  - the model expanded from `1` repeated action to `5` action types
+  - the GRPO phase ran without usable reward because the old TRL/OpenEnv path did not pass the required `environments` context
+  - enrollment after training remained `0`, so this is evidence of format learning and action diversification, not full task mastery
+- `data/training/training_history.csv` and `data/training/training_eval.csv` provide separate progressive-horizon offline-policy training diagnostics.
+
+So the current repo does satisfy the hackathon's "show the training" spirit in a limited way: there is real, committed training evidence on disk. But the most valuable missing artifact is still a post-fix `5k`-trace T4/Colab rerun aligned with the current `train.py` and Kaggle notebook.
+
+## Why the live URL matters
+
+The environment is already served at:
+
+- `https://pratimassaravanan-clinical-recruitment.hf.space`
+
+That matters because the benchmark is not only a local code artifact. The repo exposes a judge-facing URL, local FastAPI/OpenEnv serving, and a separate `tool_env.py` training wrapper for TRL/OpenEnv-style experiments.
+
 ## What that means
 
-This repo currently reads best as a benchmark package, not as a settled leaderboard.
+This repo currently reads best as a benchmark package with early training evidence, not as a settled leaderboard.
 
 - The environment interface is typed and deterministic.
 - The action construction path now matches the observation schema.
 - The main diagrams and sweep charts are regenerated from code.
 - The integration checks pass `30/30` across `easy_bench`, `medium_bench`, and `hard_bench`.
+- A pilot LLM training artifact is committed, but the strongest corrected large-trace rerun is still pending.
 
-For Theme #2, that is the relevant result. The environment is usable for evaluation work, but the present numbers do not justify a stronger performance claim.
+For Theme #2, that is the relevant result. The environment is usable for evaluation work and early training experiments, but the present numbers do not justify a stronger performance claim than that.
 
 ## Trying the benchmark
 
@@ -125,6 +161,7 @@ python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-epis
 - It does not claim externally validated reproductions or benchmark-leading status for external named methods.
 - It does not claim a statistically significant `HCAPO` win.
 - It does not use notebook or TRL claims as evidence for the benchmark results.
+- It does not claim that the current post-fix `5k`-trace T4 rerun has already been completed.
 
 ## Key files
 
@@ -132,9 +169,11 @@ python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-epis
 - `docs/theme2_alignment.md`: conservative Theme #2 mapping
 - `docs/theme2_completion_checklist.md`: reality-based status file
 - `data/sweep_results/benchmark_report.md`: fresh benchmark summary
+- `data/training_outputs/sft_grpo_results.json`: committed pilot LLM training artifact
 - `paper/main.pdf`: current anonymous paper build
 
 ## Links
 
 - GitHub repository: `https://github.com/pratimassaravanan/clinical-recruitment`
 - Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment`
+- Live environment URL: `https://pratimassaravanan-clinical-recruitment.hf.space`

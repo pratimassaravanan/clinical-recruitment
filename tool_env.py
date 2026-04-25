@@ -64,7 +64,7 @@ class ClinicalRecruitmentToolEnv:
         self.hypothesis_history = []
 
         obs = self.last_observation
-        self.initial_budget = obs.get("budget_remaining", 0.0)
+        self.initial_budget = obs.get("initial_budget", obs.get("budget_remaining", 0.0))
         self.enrollment_history.append(obs.get("enrolled_so_far", 0))
         self.budget_history.append(obs.get("budget_remaining", 0.0))
 

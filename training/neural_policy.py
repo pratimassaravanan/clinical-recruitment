@@ -330,10 +330,22 @@ class ActorCritic:
 
 def extract_state_features(obs: Dict[str, Any]) -> np.ndarray:
     """Extract numerical feature vector from observation dict."""
+    max_steps = float(
+        obs.get(
+            "max_steps",
+            max(1.0, float(obs.get("timestamp", 0) or 0) + float(obs.get("time_to_deadline_days", 180) or 0)),
+        )
+        or 1.0
+    )
+    initial_budget = max(1.0, float(obs.get("initial_budget", 150000.0) or 150000.0))
+    time_to_deadline_days = float(
+        obs.get("time_to_deadline_days", max(0.0, max_steps - float(obs.get("timestamp", 0) or 0)))
+        or 0.0
+    )
     features = [
-        obs.get("timestamp", 0) / 180.0,
-        obs.get("budget_remaining", 0) / 150000.0,
-        obs.get("time_to_deadline_days", 180) / 180.0,
+        float(obs.get("timestamp", 0) or 0) / max_steps,
+        float(obs.get("budget_remaining", 0) or 0) / initial_budget,
+        time_to_deadline_days / max_steps,
         obs.get("enrolled_so_far", 0) / 150.0,
         obs.get("target_enrollment", 100) / 150.0,
         obs.get("uncertainty_level", 0.0),

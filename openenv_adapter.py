@@ -76,9 +76,9 @@ class ClinicalRecruitmentOpenEnv(Environment):
         task_id: Optional[str] = None,
         **kwargs: Any,
     ) -> ClinicalRecruitmentObservation:
-        del seed, kwargs
+        del kwargs
         selected_task = task or task_id or "easy_bench"
-        result = self._env.reset(task=selected_task)
+        result = self._env.reset(task=selected_task, seed=seed)
         self._episode_id = episode_id or str(uuid4())
 
         # Reset anti-reward-hacking state on new episode

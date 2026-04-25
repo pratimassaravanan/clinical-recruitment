@@ -16,6 +16,24 @@ _STAGE_TASK_PATTERN = re.compile(
     r"^(easy_bench|medium_bench|hard_bench)_stage_(30|90|180)$"
 )
 
+PUBLIC_TASK_INFO = {
+    "easy_bench": {
+        "name": "Basic Eligibility Screening",
+        "description": "Stable patient pool, low dropout, generous budget/time. Goal: reach 80% enrollment with high screening accuracy.",
+        "difficulty": "easy",
+    },
+    "medium_bench": {
+        "name": "Full Funnel with Site Allocation",
+        "description": "Moderate uncertainty, 3 sites with different performance, some dropout risk. Optimize across sites.",
+        "difficulty": "medium",
+    },
+    "hard_bench": {
+        "name": "Multi-Objective Pipeline Under Pressure",
+        "description": "Tight budget/time, high dropout, non-stationary patient quality, curriculum injections. Multi-objective optimization.",
+        "difficulty": "hard",
+    },
+}
+
 
 def _generate_patient_pool(
     rng: random.Random, count: int, noise: float
@@ -235,6 +253,19 @@ def list_progressive_stage_tasks(base_task_id: Optional[str] = None) -> List[str
         for horizon_days in PROGRESSIVE_HORIZONS:
             task_ids.append(make_stage_task_id(base_id, horizon_days))
     return task_ids
+
+
+def get_public_task_metadata() -> Dict[str, Dict[str, Any]]:
+    metadata: Dict[str, Dict[str, Any]] = {}
+    for task_id in PUBLIC_TASKS:
+        trace = get_task_trace(task_id)
+        metadata[task_id] = {
+            **PUBLIC_TASK_INFO[task_id],
+            "max_steps": int(trace.get("max_steps", trace.get("deadline_days", 180))),
+            "initial_budget": round(float(trace.get("budget", 0.0)), 2),
+            "target_enrollment": int(trace.get("target_enrollment", 0)),
+        }
+    return metadata
 
 
 def _clip_curriculum(curriculum: List[Dict[str, Any]], horizon_days: int) -> List[Dict[str, Any]]:

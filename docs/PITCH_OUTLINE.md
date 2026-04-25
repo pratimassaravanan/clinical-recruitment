@@ -1,26 +1,26 @@
 # 3-Minute Pitch: Adaptive Clinical Recruitment
 
-This pitch outline is written to match the current repo truth. It should be judged as a conservative Theme #2 pitch: strong on long-horizon benchmark structure and reproducibility, weak on any claim of decisive baseline wins, complete coverage, or deployment validation.
+This pitch outline is written to match the current repo truth. It should be judged as a conservative Theme #2 pitch: strong on long-horizon workflow structure, live environment availability, and honest training evidence; weak on any claim of decisive baseline wins, complete coverage, or deployment validation.
 
 ## Timing Guide
 
-- `0:00-0:30` Hook and problem
-- `0:30-1:15` What the benchmark exposes
-- `1:15-2:00` Why the artifact is trustworthy
-- `2:00-2:45` Current results
-- `2:45-3:00` Close
+- `0:00-0:25` Hook and problem
+- `0:25-0:55` What the benchmark exposes
+- `0:55-1:40` Why it is trainable and judge-ready
+- `1:40-2:25` Current evidence
+- `2:25-3:00` Close
 
 ## Script Outline
 
-### `0:00-0:30` Hook
+### `0:00-0:25` Hook
 
-> "If you are judging Theme #2, this repo fits because it turns clinical recruitment into a long-horizon planning benchmark. Screening, follow-up, site allocation, and retention decisions play out over months, not seconds, so we modeled them as a sequential workflow instead of a short-horizon toy task."
+> "Clinical recruitment is a resource-allocation workflow: which patients do we screen, which sites get scarce capacity, when do we recontact, and when do we change strategy under budget pressure? Those decisions unfold over months, so we modeled them as a long-horizon environment instead of a short-horizon toy task."
 
-Key point: frame the problem as workflow planning under delayed effects.
+Key point: frame the problem as data-driven operational decision making under delayed effects.
 
-### `0:30-1:15` What the benchmark exposes
+### `0:25-0:55` What the benchmark exposes
 
-> "Adaptive Clinical Recruitment is a deterministic `180`-step environment with `3` public tasks, typed observations, and `8` implemented action types. Agents manage screening, recontact, site allocation, strategy changes, planning, and indexed memory while handling delayed consequences, site pressure, and budget constraints. It is a bounded simulation, not a deployed clinical operations system."
+> "Adaptive Clinical Recruitment is a deterministic `180`-step environment with `3` public tasks, typed observations, and `8` implemented action types. Agents manage screening, recontact, site allocation, strategy changes, planning, and indexed memory while handling delayed consequences, site pressure, and budget constraints. It is a bounded workflow simulation, not a deployed clinical operations system."
 
 Points to hit:
 
@@ -28,6 +28,7 @@ Points to hit:
 2. Action-specific candidate pools for screening, recontact, and allocation
 3. Explicit plan state, indexed memory state, and token-efficiency signals
 4. A `37`-dimensional feature vector for the trainable baselines
+5. A live HF Space URL that judges can actually pull
 
 Judge-friendly line:
 
@@ -35,19 +36,22 @@ Judge-friendly line:
 
 Suggested visual: `docs/images/environment_architecture.png`
 
-### `1:15-2:00` Why the artifact is trustworthy
+### `0:55-1:40` Why it is trainable and judge-ready
 
-> "We re-audited the benchmark before reporting results. We fixed the evaluation path so recontact and allocation use the correct candidate pools, regenerated the charts, and aligned the docs to the actual `8`-action interface. The trust claim here is about the benchmark artifact and reporting path, not about deployment validation."
+> "Judges can pull the live environment from our HF Space URL, and the same repo also exposes a local training wrapper for OpenEnv-style experiments. So this is not just a static simulator. It is a served benchmark with a real training path."
 
 Evidence to mention:
 
+- Live URL: `https://pratimassaravanan-clinical-recruitment.hf.space`
+- `tool_env.py` provides the public tool-method wrapper for TRL/OpenEnv-style training
 - `30/30` integration checks pass across the three tasks
-- Main diagrams are regenerated from code via `scripts/generate_docs_diagrams.py`
-- The anonymous paper build in `paper/main.pdf` compiles with the official anonymous paper style
+- We corrected candidate routing, refreshed charts, and aligned the docs to the current `8`-action interface
 
-### `2:00-2:45` Current results
+Suggested visual: `docs/images/training_pipeline.png`
 
-> "We ran a fresh `5`-seed sweep with seeds `1`, `7`, `21`, `42`, and `123` over four repo baselines: HCAPO, MiRA, KLong, and MemexRL. HCAPO has the highest mean score at `0.2215`, but no pairwise comparison reaches `p < 0.05`."
+### `1:40-2:25` Current evidence
+
+> "We have two kinds of evidence. First, a fresh `5`-seed sweep shows the environment is non-trivial and not saturated. Second, committed training artifacts show that the training path is real, but still early."
 
 Numbers to use:
 
@@ -55,20 +59,23 @@ Numbers to use:
 - `KLong`: `0.2152 +- 0.0222`
 - `MemexRL`: `0.2148 +- 0.0270`
 - `MiRA`: `0.2094 +- 0.0095`
+- Pilot T4 SFT run: loss `0.858 -> 0.745` (`13.2%`)
+- Pilot T4 behavior change: `1 -> 5` action types after SFT
+- Progressive offline training artifacts: medium stages score `0.4242`, `0.4018`, `0.4004`
 
 Key line:
 
-> "The honest takeaway is not that one method wins. The honest takeaway is that the benchmark is reproducible, non-trivial, and not yet saturated by the current baseline suite."
+> "The honest takeaway is that the environment is real, the training loop is real, and the strongest missing artifact is a larger post-fix LLM rerun."
 
 Judge-friendly line:
 
-> "So the evidence supports a benchmark-quality claim for Theme #2, not a leaderboard-quality claim that one baseline decisively beats the others."
+> "So the evidence supports a benchmark-quality Theme #2 claim with early training evidence, not a leaderboard-quality claim that one baseline decisively beats the others."
 
 Suggested visual: `docs/images/agent_comparison.png`
 
-### `2:45-3:00` Close
+### `2:25-3:00` Close
 
-> "The fair way to judge this repo is as a Theme #2 benchmark package: typed interfaces, delayed effects, explicit planning surfaces, and reproducible reports. The next step is not louder claims. The next step is stronger agents, sharper ablations, and more evidence on top of a benchmark path that is now internally consistent."
+> "The fair way to judge this repo is as a Theme #2 benchmark package with a live URL, typed interfaces, real training hooks, and early training evidence. The next step is not a different story. The next step is a larger post-fix run on top of the same environment."
 
 ## Backup Q&A
 
@@ -82,7 +89,13 @@ Answer:
 
 Answer:
 
-> "Because the repo's strongest evidence is about long-horizon planning structure: `180`-step episodes, delayed effects, explicit planning and memory surfaces, and workflow-style decision making. The repo does not support a stronger Wild Card story than that."
+> "Because the repo's strongest evidence is about long-horizon workflow structure: `180`-step episodes, delayed effects, explicit planning and memory surfaces, and resource-allocation decisions under pressure. The repo has some world-state scaffolding, but not a stronger full scientific-workflow-loop story than the Theme #2 benchmark story."
+
+### "What is the training evidence today?"
+
+Answer:
+
+> "There is a committed pilot T4 artifact in `data/training_outputs/sft_grpo_results.json` showing `13.2%` SFT loss reduction and more diverse action output, plus separate offline training CSVs under `data/training/`. The honest limit is that the post-fix `5k`-trace LLM rerun is still pending."
 
 ### "What changed from earlier drafts?"
 
@@ -94,7 +107,7 @@ Answer:
 
 Answer:
 
-> "Because a benchmark can be valuable before it produces a decisive leaderboard. Here the value is a clean long-horizon task interface, reproducible reporting, and room for stronger methods to separate later."
+> "Because the hackathon is about building an environment worth training on, not only about having a final leaderboard winner. Here the value is a workflow-shaped task, a live URL, a working training path, and clear room for stronger methods to separate later."
 
 ### "Is this ready for real clinical deployment?"
 
@@ -113,6 +126,6 @@ Answer:
 - Slide 1: benchmark framing and why long-horizon workflow tasks matter
 - Slide 1 note: label this as Theme #2 alignment, not Wild Card
 - Slide 2: environment diagram
-- Slide 3: current 5-seed results with seeds `1, 7, 21, 42, 123` and the no-significance note
-- Slide 4: verification and reproducibility points
-- Slide 5: limitations and next work, including no deployment claim and no decisive winner claim
+- Slide 3: current evidence with pilot training callout plus the no-significance sweep note
+- Slide 4: live URL, verification, and reproducibility points
+- Slide 5: limitations and next work, including no deployment claim and the pending post-fix `5k`-trace rerun

@@ -12,7 +12,7 @@ license: mit
 
 # Adaptive Clinical Trial Recruitment Environment
 
-> A long-horizon benchmark for sequential trial-planning decisions across screening, recontact, site allocation, planning, and memory use.
+> A long-horizon benchmark for data-driven trial-planning decisions across screening, recontact, site allocation, planning, and memory use.
 
 **Hackathon positioning: Theme #2. Not a Wild Card entry.**
 
@@ -34,11 +34,11 @@ The repo also contains auxiliary research helpers and reporting scripts. The cla
 ## Submission Links
 
 - Hugging Face Space: `https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment`
-- Live environment URL: `https://pratimassaravanan-clinical-recruitment.hf.space`
+- Live environment URL (judge-facing): `https://pratimassaravanan-clinical-recruitment.hf.space`
 - Mini-blog draft for Hugging Face Article: `HUGGINGFACE_BLOG.md`
 - Communication deck: `docs/communication/adaptive_clinical_recruitment_presentation.html`
 - Poster pack: `docs/communication/adaptive_clinical_recruitment_posters.pdf`
-- OpenEnv + TRL starter notebook: `notebooks/training_grpo_openenv.ipynb`
+- Synced Kaggle training notebook: `kaggle_kernel/sft_then_grpo.ipynb`
 
 The repo keeps a draft copy of the mini-blog in `HUGGINGFACE_BLOG.md` so the same content can be mirrored to a Hugging Face article later if needed.
 
@@ -135,11 +135,13 @@ pip install -r requirements.txt
 
 ### Training and reporting extras
 
+Training scripts assume a CUDA-enabled `torch` build is already installed for your machine.
+
 ```bash
-pip install -r requirements-research.txt numpy
+pip install -r requirements.txt -r requirements-research.txt numpy unsloth "trl>=0.19.0" "transformers>=5.2.0,<=5.5.0" "datasets>=2.21.0" "accelerate>=0.34.0"
 ```
 
-`requirements.txt` covers the API and OpenEnv serving path. The training and sweep scripts also import `numpy`, and the reporting scripts use `pandas` and `matplotlib`.
+`requirements.txt` covers the API and OpenEnv serving path. The training scripts additionally require `unsloth`, `trl`, `transformers`, `datasets`, and `accelerate`. The sweep and reporting scripts also import `numpy`, `pandas`, and `matplotlib`.
 
 ## Run the API
 
@@ -215,15 +217,30 @@ python scripts/generate_charts.py
 
 `experiments/full_sweep.py` writes fresh reports to `data/sweep_results/` and refreshes the sweep charts under `docs/images/`.
 
-## OpenEnv GRPO Starter
+## Training Notebook
 
-The current starter notebook is:
+The current synced training notebook is:
 
 ```bash
-notebooks/training_grpo_openenv.ipynb
+kaggle_kernel/sft_then_grpo.ipynb
 ```
 
-It is a minimal OpenEnv + TRL GRPO bootstrap against the live Space and current `8`-action interface. It should be treated as a starting point for hackathon training runs, not as benchmark evidence by itself.
+It is the current Kaggle/T4 notebook aligned with `train.py`: 10 epochs, 10% validation split, plain-text chat messages, and JSON parse-rate evaluation. The older OpenEnv GRPO starter notebook remains in `notebooks/` as a reference, not the primary path.
+
+## Current Training Evidence
+
+The repo now contains two different kinds of training evidence, and they should be interpreted differently.
+
+- `data/training_outputs/sft_grpo_results.json` is the committed small-scale Tesla T4 pilot for the earlier `SFT -> GRPO` path.
+- Safe takeaways from that pilot:
+  - SFT loss fell from `0.858` to `0.745` (`13.2%`)
+  - output behavior expanded from `1` repeated action to `5` action types
+  - the GRPO reward path failed because the earlier TRL/OpenEnv integration did not pass the required `environments` context
+  - post-train enrollment stayed `0`, so this is format-learning evidence, not end-to-end task mastery
+- `data/training/training_history.csv` and `data/training/training_eval.csv` are separate offline-policy training artifacts for progressive medium-horizon tasks. They are useful diagnostics for lightweight baselines, not LLM fine-tuning evidence.
+- The most valuable missing artifact is still a post-fix T4/Colab rerun aligned with the current `train.py` and `kaggle_kernel/sft_then_grpo.ipynb`.
+
+This split matters for the hackathon story: the environment and training path are real, but the strongest LLM training artifact is still pending on the corrected 5k-trace setup.
 
 ## API Example
 
@@ -258,6 +275,7 @@ Additional generated artifacts:
 - `paper/main.pdf` is included in the repo.
 - `scripts/generate_docs_diagrams.py` is the source for the three main benchmark diagrams.
 - `data/sweep_results/benchmark_report.md` contains the current benchmark summary used by the docs.
+- `data/training_outputs/sft_grpo_results.json` contains the committed pilot LLM training artifact discussed above.
 
 ## Caveats
 

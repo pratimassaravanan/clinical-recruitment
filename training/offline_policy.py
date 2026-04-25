@@ -34,6 +34,11 @@ def extract_features(obs: Dict[str, Any], step_num: int) -> Dict[str, float]:
     target = max(1, int(obs.get("target_enrollment", 1) or 1))
     enrolled = int(obs.get("enrolled_so_far", 0) or 0)
     budget = float(obs.get("budget_remaining", 0.0) or 0.0)
+    initial_budget = max(1.0, float(obs.get("initial_budget", budget) or budget or 1.0))
+    max_steps = int(obs.get("max_steps", 0) or 0)
+    if max_steps <= 0:
+        max_steps = max(1, step_num + int(obs.get("time_to_deadline_days", 0) or 0))
+    time_left = int(obs.get("time_to_deadline_days", max(0, max_steps - step_num)) or 0)
     token_budget_remaining = int(obs.get("token_budget_remaining", 0) or 0)
     token_usage = int(obs.get("token_usage_so_far", 0) or 0)
     memory = obs.get("patient_memory_summary", {})
@@ -41,8 +46,8 @@ def extract_features(obs: Dict[str, Any], step_num: int) -> Dict[str, float]:
     return {
         "bias": 1.0,
         "progress": enrolled / target,
-        "budget_scaled": min(1.0, budget / 150000.0),
-        "time_scaled": min(1.0, int(obs.get("time_to_deadline_days", 0) or 0) / 180.0),
+        "budget_scaled": min(1.0, budget / initial_budget),
+        "time_scaled": min(1.0, time_left / max_steps),
         "uncertainty": float(obs.get("uncertainty_level", 0.0) or 0.0),
         "dropout": float(obs.get("dropout_rate_7d", 0.0) or 0.0),
         "milestone_potential": float(obs.get("milestone_potential", 0.0) or 0.0),
@@ -54,7 +59,7 @@ def extract_features(obs: Dict[str, Any], step_num: int) -> Dict[str, float]:
         "eligible_pending": min(1.0, int(memory.get("eligible_pending_consent", 0)) / 5.0),
         "reg_hold": min(1.0, int(constraints.get("regulatory_hold_days", 0)) / 5.0),
         "site_bottleneck": 1.0 if constraints.get("site_bottleneck", False) else 0.0,
-        "step_scaled": min(1.0, step_num / 180.0),
+        "step_scaled": min(1.0, step_num / max_steps),
     }
 
 

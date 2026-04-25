@@ -1,5 +1,7 @@
 # Training Learnings & Findings
 
+This file is a historical engineering log. Use `README.md` for the current public claim set and current benchmark truth.
+
 ## What We Tried
 
 ### 1. GRPO with TRL `environment_factory` (FAILED — ROOT CAUSE IDENTIFIED)
@@ -126,7 +128,8 @@ Helion is a **GPU kernel DSL** — it compiles Python to Triton kernels for oper
 | Heuristic vs random improvement | +23.9% average across 3 tasks |
 | Action types after SFT (Qwen3-4B) | 5 types (was 1 before SFT) |
 | GRPO reward signal | 0.0 across all models and all steps |
-| Unit tests | 22/22 passing |
+| `tests/test_env.py` | 25/25 passing |
+| `test_env.py` | 76/76 passing |
 
 ## What Would Actually Work (Given More Time)
 
@@ -141,17 +144,17 @@ Helion is a **GPU kernel DSL** — it compiles Python to Triton kernels for oper
 
 | File | Purpose | Status |
 |------|---------|--------|
-| `train.py` | SFT with val split + in-process eval | Updated: uses tool_env, no raw HTTP |
-| `tool_env.py` | TRL-compatible env with tool methods + reward functions | NEW: proper OpenEnv integration |
+| `train.py` | SFT with val split + in-process eval | Updated: 5k traces by default, no raw HTTP, reports `json_parse_rate` |
+| `tool_env.py` | TRL-compatible env with tool methods + reward functions | NEW: proper tool-method wrapper for OpenEnv/TRL experiments |
 | `openenv_adapter.py` | Anti-reward-hacking wrapper (rate-limit, replay, cap, timeout) | Fixed: thread leak, concurrency |
 | `app.py` | FastAPI server | Fixed: routes through adapter, session TTL |
 | `server/app.py` | FastAPI server (HF Space copy) | Fixed: mirrors app.py |
 | `env.py` | Core environment | Fixed: 5 bugs (reward, penalty, leak, docstring) |
 | `scripts/generate_traces.py` | Parallel trace generator | Fixed: system prompt role |
-| `tests/test_env.py` | 22 unit tests | NEW: covers env, adapter, tool_env, reward design |
+| `tests/test_env.py` | 25 unit tests | Updated: covers env, adapter, tool_env, seed forwarding, reward design |
 | `train_h200.py` | H200 optimized Qwen3-32B | Crashed on dynamo shape mismatch |
 | `train_final.py` | Single-GPU SFT + manual REINFORCE | Correct approach |
 | `train_dual_gpu.py` | Dual-GPU teacher-student | Correct approach |
-| `kaggle_kernel/sft_then_grpo.ipynb` | Kaggle notebook | Latest: 5K traces SFT |
+| `kaggle_kernel/sft_then_grpo.ipynb` | Kaggle notebook | Latest: synced with current `train.py` and 5K trace path |
 | `scripts/before_after_demo.py` | Heuristic vs random comparison | Works: +23.9% improvement |
 | `data/training_outputs/sft_grpo_results.json` | Training evidence | Committed |

@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-qwen3-5k-sft-20260425-1000",
-  "title": "Clinical Qwen3 5K SFT 20260425-1000",
+  "id": "kaushiksarav/clinical-gemma4e4b-5k-sft-20260425-1338",
+  "title": "Clinical Gemma4E4B 5K SFT 20260425-1338",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",

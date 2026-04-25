@@ -31,9 +31,17 @@ class TestEnvBasics:
             result = env.reset(task=task)
             assert not result.done
             obs = result.observation
+            assert obs.task_id == task
             assert obs.target_enrollment > 0
+            assert obs.max_steps > 0
+            assert obs.initial_budget >= obs.budget_remaining
             assert obs.budget_remaining > 0
             assert obs.time_to_deadline_days > 0
+
+    def test_reset_accepts_optional_seed(self):
+        env = ClinicalRecruitmentEnv()
+        result = env.reset(task="easy_bench", seed=123)
+        assert result.observation.task_id == "easy_bench"
 
     def test_invalid_task_raises(self):
         env = ClinicalRecruitmentEnv()

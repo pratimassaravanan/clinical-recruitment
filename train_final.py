@@ -1,29 +1,35 @@
 #!/usr/bin/env python3
-"""Clinical Recruitment Training — FINAL VERSION
-Fixes all known issues:
-- 50+ diverse SFT traces (not 18 identical)
-- 30+ SFT epochs (not 3)
-- Observation includes patient IDs so model learns to use real ones
-- Manual GRPO loop that actually computes rewards (bypasses broken environment_factory)
-- Strict JSON-only output format
+"""Clinical Recruitment training fallback with manual on-policy updates.
+
+This path keeps a manual RL loop for cases where TRL/OpenEnv integration is unreliable.
 
 Run: python train_final.py
 """
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-import subprocess, sys
-def pip(*a): subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", *a])
-pip("--upgrade", "pip")
-pip("unsloth")
-pip("--no-deps", "trl>=0.19.0")
-pip("transformers>=5.2.0,<=5.5.0")
-pip("datasets>=2.21.0", "accelerate>=0.34.0", "openenv-core[core]>=0.2.1", "httpx")
+import json, pathlib, warnings, random, re
 
-import json, pathlib, torch, warnings, random, re, httpx
-from unsloth import FastLanguageModel
-from trl import SFTConfig, SFTTrainer
-from datasets import Dataset
+from load_traces import PUBLIC_TASKS
+
+_TRAINING_INSTALL_CMD = (
+    'pip install -r requirements.txt -r requirements-research.txt numpy '
+    'unsloth "trl>=0.19.0" "transformers>=5.2.0,<=5.5.0" '
+    '"datasets>=2.21.0" "accelerate>=0.34.0"'
+)
+
+try:
+    import httpx
+    import torch
+    from datasets import Dataset
+    from trl import SFTConfig, SFTTrainer
+    from unsloth import FastLanguageModel
+except ImportError as exc:
+    missing = getattr(exc, "name", None) or str(exc)
+    raise SystemExit(
+        "train_final.py requires a CUDA-enabled PyTorch environment and the training extras. "
+        f"Missing import: {missing}. Install them first with: {_TRAINING_INSTALL_CMD}"
+    ) from exc
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", message=".*max_new_tokens.*")
@@ -36,7 +42,7 @@ print(f"GPU: {gpu} | CUDA: {torch.version.cuda} | PyTorch: {torch.__version__}")
 # ── Config ────────────────────────────────────────────────────────────
 ENV_URL     = os.getenv("ENV_URL", "https://pratimassaravanan-clinical-recruitment.hf.space")
 MODEL_NAME  = os.getenv("MODEL_NAME", "unsloth/Qwen3-4B-unsloth-bnb-4bit")
-TASKS       = ["easy_bench", "medium_bench", "hard_bench"]
+TASKS       = list(PUBLIC_TASKS)
 MAX_SEQ     = 2048
 LORA_R      = 16
 LORA_ALPHA  = 16

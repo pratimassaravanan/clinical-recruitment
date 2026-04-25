@@ -5,19 +5,28 @@ Run: python train_h200.py
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-import subprocess, sys
-def pip(*a): subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", *a])
-pip("--upgrade", "pip")
-pip("unsloth")
-pip("--no-deps", "trl>=0.19.0")
-pip("transformers>=5.2.0,<=5.5.0")
-pip("datasets>=2.21.0", "accelerate>=0.34.0", "openenv-core[core]>=0.2.1")
+import json, pathlib, warnings
 
-import json, pathlib, torch, warnings
-from unsloth import FastLanguageModel
-from trl import GRPOConfig, GRPOTrainer
-from datasets import Dataset
-from openenv.core import GenericEnvClient
+from load_traces import PUBLIC_TASKS
+
+_TRAINING_INSTALL_CMD = (
+    'pip install -r requirements.txt -r requirements-research.txt numpy '
+    'unsloth "trl>=0.19.0" "transformers>=5.2.0,<=5.5.0" '
+    '"datasets>=2.21.0" "accelerate>=0.34.0"'
+)
+
+try:
+    import torch
+    from datasets import Dataset
+    from openenv.core import GenericEnvClient
+    from trl import GRPOConfig, GRPOTrainer
+    from unsloth import FastLanguageModel
+except ImportError as exc:
+    missing = getattr(exc, "name", None) or str(exc)
+    raise SystemExit(
+        "train_h200.py requires a CUDA-enabled PyTorch environment and the training extras. "
+        f"Missing import: {missing}. Install them first with: {_TRAINING_INSTALL_CMD}"
+    ) from exc
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", message="Both `max_new_tokens`")
@@ -31,7 +40,7 @@ print(f"GPU: {gpu} | VRAM: {vram:.1f}GB | CUDA: {torch.version.cuda} | PyTorch: 
 # ── Config ────────────────────────────────────────────────────────────
 ENV_URL     = "https://pratimassaravanan-clinical-recruitment.hf.space"
 MODEL_NAME  = "unsloth/Qwen3-32B-unsloth-bnb-4bit"
-TASKS       = ["easy_bench", "medium_bench", "hard_bench"]
+TASKS       = list(PUBLIC_TASKS)
 MAX_SEQ     = 2048
 LORA_R      = 32       # bigger LoRA for 32B model
 LORA_ALPHA  = 32

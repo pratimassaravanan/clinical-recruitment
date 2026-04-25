@@ -5,8 +5,8 @@ FIX #3:  /reset and /step now route through ClinicalRecruitmentOpenEnv (the adap
          timeout enforcement) apply to HTTP clients too — not just the web UI.
 FIX #7:  Sessions have a 30-minute TTL and a max of 100 concurrent sessions.
          A background task reaps expired sessions every 60 seconds.
-FIX #8:  SUPPORTS_CONCURRENT_SESSIONS is true at the app level because we create
-         one adapter instance per session (not a single shared instance).
+FIX #8:  Concurrency is achieved at the app level by creating one adapter
+         instance per session (the adapter class itself is single-session).
 """
 
 import os
@@ -18,12 +18,27 @@ from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from load_traces import PUBLIC_TASKS, get_public_task_metadata
 from models import Action
 from openenv_adapter import (
     ClinicalRecruitmentAction,
     ClinicalRecruitmentObservation,
     ClinicalRecruitmentOpenEnv,
 )
+
+
+def _cors_settings() -> tuple[list[str], bool]:
+    origins = [
+        origin.strip()
+        for origin in os.environ.get("ALLOW_ORIGINS", "*").split(",")
+        if origin.strip()
+    ]
+    if not origins:
+        origins = ["*"]
+    return origins, "*" not in origins
+
+
+_ALLOW_ORIGINS, _ALLOW_CREDENTIALS = _cors_settings()
 
 app = FastAPI(
     title="Adaptive Clinical Trial Recruitment Environment",
@@ -33,13 +48,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("ALLOW_ORIGINS", "*").split(","),
-    allow_credentials=True,
+    allow_origins=_ALLOW_ORIGINS,
+    allow_credentials=_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-TASKS = ["easy_bench", "medium_bench", "hard_bench"]
+TASKS = list(PUBLIC_TASKS)
 ENABLE_WEB_INTERFACE = os.environ.get("ENABLE_WEB_INTERFACE", "true").lower() == "true"
 web_interface_enabled = False
 web_interface_error = None
@@ -51,6 +66,9 @@ _MAX_SESSIONS = 100
 
 _sessions: dict[str, dict] = {}  # session_id -> {"env": OpenEnvAdapter, "created_at": float}
 _session_lock = Lock()
+
+
+_TASK_METADATA = get_public_task_metadata()
 
 
 def _reap_expired_sessions() -> int:
@@ -227,26 +245,7 @@ async def state(request: Request):
 
 @app.get("/tasks")
 async def list_tasks():
-    return {
-        "easy_bench": {
-            "name": "Basic Eligibility Screening",
-            "description": "Stable patient pool, low dropout, generous budget/time. Goal: reach 80% enrollment with high screening accuracy.",
-            "difficulty": "easy",
-            "max_steps": 180,
-        },
-        "medium_bench": {
-            "name": "Full Funnel with Site Allocation",
-            "description": "Moderate uncertainty, 3 sites with different performance, some dropout risk. Optimize across sites.",
-            "difficulty": "medium",
-            "max_steps": 180,
-        },
-        "hard_bench": {
-            "name": "Multi-Objective Pipeline Under Pressure",
-            "description": "Tight budget/time, high dropout, non-stationary patient quality, curriculum injections. Multi-objective optimization.",
-            "difficulty": "hard",
-            "max_steps": 180,
-        },
-    }
+    return _TASK_METADATA
 
 
 def _attach_openenv_web_routes() -> tuple:

@@ -58,8 +58,9 @@ class ClinicalRecruitmentClient:
     ) -> list[Dict[str, Any]]:
         """Run a full episode, returning the list of step results.
 
-        *policy_fn(observation) -> action_dict*; if ``None`` a trivial
-        ``screen_patient`` action is used for every step.
+        *policy_fn(observation) -> action_dict*; if ``None`` a trivial default
+        policy is used: ``screen_patient`` when candidates exist, otherwise
+        ``adjust_strategy``.
         """
         obs = self.reset(task_id)
         results: list[Dict[str, Any]] = []
