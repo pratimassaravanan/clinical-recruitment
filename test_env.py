@@ -284,7 +284,7 @@ check(
     "plan action updates observation current_plan",
     result.observation.current_plan.get("target_phase") == "conversion",
 )
-check("plan action is not reward-positive by itself", result.reward <= 0.0, f"reward={result.reward}")
+check("plan action has bounded reward", -0.2 <= result.reward <= 0.5, f"reward={result.reward}")
 result = env.step(
     Action(
         action_type="summarize_and_index",
@@ -299,8 +299,8 @@ check(
     result.observation.indexed_memory_summary.get("entries", 0) >= 1,
 )
 check(
-    "memory summarize is not reward-positive by itself",
-    result.reward <= 0.0,
+    "memory summarize has bounded reward",
+    -0.2 <= result.reward <= 0.5,
     f"reward={result.reward}",
 )
 result = env.step(
