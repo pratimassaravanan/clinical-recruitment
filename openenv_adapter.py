@@ -48,12 +48,15 @@ class ClinicalRecruitmentState(State):
 class ClinicalRecruitmentOpenEnv(Environment):
     """Wrap the benchmark env in the OpenEnv Environment interface."""
 
-    SUPPORTS_CONCURRENT_SESSIONS = True
+    # Each instance wraps a single ClinicalRecruitmentEnv.
+    # Concurrency is achieved by creating one instance per session in app.py.
+    SUPPORTS_CONCURRENT_SESSIONS = False
 
     def __init__(self):
         super().__init__()
         self._env = ClinicalRecruitmentEnv()
         self._episode_id: Optional[str] = None
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         # --- Anti-reward-hacking bookkeeping ---
         self._step_timestamps: List[float] = []
@@ -138,8 +141,7 @@ class ClinicalRecruitmentOpenEnv(Environment):
             replay_penalty = True
 
         # --- Execute inner env step with timeout enforcement ---
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = executor.submit(self._env.step, action)
+        future = self._executor.submit(self._env.step, action)
         try:
             result = future.result(timeout=effective_timeout)
         except concurrent.futures.TimeoutError:
@@ -147,8 +149,6 @@ class ClinicalRecruitmentOpenEnv(Environment):
             raise TimeoutError(
                 f"Inner env step exceeded {effective_timeout}s timeout."
             )
-        finally:
-            executor.shutdown(wait=False)
 
         # --- Build metadata with reward breakdown + optional penalty ---
         extra_meta: Dict[str, Any] = {}
@@ -191,6 +191,7 @@ class ClinicalRecruitmentOpenEnv(Environment):
         close = getattr(self._env, "close", None)
         if callable(close):
             close()
+        self._executor.shutdown(wait=False)
 
     # ------------------------------------------------------------------
     # observation helper

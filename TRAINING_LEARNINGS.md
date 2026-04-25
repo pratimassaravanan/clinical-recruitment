@@ -2,20 +2,22 @@
 
 ## What We Tried
 
-### 1. GRPO with TRL `environment_factory` (FAILED)
+### 1. GRPO with TRL `environment_factory` (FAILED — ROOT CAUSE IDENTIFIED)
 - **Models tried**: Qwen3-0.6B, Qwen3-4B, Qwen3-8B, DeepSeek-R1-8B
 - **Result**: All rewards 0.0 across 24 steps every time
-- **Root cause**: TRL calls reward functions with `(prompts=..., completions=...)` but never passes `environments` kwarg. Our reward functions need environment state to compute meaningful rewards.
-- **Conclusion**: TRL's `environment_factory` + custom `reward_funcs` path is fundamentally broken for tool-call environments where rewards depend on environment state.
+- **Root causes identified** (code review, April 25):
+  1. **Wrong env class**: We passed `ClinicalRecruitmentToolEnv` with a generic `_step()` method, but TRL expects individual tool methods (`screen_patient()`, `recontact()`, etc.) with typed `Args:` docstrings. TRL auto-discovers public methods to build tool schemas.
+  2. **Unsloth patching**: Unsloth's compiled `UnslothGRPOTrainer._calculate_rewards` may drop the `environments` kwarg that TRL passes to reward functions.
+- **Fix applied**: Created `tool_env.py` with proper TRL-compatible tool methods per the [TRL OpenEnv docs](https://huggingface.co/docs/trl/openenv).
 
 ### 2. SFT on Expert Traces (PARTIALLY WORKED)
 - **Models tried**: Qwen3-4B (loss 0.858→0.745), Qwen3-8B (loss 0.925→0.831), DeepSeek-R1-8B (loss 0.991→0.896)
 - **Result**: Loss converged in all cases, but models still output verbose reasoning instead of raw JSON actions
-- **Root cause**: 9 SFT steps (18 examples × 3 epochs) is insufficient to override strong instruct behavior. These models are trained on millions of examples to be verbose helpers — our 18 traces can't overcome that.
+- **Root cause**: 9 SFT steps (18 examples × 3 epochs) is insufficient to override strong instruct behavior
 - **What worked**: The training infrastructure is correct. Loss drops. Format is partially learned.
 
 ### 3. Strict JSON System Prompt (PARTIALLY WORKED)
-- **Result with Qwen3-4B**: Clean JSON output ({"action_type": "screen_patient", ...}) but model copies example patient_id P-1042 instead of reading observation
+- **Result with Qwen3-4B**: Clean JSON output but model copies example patient_id P-1042 instead of reading observation
 - **Result with Qwen3-8B**: Still outputs markdown/reasoning with rationale sections
 - **Result with DeepSeek-R1-8B**: Outputs `<think>` blocks before any content
 
@@ -44,6 +46,71 @@
 - **Gemma 4 E4B scores 40% on agentic coding** -- 12x better than Qwen3 for tool-calling
 - Switched to `unsloth/gemma-4-E4B-it-unsloth-bnb-4bit` for final training attempt
 
+## Critical Bugs Found & Fixed
+
+### Bug 1: Planning/Memory Reward Hard-Clamp (env.py:1632-1640)
+- **Old**: `r = min(r, -0.01)` — planning actions always got negative reward
+- **Fix**: Removed the hard clamp entirely. Planning has a -0.03 opportunity cost (from FIX 4) that can be offset by plan_bonus (+0.015)
+- **Impact**: Model could never learn "plan strategically" — it was always punished
+
+### Bug 2: Unbounded Consistency Penalty (env.py:1495-1509)
+- **Old**: `-0.10` every step after >2 hypothesis switches = -18.0 over 180 steps
+- **Fix**: `min(0.05, (switches - 2) * 0.01)` — proportional, capped
+- **Impact**: Model learned "never change hypothesis" regardless of evidence
+
+### Bug 3: Observation Future Event Leak (env.py:1732)
+- **Old**: `self._events.get(self._step, [])` — leaked current-step events
+- **Fix**: `self._events.get(max(0, self._step - 1), [])` — uses previous step
+
+### Bug 4: Double Penalty on Planning (env.py:1571-1581 + 1635-1640)
+- **Old**: FIX 4 inaction penalty (-0.06 to -0.07) + opportunity cost (-0.02) = -0.08 to -0.09
+- **Fix**: Removed duplicate opportunity cost. Reduced FIX 4 penalties to -0.03 for planning/memory
+- **Impact**: Combined penalty was so harsh that the model never used planning or memory actions
+
+### Bug 5: Thread Leak in Adapter (openenv_adapter.py)
+- **Old**: `ThreadPoolExecutor` created per step call
+- **Fix**: Moved to class-level `self._executor` with shutdown in `close()`
+
+### Bug 6: Train/Eval System Prompt Mismatch (generate_traces.py:180)
+- **Old**: `{"role": "user", "content": SYSTEM_PROMPT}` — system prompt injected as user message
+- **Fix**: `{"role": "system", "content": SYSTEM_PROMPT}` — correct role
+
+### Bug 7: Step Pressure Docstring Lie (env.py:24)
+- **Old docstring**: `-0.03 * step` — would make reward degenerate after step 56
+- **Actual code**: `0.005 * (step/180)` — max penalty 0.005, negligible
+- **Fix**: Updated docstring to match code
+
+## Architecture Issues Found & Fixed
+
+### Issue 1: OpenEnv Adapter Not TRL-Compatible
+- **Problem**: `openenv_adapter.py` exposes `step(action)`, not individual tool methods
+- **TRL docs say**: "We do not recommend generic methods like step(action)"
+- **Fix**: Created `tool_env.py` with 8 individual tool methods + Args docstrings + reward functions
+
+### Issue 2: /reset /step Bypassed Adapter Protections
+- **Problem**: `app.py` created raw `ClinicalRecruitmentEnv`, not the adapter
+- **Fix**: `/reset` and `/step` now create `ClinicalRecruitmentOpenEnv` instances with rate-limiting, replay detection, episode cap, timeout
+
+### Issue 3: No Session Cleanup
+- **Problem**: Sessions stored forever in memory dict, no TTL, no max
+- **Fix**: 30-minute TTL, max 100 sessions, background reaper thread, env.close() on eviction
+
+### Issue 4: SUPPORTS_CONCURRENT_SESSIONS Lie
+- **Problem**: Declared `True` on a single-instance wrapper
+- **Fix**: Set to `False` on the class; app.py achieves concurrency by creating one instance per session
+
+### Issue 5: Eval Fallback Masked Model Failures
+- **Problem**: `parse_action()` always produced a valid action via heuristic fallback
+- **Fix**: Eval now reports `json_parse_rate` separately — how often the model produces valid JSON vs. needing fallback
+
+### Issue 6: No Validation Split = Memorization
+- **Problem**: 50 epochs × 5000 traces with no eval set = catastrophic overfitting
+- **Fix**: 10% validation split, eval every 100 steps, load_best_model_at_end, reduced to 10 epochs at 5e-5 lr
+
+## Helion by Meta
+
+Helion is a **GPU kernel DSL** — it compiles Python to Triton kernels for operations like matmul, softmax, attention. It is completely irrelevant to this project. We are not writing custom CUDA kernels; we are calling `model.generate()` and `SFTTrainer.train()`. Helion would only be useful if we needed a custom fused training kernel or custom attention implementation, which we do not.
+
 ## Key Numbers
 
 | Model | SFT Loss Start | SFT Loss End | Reduction | Enrolled After |
@@ -59,36 +126,32 @@
 | Heuristic vs random improvement | +23.9% average across 3 tasks |
 | Action types after SFT (Qwen3-4B) | 5 types (was 1 before SFT) |
 | GRPO reward signal | 0.0 across all models and all steps |
+| Unit tests | 22/22 passing |
 
 ## What Would Actually Work (Given More Time)
 
-1. **50+ SFT epochs** instead of 3 — need to overfit on the JSON format before the model's instruct behavior dominates
-2. **Larger SFT dataset** — 100+ diverse traces, not 18
-3. **Manual REINFORCE** (implemented in `train_final.py` and `train_dual_gpu.py`) — bypasses TRL's broken environment_factory entirely
-4. **Dual-GPU teacher-student** (implemented in `train_dual_gpu.py`) — 8B teacher generates traces, 4B student learns from them with direct reward computation
+1. **GRPO with `tool_env.py`** — now properly exposes tool methods for TRL; test WITHOUT Unsloth to verify `environments` kwarg flows
+2. **SFT 10 epochs + validation** instead of 50 epochs blind — prevents memorization while still learning format
+3. **Manual REINFORCE** (`train_final.py`, `train_dual_gpu.py`) — bypasses TRL's environment_factory entirely
+4. **Dual-GPU teacher-student** (`train_dual_gpu.py`) — 8B teacher generates traces, 4B student learns
 5. **Strip `<think>` tags** before parsing for reasoning models
-6. **Higher learning rate for SFT** (1e-4 instead of 2e-5) to overcome instruct priors faster
-
-## Hackathon Guide Alignment
-
-The hackathon guide warned:
-> "RL only works if the probability of getting a good answer is greater than zero. If your task is so hard that the model never gets any reward, you will burn compute and learn nothing."
-
-This is exactly what happened with GRPO. The model never produced valid tool calls that the environment could score, so GRPO got zero reward signal.
-
-The guide also said:
-> "In many practical cases, do a little SFT first, then RL."
-
-We did this. SFT produced measurable loss improvement and format learning. The RL step (GRPO) failed due to TRL API limitations, not because the approach is wrong.
+6. **torchforge** (Meta's agentic RL framework) — purpose-built for OpenEnv GRPO, unlike TRL+Unsloth
 
 ## Files
 
 | File | Purpose | Status |
 |------|---------|--------|
-| `train.py` | Single-GPU GRPO (any model) | Works but GRPO rewards are 0 |
+| `train.py` | SFT with val split + in-process eval | Updated: uses tool_env, no raw HTTP |
+| `tool_env.py` | TRL-compatible env with tool methods + reward functions | NEW: proper OpenEnv integration |
+| `openenv_adapter.py` | Anti-reward-hacking wrapper (rate-limit, replay, cap, timeout) | Fixed: thread leak, concurrency |
+| `app.py` | FastAPI server | Fixed: routes through adapter, session TTL |
+| `server/app.py` | FastAPI server (HF Space copy) | Fixed: mirrors app.py |
+| `env.py` | Core environment | Fixed: 5 bugs (reward, penalty, leak, docstring) |
+| `scripts/generate_traces.py` | Parallel trace generator | Fixed: system prompt role |
+| `tests/test_env.py` | 22 unit tests | NEW: covers env, adapter, tool_env, reward design |
 | `train_h200.py` | H200 optimized Qwen3-32B | Crashed on dynamo shape mismatch |
-| `train_final.py` | Single-GPU SFT + manual REINFORCE | Correct approach, needs more epochs |
-| `train_dual_gpu.py` | Dual-GPU teacher-student | Correct approach, uses DeepSeek R1 or Qwen3-8B as teacher |
-| `kaggle_kernel/sft_then_grpo.ipynb` | Kaggle notebook | Latest: Qwen3-8B SFT + GRPO |
+| `train_final.py` | Single-GPU SFT + manual REINFORCE | Correct approach |
+| `train_dual_gpu.py` | Dual-GPU teacher-student | Correct approach |
+| `kaggle_kernel/sft_then_grpo.ipynb` | Kaggle notebook | Latest: 5K traces SFT |
 | `scripts/before_after_demo.py` | Heuristic vs random comparison | Works: +23.9% improvement |
 | `data/training_outputs/sft_grpo_results.json` | Training evidence | Committed |

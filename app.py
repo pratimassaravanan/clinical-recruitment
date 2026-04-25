@@ -1,15 +1,24 @@
-"""FastAPI application exposing OpenEnv endpoints for Adaptive Clinical Recruitment."""
+"""FastAPI application exposing OpenEnv endpoints for Adaptive Clinical Recruitment.
+
+FIX #3:  /reset and /step now route through ClinicalRecruitmentOpenEnv (the adapter),
+         so all anti-reward-hacking protections (rate-limit, replay detection, episode cap,
+         timeout enforcement) apply to HTTP clients too — not just the web UI.
+FIX #7:  Sessions have a 30-minute TTL and a max of 100 concurrent sessions.
+         A background task reaps expired sessions every 60 seconds.
+FIX #8:  SUPPORTS_CONCURRENT_SESSIONS is true at the app level because we create
+         one adapter instance per session (not a single shared instance).
+"""
 
 import os
+import time
 import uuid
-from threading import Lock
+from threading import Lock, Thread
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from env import ClinicalRecruitmentEnv
-from models import Action, Observation
+from models import Action
 from openenv_adapter import (
     ClinicalRecruitmentAction,
     ClinicalRecruitmentObservation,
@@ -35,19 +44,73 @@ ENABLE_WEB_INTERFACE = os.environ.get("ENABLE_WEB_INTERFACE", "true").lower() ==
 web_interface_enabled = False
 web_interface_error = None
 SESSION_COOKIE = "acr_session_id"
-_sessions: dict[str, ClinicalRecruitmentEnv] = {}
+
+# --- Session management with TTL ---
+_SESSION_TTL_S = 30 * 60  # 30 minutes
+_MAX_SESSIONS = 100
+
+_sessions: dict[str, dict] = {}  # session_id -> {"env": OpenEnvAdapter, "created_at": float}
 _session_lock = Lock()
 
 
-def _create_session() -> tuple[str, ClinicalRecruitmentEnv]:
-    session_id = uuid.uuid4().hex
-    env = ClinicalRecruitmentEnv()
+def _reap_expired_sessions() -> int:
+    """Remove sessions older than TTL. Returns number reaped."""
+    now = time.monotonic()
+    to_reap = []
     with _session_lock:
-        _sessions[session_id] = env
+        for sid, info in _sessions.items():
+            if now - info["last_active"] > _SESSION_TTL_S:
+                to_reap.append(sid)
+        for sid in to_reap:
+            info = _sessions.pop(sid, None)
+            if info:
+                try:
+                    info["env"].close()
+                except Exception:
+                    pass
+    return len(to_reap)
+
+
+def _session_reaper_loop():
+    """Background thread that reaps expired sessions every 60s."""
+    while True:
+        time.sleep(60)
+        reaped = _reap_expired_sessions()
+        if reaped:
+            print(f"[session-reaper] Reaped {reaped} expired sessions")
+
+
+# Start reaper daemon
+_reaper_thread = Thread(target=_session_reaper_loop, daemon=True)
+_reaper_thread.start()
+
+
+def _create_session() -> tuple[str, ClinicalRecruitmentOpenEnv]:
+    """Create a new session with an OpenEnv adapter (not raw env)."""
+    # Enforce max sessions
+    with _session_lock:
+        if len(_sessions) >= _MAX_SESSIONS:
+            # Evict oldest session
+            oldest_sid = min(_sessions, key=lambda s: _sessions[s]["last_active"])
+            old = _sessions.pop(oldest_sid, None)
+            if old:
+                try:
+                    old["env"].close()
+                except Exception:
+                    pass
+
+    session_id = uuid.uuid4().hex
+    env = ClinicalRecruitmentOpenEnv()  # Uses adapter with all protections
+    with _session_lock:
+        _sessions[session_id] = {
+            "env": env,
+            "created_at": time.monotonic(),
+            "last_active": time.monotonic(),
+        }
     return session_id, env
 
 
-def _get_session_env(request: Request) -> ClinicalRecruitmentEnv:
+def _get_session_env(request: Request) -> ClinicalRecruitmentOpenEnv:
     session_id = request.cookies.get(SESSION_COOKIE)
     if not session_id:
         raise HTTPException(
@@ -55,29 +118,40 @@ def _get_session_env(request: Request) -> ClinicalRecruitmentEnv:
             detail="No active session. Call /reset first.",
         )
     with _session_lock:
-        env = _sessions.get(session_id)
-    if env is None:
+        info = _sessions.get(session_id)
+    if info is None:
         raise HTTPException(
             status_code=400,
             detail="Session expired or missing. Call /reset first.",
         )
-    return env
+    # Touch last_active
+    info["last_active"] = time.monotonic()
+    return info["env"]
 
 
 def _drop_session(session_id: str | None) -> None:
     if not session_id:
         return
     with _session_lock:
-        _sessions.pop(session_id, None)
+        info = _sessions.pop(session_id, None)
+    if info:
+        try:
+            info["env"].close()
+        except Exception:
+            pass
 
 
 @app.get("/")
 async def root():
+    with _session_lock:
+        active_sessions = len(_sessions)
     return {
         "name": "adaptive-clinical-recruitment",
         "version": "1.0.0",
         "status": "running",
         "tasks": TASKS,
+        "active_sessions": active_sessions,
+        "max_sessions": _MAX_SESSIONS,
         "web_interface_enabled": web_interface_enabled,
         "web_interface_path": "/web" if web_interface_enabled else None,
         "web_interface_error": web_interface_error,
@@ -98,6 +172,7 @@ async def reset(request: Request, response: Response, task_id: str = Query(defau
             _drop_session(existing_session_id)
 
         session_id, env = _create_session()
+        # Reset through OpenEnv adapter (applies all protections)
         result = env.reset(task=task_id)
         response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
         return result.model_dump()
@@ -112,12 +187,13 @@ async def step(action: Action, request: Request, response: Response):
     try:
         session_id = request.cookies.get(SESSION_COOKIE)
         env = _get_session_env(request)
-        result = env.step(action)
+        # Step through OpenEnv adapter (rate-limit, replay detection, timeout, episode cap)
+        result = env.step(action.model_dump())
         if result.done:
             _drop_session(session_id)
             response.delete_cookie(SESSION_COOKIE)
         return result.model_dump()
-    except RuntimeError as e:
+    except (RuntimeError, TimeoutError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -125,7 +201,7 @@ async def step(action: Action, request: Request, response: Response):
 async def state(request: Request):
     try:
         env = _get_session_env(request)
-        return env.state().model_dump()
+        return env.state.model_dump()
     except HTTPException:
         raise
     except Exception as e:

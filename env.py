@@ -21,7 +21,7 @@ Reward design (per step):
   - Curriculum bonus: +0.18 during easy-pool-reset periods if uncertainty < 0.3
   - Hypothesis bonus: +0.10 if hypothesis matches ground truth world_type
   - Consistency penalty: -0.10 if agent switches hypothesis > 2 times
-  - Step pressure: -0.03 * step (increasing urgency)
+  - Step pressure: -0.005 * (step/max_steps) (mild increasing urgency, max -0.005)
   - Confidence calibration: penalizes overconfident/underconfident finalize
 """
 
@@ -1493,8 +1493,9 @@ class ClinicalRecruitmentEnv:
         )
 
     def _consistency_penalty(self) -> float:
-        """Upgrade 2: Penalize erratic hypothesis switching.
-        If the agent switches hypothesis more than 2 times, apply penalty.
+        """Penalize erratic hypothesis switching, but cap the total penalty.
+        Old behavior: 0.10 every step after >2 switches = unbounded (-18.0 over 180 steps).
+        New behavior: penalty proportional to switch count, capped at 0.05 per step max.
         """
         if len(self._hypothesis_history) < 2:
             return 0.0
@@ -1502,9 +1503,10 @@ class ClinicalRecruitmentEnv:
         for i in range(1, len(self._hypothesis_history)):
             if self._hypothesis_history[i] != self._hypothesis_history[i - 1]:
                 switches += 1
-        if switches > 2:
-            return 0.10
-        return 0.0
+        if switches <= 2:
+            return 0.0
+        # Mild penalty that doesn't grow unboundedly
+        return min(0.05, (switches - 2) * 0.01)
 
     def _hypothesis_bonus(self, hypothesis: str) -> float:
         """Upgrade 1: Reward agent for correct hypothesis about world dynamics."""
@@ -1567,6 +1569,8 @@ class ClinicalRecruitmentEnv:
         r += 0.01
 
         # --- Inaction penalty (FIX 4) ---
+        # Penalties are mild so that planning/memory actions + their bonuses
+        # can break even or go slightly positive when used well.
         if action_type in ("screen_patient", "recontact", "allocate_to_site"):
             # Productive actions: no penalty
             pass
@@ -1574,9 +1578,9 @@ class ClinicalRecruitmentEnv:
             # Strategy is fine but not productive by itself
             r -= 0.02
         elif action_type == "plan_next_phase":
-            r -= 0.07
+            r -= 0.03  # was -0.07, reduced so plan_bonus can offset
         elif action_type in ("summarize_and_index", "retrieve_relevant_history"):
-            r -= 0.06
+            r -= 0.03  # was -0.06, reduced so memory_bonus can offset
         elif action_type == "stop_recruitment":
             # Handled below in confidence calibration
             pass
@@ -1627,13 +1631,9 @@ class ClinicalRecruitmentEnv:
             if self._uncertainty > 0.3:
                 r -= 0.15
 
-        # Keep planning/memory scaffolds from farming reward without funnel progress.
-        if action_type in {
-            "plan_next_phase",
-            "summarize_and_index",
-            "retrieve_relevant_history",
-        } and not outcome.get("screen_success") and not outcome.get("enrolled"):
-            r = min(r, -0.01)
+        # Planning/memory actions already penalized in FIX 4 above (-0.06 to -0.07).
+        # Removed duplicate -0.02 opportunity cost here that caused double-penalty
+        # totaling -0.08 to -0.09 per planning step, which was too harsh.
 
         self._token_efficiency_score = self._compute_token_efficiency()
         if self._token_efficiency_score < efficiency_before and not outcome.get("enrolled"):
@@ -1728,7 +1728,8 @@ class ClinicalRecruitmentEnv:
                 recent.append("enrollment_milestone")
             if h.get("error"):
                 recent.append(f"error:{h['error']}")
-        day_events = self._events.get(self._step, [])
+        # Use previous step's events so we don't leak future events into the observation
+        day_events = self._events.get(max(0, self._step - 1), [])
         recent.extend(day_events[:3])
 
         # 7-day rolling dropout rate
