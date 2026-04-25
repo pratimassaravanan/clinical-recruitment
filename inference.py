@@ -10,7 +10,8 @@ from openai import OpenAI
 # -- Environment variables (checklist-compliant) --
 API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
-HF_TOKEN = os.getenv("HF_TOKEN")
+# Kept backward-compatible with older env var naming.
+API_TOKEN = os.getenv("API_TOKEN") or os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
 ENV_URL = os.getenv(
@@ -1351,10 +1352,10 @@ def run_task(task_id: str, client: OpenAI) -> float:
 
 # -- Main --
 def main():
-    if not HF_TOKEN:
-        raise SystemExit("HF_TOKEN environment variable is required.")
+    if not API_TOKEN:
+        raise SystemExit("API_TOKEN environment variable is required. HF_TOKEN is also accepted for backward compatibility.")
 
-    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_TOKEN)
     tasks = ["easy_bench", "medium_bench", "hard_bench"]
     for task_id in tasks:
         run_task(task_id, client)

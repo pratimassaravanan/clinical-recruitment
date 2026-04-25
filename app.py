@@ -33,7 +33,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.environ.get("ALLOW_ORIGINS", "*").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -133,8 +133,16 @@ def _get_session_env(request: Request) -> ClinicalRecruitmentOpenEnv:
             status_code=400,
             detail="Session expired or missing. Call /reset first.",
         )
-    # Touch last_active
-    info["last_active"] = time.monotonic()
+    # Touch last_active under the lock to avoid races with the reaper.
+    with _session_lock:
+        fresh = _sessions.get(session_id)
+        if fresh is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Session expired or missing. Call /reset first.",
+            )
+        fresh["last_active"] = time.monotonic()
+        info = fresh
     return info["env"]
 
 

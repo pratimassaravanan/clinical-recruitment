@@ -153,9 +153,10 @@ def grade_easy_bench(
     # Hypothesis accuracy (5%)
     score += 0.05 * _hypothesis_accuracy_score(history, final_obs.world_type)
 
-    # Milestone potential / planning quality (5%)
+    # Milestone potential / planning quality + memory use (8%)
     score += 0.03 * _milestone_potential_score(final_obs, history)
     score += 0.02 * _plan_followthrough_score(history)
+    score += 0.03 * _memory_use_score(history)
 
     # Token efficiency (3%)
     score += 0.03 * _token_efficiency_grade(final_obs, history)

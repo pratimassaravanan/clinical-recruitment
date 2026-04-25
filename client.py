@@ -69,7 +69,10 @@ class ClinicalRecruitmentClient:
             else:
                 patients = obs.get("observation", obs).get("available_patients", [])
                 pid = patients[0]["id"] if patients else None
-                action = {"action_type": "screen_patient", "patient_id": pid}
+                if pid is not None:
+                    action = {"action_type": "screen_patient", "patient_id": pid}
+                else:
+                    action = {"action_type": "adjust_strategy", "strategy_change": "increase_outreach"}
             result = self.step(action)
             results.append(result)
             if result.get("done", False):

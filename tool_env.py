@@ -17,7 +17,6 @@ See: https://huggingface.co/docs/trl/openenv
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict, Optional
 
 from env import ClinicalRecruitmentEnv
@@ -275,8 +274,10 @@ class ClinicalRecruitmentToolEnv:
 # Reward functions for TRL GRPOTrainer
 # ------------------------------------------------------------------
 
-def reward_enrollment_progress(environments, **_) -> list[float]:
+def reward_enrollment_progress(environments=None, **_) -> list[float]:
     """Fraction of target enrollment reached."""
+    if environments is None:
+        return []
     rewards = []
     for env in environments:
         obs = env.last_observation or {}
@@ -286,8 +287,10 @@ def reward_enrollment_progress(environments, **_) -> list[float]:
     return rewards
 
 
-def reward_budget_efficiency(environments, **_) -> list[float]:
+def reward_budget_efficiency(environments=None, **_) -> list[float]:
     """Enrollment per unit budget spent."""
+    if environments is None:
+        return []
     rewards = []
     for env in environments:
         obs = env.last_observation or {}
@@ -302,8 +305,10 @@ def reward_budget_efficiency(environments, **_) -> list[float]:
     return rewards
 
 
-def reward_screening_accuracy(environments, **_) -> list[float]:
+def reward_screening_accuracy(environments=None, **_) -> list[float]:
     """Enrolled-to-screened ratio minus dropout penalty."""
+    if environments is None:
+        return []
     rewards = []
     for env in environments:
         funnel = (env.last_observation or {}).get("current_funnel", {})
@@ -317,8 +322,10 @@ def reward_screening_accuracy(environments, **_) -> list[float]:
     return rewards
 
 
-def reward_action_diversity(environments, **_) -> list[float]:
+def reward_action_diversity(environments=None, **_) -> list[float]:
     """Fraction of 8 possible action types used."""
+    if environments is None:
+        return []
     rewards = []
     for env in environments:
         if env.action_history:
@@ -328,8 +335,10 @@ def reward_action_diversity(environments, **_) -> list[float]:
     return rewards
 
 
-def reward_hypothesis_consistency(environments, **_) -> list[float]:
+def reward_hypothesis_consistency(environments=None, **_) -> list[float]:
     """Penalizes erratic switching, rewards correct world-type match."""
+    if environments is None:
+        return []
     rewards = []
     for env in environments:
         hs = env.hypothesis_history
