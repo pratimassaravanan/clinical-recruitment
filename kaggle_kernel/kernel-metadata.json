@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-qwen3-8b-sft-rl-20260425-0210",
-  "title": "Clinical Qwen3 8B SFT+RL 20260425-0210",
+  "id": "kaushiksarav/clinical-gemma4-sft-rl-20260425-0230",
+  "title": "Clinical Gemma4 SFT+RL 20260425-0230",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",

@@ -30,6 +30,20 @@
 - Eventually used "Open in Colab" from Kaggle to get reliable T4
 - H200 on Lightning AI worked but Qwen3-32B crashed with torch._dynamo shape mismatch at batch_size=16
 
+### 6. Qwen3-8B Instruct (SAME RESULT AS 4B)
+- Outputs verbose markdown reasoning with **Rationale** sections
+- Action distribution: `{'screen_patient': 40}` every task -- same as 4B
+- SFT loss: 0.925 → 0.831 (10.2% reduction) but doesn't change output format
+- The instruct behavior is too strong for 9 SFT steps to override
+
+### 7. Model Selection Findings
+- Qwen3 models (4B, 8B, 32B) score **3.33% on agentic coding** benchmarks -- very weak at tool-calling
+- DeepSeek R1 distills output `<think>` blocks that break action parsing
+- DeepSeek V3.2 is 685B -- can't fine-tune
+- Kimi K2.6 is 1T -- can't fine-tune
+- **Gemma 4 E4B scores 40% on agentic coding** -- 12x better than Qwen3 for tool-calling
+- Switched to `unsloth/gemma-4-E4B-it-unsloth-bnb-4bit` for final training attempt
+
 ## Key Numbers
 
 | Model | SFT Loss Start | SFT Loss End | Reduction | Enrolled After |
@@ -37,6 +51,7 @@
 | Qwen3-4B | 0.858 | 0.745 | 13.2% | 0 |
 | Qwen3-8B | 0.925 | 0.831 | 10.2% | 0 |
 | DeepSeek-R1-8B | 0.991 | 0.896 | 9.6% | 0 |
+| Gemma 4 E4B | TBD | TBD | TBD | TBD |
 
 | Evidence | Value |
 |----------|-------|
