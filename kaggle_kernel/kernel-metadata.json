@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-gemma4e4b-5k-sft-20260425-1338",
-  "title": "Clinical Gemma4E4B 5K SFT 20260425-1338",
+  "id": "kaushiksarav/clinical-qwen3-4b-5k-sft-v2",
+  "title": "Clinical Qwen3-4B 5K SFT v2",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",
@@ -9,5 +9,6 @@
   "enable_internet": true,
   "dataset_sources": ["kaushiksarav/clinical-sft-traces-5k"],
   "competition_sources": [],
-  "kernel_sources": []
+  "kernel_sources": [],
+  "_note": "Qwen3-4B chosen over Gemma 4 E4B because Gemma OOM'd on T4 (8B total params with vision/audio encoders)"
 }

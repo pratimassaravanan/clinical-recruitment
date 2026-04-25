@@ -28,10 +28,12 @@ Use the EXACT patient_id and site_id values from the state."""
 
 
 def heuristic_action(obs, step, rng):
-    available = obs.available_patients
-    recontact = obs.recontact_candidates
-    allocation = obs.allocation_candidates
-    sites = obs.site_performance
+    # ONLY use the top-3 candidates that appear in the observation text.
+    # Using the full list causes the model to learn IDs it never saw in the prompt.
+    available = obs.available_patients[:3]
+    recontact = obs.recontact_candidates[:3]
+    allocation = obs.allocation_candidates[:3]
+    sites = {k: v for k, v in list(obs.site_performance.items())[:3]}
     wt = obs.world_type or "noise"
     hyp_map = {"noise": "noise_dominant", "site_bias": "site_bias", "dropout": "dropout_dominant"}
     hyp = hyp_map.get(wt, "noise_dominant")
