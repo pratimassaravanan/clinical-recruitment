@@ -117,8 +117,17 @@ def _get_session_env(request: Request) -> ClinicalRecruitmentOpenEnv:
             status_code=400,
             detail="No active session. Call /reset first.",
         )
+    now = time.monotonic()
     with _session_lock:
         info = _sessions.get(session_id)
+        # Check TTL inline to prevent racing with reaper
+        if info and (now - info["last_active"]) > _SESSION_TTL_S:
+            _sessions.pop(session_id, None)
+            try:
+                info["env"].close()
+            except Exception:
+                pass
+            info = None
     if info is None:
         raise HTTPException(
             status_code=400,

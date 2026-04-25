@@ -145,6 +145,10 @@ class ClinicalRecruitmentOpenEnv(Environment):
         try:
             result = future.result(timeout=effective_timeout)
         except concurrent.futures.TimeoutError:
+            # NOTE: cancel() only prevents not-yet-started tasks. If the thread
+            # is already running (max_workers=1, so it always is), this is a no-op.
+            # The thread will continue in the background until the env step completes.
+            # Proper fix would require cooperative cancellation in the inner env.
             future.cancel()
             raise TimeoutError(
                 f"Inner env step exceeded {effective_timeout}s timeout."

@@ -194,11 +194,12 @@ def heuristic_fallback(obs: dict) -> dict:
 
 
 def run_eval(mdl, tok, task: str, n: int = 50):
-    """Evaluate model using in-process env via ClinicalRecruitmentToolEnv.
+    """Evaluate model using in-process env (no HTTP).
 
-    Reports TWO sets of metrics:
-    - raw: Only counts steps where model produced valid JSON (no fallback)
-    - fallback: Uses heuristic when model fails (comparable to before)
+    Reports TWO metric categories:
+    - json_parse_rate: Fraction of steps where model output was valid JSON (pure model quality)
+    - total_reward/enrolled: Env metrics, but NOTE these are inflated by heuristic fallback
+      on parse failures. The json_parse_rate is the honest signal.
     """
     from env import ClinicalRecruitmentEnv
     from models import Action

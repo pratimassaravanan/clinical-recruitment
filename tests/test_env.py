@@ -305,6 +305,33 @@ class TestOpenEnvAdapter:
         # Either hit the cap or episode ended naturally before 200
         adapter.close()
 
+    def test_adapter_double_reset(self):
+        """Calling reset() twice should cleanly restart, not corrupt state."""
+        from openenv_adapter import ClinicalRecruitmentOpenEnv
+        adapter = ClinicalRecruitmentOpenEnv()
+        obs1 = adapter.reset(task="easy_bench")
+        adapter.step({"action_type": "adjust_strategy", "strategy_change": "increase_outreach",
+                       "hypothesis": "noise_dominant", "confidence": 0.5})
+        # Reset again without finishing episode
+        obs2 = adapter.reset(task="medium_bench")
+        assert obs2.done is False
+        # Step counter should be reset
+        assert adapter._adapter_step_count == 0
+        adapter.close()
+
+    def test_tool_env_multi_episode(self):
+        """Tool env should support reset-play-reset-play cycles."""
+        from tool_env import ClinicalRecruitmentToolEnv
+        env = ClinicalRecruitmentToolEnv()
+        for task in ["easy_bench", "medium_bench"]:
+            obs = env.reset(task_id=task)
+            assert obs is not None
+            assert env.done is False
+            assert len(env.action_history) == 0
+            env.adjust_strategy(strategy_change="increase_outreach")
+            assert len(env.action_history) == 1
+        env.close()
+
 
 if __name__ == "__main__":
     import pytest

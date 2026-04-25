@@ -211,6 +211,12 @@ class ClinicalRecruitmentToolEnv:
         """
         return self._step(Action(action_type="stop_recruitment"))
 
+    def close(self) -> None:
+        """Clean up resources. Called by TRL when the environment is no longer needed."""
+        close_fn = getattr(self._env, "close", None)
+        if callable(close_fn):
+            close_fn()
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------

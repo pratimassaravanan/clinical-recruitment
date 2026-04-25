@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate thousands of SFT traces locally using parallel threads.
-This runs the env IN-PROCESS (no HTTP needed) and outputs a JSON file
-that can be uploaded to Kaggle for SFT training.
+This runs the env IN-PROCESS (no HTTP, no adapter) for maximum throughput.
+The adapter's rate-limiting/replay-detection is unnecessary here since the
+heuristic policy is deterministic per-seed and runs <80 steps.
 
 Usage: python scripts/generate_traces.py --num 5000 --threads 8 --output data/sft_traces.json
 """
