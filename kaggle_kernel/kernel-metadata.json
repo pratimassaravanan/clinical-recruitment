@@ -1,6 +1,6 @@
 {
-  "id": "kaushiksarav/clinical-deepseek-r1-dual-gpu",
-  "title": "Clinical DeepSeek R1 Dual GPU Training",
+  "id": "kaushiksarav/clinical-qwen3-8b-sft-rl-20260425-0210",
+  "title": "Clinical Qwen3 8B SFT+RL 20260425-0210",
   "code_file": "sft_then_grpo.ipynb",
   "language": "python",
   "kernel_type": "notebook",
