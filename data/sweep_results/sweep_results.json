@@ -1,0 +1,4178 @@
+{
+  "hcapo": {
+    "seeds": {
+      "1": {
+        "agent_type": "hcapo",
+        "seed": 1,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.7252,
+            "final_score": 0.3468
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.05669999999999999,
+            "final_score": 0.1892
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.13810000000000003,
+            "final_score": 0.2369
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.29429999999999995,
+            "final_score": 0.3397
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.06449999999999997,
+            "final_score": 0.2104
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.036299999999999985,
+            "final_score": 0.2744
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.04280000000000002,
+            "final_score": 0.1639
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 1.0871000000000002,
+            "final_score": 0.3503
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.006400000000000003,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.008900000000000005,
+            "final_score": 0.2092
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.8404999999999997,
+            "final_score": 0.34
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.0989,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.0892,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.04900000000000001,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.026300000000000004,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.10099999999999999,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.05930000000000001,
+            "final_score": 0.2103
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.25819999999999993,
+            "final_score": 0.24
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 0.00520000000000001,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.3126999999999999,
+            "final_score": 0.1632
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.9550000000000001,
+            "final_score": 0.2813
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 1.7761,
+            "final_score": 0.3583
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 1.9043999999999999,
+            "final_score": 0.3495
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.35379999999999995,
+            "final_score": 0.2097
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.4532999999999999,
+            "final_score": 0.3394
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.028499999999999984,
+            "final_score": 0.1638
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          }
+        ],
+        "eval_scores": [
+          0.1391,
+          0.1395,
+          0.3585,
+          0.3473,
+          0.1397,
+          0.1651,
+          0.2088,
+          0.1695,
+          0.1712,
+          0.2364,
+          0.271,
+          0.1646,
+          0.2807,
+          0.1626,
+          0.2778
+        ],
+        "mean_score": 0.21545333333333333,
+        "std_score": 0.07251710480216987
+      },
+      "7": {
+        "agent_type": "hcapo",
+        "seed": 7,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 1.7136000000000002,
+            "final_score": 0.3437
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.06719999999999998,
+            "final_score": 0.207
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.007800000000000001,
+            "final_score": 0.2422
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 3.521500000000001,
+            "final_score": 0.3625
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.08839999999999999,
+            "final_score": 0.2231
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 3.8063999999999996,
+            "final_score": 0.3053
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.3873,
+            "final_score": 0.3401
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.008400000000000019,
+            "final_score": 0.207
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.10320000000000003,
+            "final_score": 0.2062
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 1.2430999999999999,
+            "final_score": 0.3511
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.03459999999999999,
+            "final_score": 0.2199
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.01759999999999999,
+            "final_score": 0.1645
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.7575999999999999,
+            "final_score": 0.2119
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.014600000000000002,
+            "final_score": 0.1744
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.9336000000000002,
+            "final_score": 0.3508
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": 0.41869999999999996,
+            "final_score": 0.2225
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.42819999999999997,
+            "final_score": 0.2419
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.3131999999999999,
+            "final_score": 0.3411
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.1181,
+            "final_score": 0.2191
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.998,
+            "final_score": 0.274
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.0691,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.6736,
+            "final_score": 0.2753
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.08239999999999997,
+            "final_score": 0.2277
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 2.2445,
+            "final_score": 0.2775
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.5361999999999999,
+            "final_score": 0.1384
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.6936000000000001,
+            "final_score": 0.2099
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.0529,
+            "final_score": 0.1762
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.1396,
+          0.1397,
+          0.3691,
+          0.3685,
+          0.1662,
+          0.2102,
+          0.2381,
+          0.1662,
+          0.2111,
+          0.2837,
+          0.2796,
+          0.2434,
+          0.3047,
+          0.1725
+        ],
+        "mean_score": 0.22881999999999994,
+        "std_score": 0.07587533811017473
+      },
+      "21": {
+        "agent_type": "hcapo",
+        "seed": 21,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.9217000000000002,
+            "final_score": 0.3499
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.11609999999999997,
+            "final_score": 0.2357
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 1.3129999999999997,
+            "final_score": 0.3466
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.026599999999999985,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.036299999999999985,
+            "final_score": 0.2232
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.08850000000000001,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.014499999999999999,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 1.9796999999999998,
+            "final_score": 0.2599
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.1348,
+            "final_score": 0.1636
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.017,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.014499999999999999,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.0829,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.04900000000000001,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.03859999999999998,
+            "final_score": 0.1975
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.01469999999999999,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.07919999999999999,
+            "final_score": 0.1976
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 1.0441,
+            "final_score": 0.3529
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.5264000000000001,
+            "final_score": 0.2619
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.13540000000000002,
+            "final_score": 0.1716
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.006100000000000008,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.10890000000000001,
+            "final_score": 0.1644
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.12279999999999996,
+            "final_score": 0.1392
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.15839999999999999,
+            "final_score": 0.2112
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.0407,
+            "final_score": 0.2394
+          }
+        ],
+        "eval_scores": [
+          0.3554,
+          0.3411,
+          0.357,
+          0.1397,
+          0.3399,
+          0.1888,
+          0.2108,
+          0.1662,
+          0.1728,
+          0.1661,
+          0.1743,
+          0.2724,
+          0.1646,
+          0.2073,
+          0.1754
+        ],
+        "mean_score": 0.22878666666666667,
+        "std_score": 0.07770577727699673
+      },
+      "42": {
+        "agent_type": "hcapo",
+        "seed": 42,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 1.8065,
+            "final_score": 0.3609
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.8426999999999999,
+            "final_score": 0.2288
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 2.468000000000001,
+            "final_score": 0.2446
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 4.618300000000003,
+            "final_score": 0.3785
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 1.3238999999999994,
+            "final_score": 0.2238
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.1625,
+            "final_score": 0.196
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.6688000000000002,
+            "final_score": 0.2177
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.9603000000000002,
+            "final_score": 0.3546
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.06920000000000001,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.1084,
+            "final_score": 0.162
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.1449,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.0374,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 1.7850000000000001,
+            "final_score": 0.235
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 2.090699999999999,
+            "final_score": 0.2838
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 1.0400999999999996,
+            "final_score": 0.3396
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.1724,
+            "final_score": 0.1619
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.45659999999999995,
+            "final_score": 0.2661
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.4798000000000001,
+            "final_score": 0.3423
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.7364999999999998,
+            "final_score": 0.2138
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 1.5541999999999996,
+            "final_score": 0.2815
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.2702,
+            "final_score": 0.2258
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 3.9039000000000015,
+            "final_score": 0.2875
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.44109999999999994,
+            "final_score": 0.3497
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.29569999999999996,
+            "final_score": 0.2229
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.4704999999999997,
+            "final_score": 0.2836
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.016600000000000004,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.2007,
+            "final_score": 0.1688
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": 0.6476999999999997,
+            "final_score": 0.2828
+          }
+        ],
+        "eval_scores": [
+          0.3495,
+          0.3473,
+          0.3494,
+          0.3404,
+          0.1396,
+          0.2137,
+          0.166,
+          0.1662,
+          0.2145,
+          0.2103,
+          0.2683,
+          0.173,
+          0.1624,
+          0.1924,
+          0.1953
+        ],
+        "mean_score": 0.23255333333333333,
+        "std_score": 0.07462010333832446
+      },
+      "123": {
+        "agent_type": "hcapo",
+        "seed": 123,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.9744999999999999,
+            "final_score": 0.3476
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.12190000000000001,
+            "final_score": 0.1659
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.03870000000000001,
+            "final_score": 0.2738
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 1.1474,
+            "final_score": 0.3442
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.04529999999999999,
+            "final_score": 0.1621
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 1.6341999999999999,
+            "final_score": 0.2786
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 1.1689999999999998,
+            "final_score": 0.3404
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.05790000000000001,
+            "final_score": 0.189
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.0792,
+            "final_score": 0.1654
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.2814,
+            "final_score": 0.3417
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.1017,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.0199,
+            "final_score": 0.1758
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 1.2638000000000003,
+            "final_score": 0.3406
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.0667,
+            "final_score": 0.2232
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.8609,
+            "final_score": 0.3508
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.07909999999999999,
+            "final_score": 0.166
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.6260999999999999,
+            "final_score": 0.2767
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.3545,
+            "final_score": 0.3454
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.0982,
+            "final_score": 0.2099
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.3805,
+            "final_score": 0.2422
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.04850000000000001,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.2813,
+            "final_score": 0.1694
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.10719999999999999,
+            "final_score": 0.2767
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.04639999999999998,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.2648,
+            "final_score": 0.2608
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": 0.9937000000000001,
+            "final_score": 0.2783
+          }
+        ],
+        "eval_scores": [
+          0.34,
+          0.1397,
+          0.1395,
+          0.1395,
+          0.1395,
+          0.2112,
+          0.1618,
+          0.1661,
+          0.2135,
+          0.2102,
+          0.2406,
+          0.2067,
+          0.2051,
+          0.2722,
+          0.2431
+        ],
+        "mean_score": 0.2019133333333333,
+        "std_score": 0.05536052584849807
+      }
+    },
+    "overall": {
+      "mean": 0.22150533333333336,
+      "std": 0.012738265536912353,
+      "min": 0.2019133333333333,
+      "max": 0.23255333333333333,
+      "ci_95": [
+        0.21003733333333333,
+        0.2303066666666666
+      ]
+    }
+  },
+  "mira": {
+    "seeds": {
+      "1": {
+        "agent_type": "mira",
+        "seed": 1,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.15190000000000003,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.1726,
+            "final_score": 0.211
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 1.1844999999999999,
+            "final_score": 0.3287
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.059000000000000004,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.5771999999999999,
+            "final_score": 0.2122
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.9127,
+            "final_score": 0.2068
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.2712,
+            "final_score": 0.3411
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.0465,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.4082,
+            "final_score": 0.2007
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.132,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.04830000000000001,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.0784,
+            "final_score": 0.1636
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 1.9892999999999998,
+            "final_score": 0.3571
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 0.7970999999999999,
+            "final_score": 0.2418
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 1.8961000000000008,
+            "final_score": 0.3702
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": 1.2711999999999999,
+            "final_score": 0.4199
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.6201,
+            "final_score": 0.2307
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 1.9046999999999998,
+            "final_score": 0.3471
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.3676999999999999,
+            "final_score": 0.234
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 1.9648000000000003,
+            "final_score": 0.2779
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 1.4189000000000003,
+            "final_score": 0.3508
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.09070000000000003,
+            "final_score": 0.1972
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.7982,
+            "final_score": 0.3608
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.9129,
+            "final_score": 0.2132
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.02550000000000001,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.059000000000000004,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.3348,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.0058,
+            "final_score": 0.1748
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.1396,
+          0.1396,
+          0.1397,
+          0.3548,
+          0.4394,
+          0.1662,
+          0.2071,
+          0.1685,
+          0.1661,
+          0.1739,
+          0.1639,
+          0.2436,
+          0.2114,
+          0.1787
+        ],
+        "mean_score": 0.20214666666666667,
+        "std_score": 0.08309758012254162
+      },
+      "7": {
+        "agent_type": "mira",
+        "seed": 7,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.09899999999999999,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.006100000000000008,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.11230000000000001,
+            "final_score": 0.166
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.7655,
+            "final_score": 0.2089
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 1.6512999999999998,
+            "final_score": 0.3492
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.09980000000000001,
+            "final_score": 0.1724
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.20129999999999992,
+            "final_score": 0.2354
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.37070000000000003,
+            "final_score": 0.2426
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.7388,
+            "final_score": 0.3408
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 0.39120000000000005,
+            "final_score": 0.2657
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.34439999999999993,
+            "final_score": 0.3503
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.0617,
+            "final_score": 0.191
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.3814000000000001,
+            "final_score": 0.2419
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.9413,
+            "final_score": 0.3481
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.0631,
+            "final_score": 0.2664
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 2.3535000000000004,
+            "final_score": 0.3631
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.2808,
+            "final_score": 0.2361
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.029000000000000005,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.31189999999999996,
+            "final_score": 0.3424
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.0358,
+            "final_score": 0.2087
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.0803,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.43650000000000005,
+            "final_score": 0.2494
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.3427,
+          0.345,
+          0.1396,
+          0.1396,
+          0.2131,
+          0.1662,
+          0.2231,
+          0.211,
+          0.2216,
+          0.1966,
+          0.2418,
+          0.237,
+          0.2392,
+          0.2749
+        ],
+        "mean_score": 0.22207333333333334,
+        "std_score": 0.062033264911300255
+      },
+      "21": {
+        "agent_type": "mira",
+        "seed": 21,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.3459,
+            "final_score": 0.3403
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.28060000000000007,
+            "final_score": 0.1694
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.23779999999999998,
+            "final_score": 0.178
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.021000000000000005,
+            "final_score": 0.2082
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 1.2959000000000005,
+            "final_score": 0.2381
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 1.1693,
+            "final_score": 0.2806
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.04850000000000001,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.059500000000000004,
+            "final_score": 0.2092
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 1.3983,
+            "final_score": 0.2242
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.0782,
+            "final_score": 0.1636
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.01469999999999999,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.4219,
+            "final_score": 0.2072
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 1.0743,
+            "final_score": 0.3597
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.13429999999999997,
+            "final_score": 0.2363
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.047799999999999995,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.3678,
+            "final_score": 0.2091
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.02750000000000001,
+            "final_score": 0.2326
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.1521,
+            "final_score": 0.2102
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.11520000000000001,
+            "final_score": 0.2436
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.2813,
+            "final_score": 0.3417
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.078,
+            "final_score": 0.1636
+          }
+        ],
+        "eval_scores": [
+          0.1391,
+          0.3446,
+          0.3408,
+          0.1397,
+          0.1397,
+          0.2111,
+          0.1711,
+          0.2088,
+          0.2314,
+          0.214,
+          0.2055,
+          0.1635,
+          0.2093,
+          0.2758,
+          0.1724
+        ],
+        "mean_score": 0.21112,
+        "std_score": 0.0632635671878636
+      },
+      "42": {
+        "agent_type": "mira",
+        "seed": 42,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.8185,
+            "final_score": 0.2104
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.4334,
+            "final_score": 0.2422
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.9331,
+            "final_score": 0.3509
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.1743,
+            "final_score": 0.1619
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.030399999999999996,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 2.1007000000000007,
+            "final_score": 0.3489
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 1.1651,
+            "final_score": 0.1687
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.3184,
+            "final_score": 0.2072
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.7578,
+            "final_score": 0.3608
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.03490000000000001,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 1.0823,
+            "final_score": 0.1748
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.00360000000000002,
+            "final_score": 0.2065
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.04830000000000001,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 2.3762000000000003,
+            "final_score": 0.3198
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.026399999999999993,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 1.2397999999999998,
+            "final_score": 0.3488
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.0575,
+            "final_score": 0.162
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.026999999999999996,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.7779,
+            "final_score": 0.3611
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.04830000000000001,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.0917,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 1.856,
+            "final_score": 0.3737
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.119,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.14550000000000002,
+            "final_score": 0.1752
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.1397,
+          0.3417,
+          0.3507,
+          0.1397,
+          0.1662,
+          0.2127,
+          0.167,
+          0.2355,
+          0.2375,
+          0.1716,
+          0.1726,
+          0.1726,
+          0.1626,
+          0.1626
+        ],
+        "mean_score": 0.19816,
+        "std_score": 0.06522356220467161
+      },
+      "123": {
+        "agent_type": "mira",
+        "seed": 123,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.006300000000000014,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.4521,
+            "final_score": 0.2119
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 1.5314999999999994,
+            "final_score": 0.2753
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.28890000000000005,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.01680000000000001,
+            "final_score": 0.2071
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.1417,
+            "final_score": 0.1635
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.5579999999999999,
+            "final_score": 0.2092
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.1504,
+            "final_score": 0.1716
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.017499999999999974,
+            "final_score": 0.1391
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.12719999999999998,
+            "final_score": 0.2324
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.027099999999999985,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.006600000000000009,
+            "final_score": 0.2088
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 0.3639999999999999,
+            "final_score": 0.2084
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.17500000000000002,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.023599999999999982,
+            "final_score": 0.2104
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.020800000000000013,
+            "final_score": 0.1972
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.04830000000000001,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.6073999999999999,
+            "final_score": 0.2085
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 0.03950000000000001,
+            "final_score": 0.139
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.11130000000000001,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.07090000000000002,
+            "final_score": 0.2078
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.04850000000000001,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.1017,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.40959999999999985,
+            "final_score": 0.1723
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.8059999999999996,
+            "final_score": 0.2179
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.09250000000000001,
+            "final_score": 0.1645
+          }
+        ],
+        "eval_scores": [
+          0.1382,
+          0.3528,
+          0.3533,
+          0.1394,
+          0.1395,
+          0.2341,
+          0.2062,
+          0.1619,
+          0.429,
+          0.1662,
+          0.1636,
+          0.1626,
+          0.1746,
+          0.1737,
+          0.209
+        ],
+        "mean_score": 0.21360666666666667,
+        "std_score": 0.08778812726609954
+      }
+    },
+    "overall": {
+      "mean": 0.20942133333333332,
+      "std": 0.009489652142084968,
+      "min": 0.19816,
+      "max": 0.22207333333333334,
+      "ci_95": [
+        0.20234166666666667,
+        0.21649600000000002
+      ]
+    }
+  },
+  "klong": {
+    "seeds": {
+      "1": {
+        "agent_type": "klong",
+        "seed": 1,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 0.04669999999999999,
+            "final_score": 0.1392
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 2.146,
+            "final_score": 0.3667
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.31339999999999996,
+            "final_score": 0.3411
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.04590000000000001,
+            "final_score": 0.207
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.0262,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.5775,
+            "final_score": 0.2099
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.2965999999999999,
+            "final_score": 0.2767
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 2.1347,
+            "final_score": 0.375
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 1.8599999999999994,
+            "final_score": 0.3313
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.10109999999999997,
+            "final_score": 0.2034
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 1.1550999999999998,
+            "final_score": 0.3508
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.13949999999999996,
+            "final_score": 0.2167
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 0.08009999999999999,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.1017,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.031400000000000025,
+            "final_score": 0.207
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.4564,
+            "final_score": 0.1779
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.09019999999999999,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.6115999999999999,
+            "final_score": 0.2136
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.022999999999999993,
+            "final_score": 0.2377
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 2.3207000000000004,
+            "final_score": 0.367
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.5432,
+            "final_score": 0.2143
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.10890000000000001,
+            "final_score": 0.1644
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.014499999999999999,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.006400000000000003,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.0778,
+            "final_score": 0.209
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.4092,
+            "final_score": 0.3401
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.1291,
+            "final_score": 0.2103
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.0699,
+            "final_score": 0.2417
+          }
+        ],
+        "eval_scores": [
+          0.3513,
+          0.3492,
+          0.351,
+          0.1397,
+          0.1397,
+          0.2182,
+          0.1662,
+          0.1661,
+          0.1618,
+          0.2144,
+          0.2423,
+          0.243,
+          0.1626,
+          0.2776,
+          0.2414
+        ],
+        "mean_score": 0.2283,
+        "std_score": 0.07315482212404047
+      },
+      "7": {
+        "agent_type": "klong",
+        "seed": 7,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.0996,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.05889999999999999,
+            "final_score": 0.1619
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.3086,
+            "final_score": 0.2096
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 1.2727000000000002,
+            "final_score": 0.3498
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.9189999999999999,
+            "final_score": 0.3698
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.14079999999999993,
+            "final_score": 0.2453
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.28060000000000007,
+            "final_score": 0.3416
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.4833,
+            "final_score": 0.2274
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.1856,
+            "final_score": 0.1777
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.8669,
+            "final_score": 0.3529
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 1.875,
+            "final_score": 0.2215
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.5634999999999999,
+            "final_score": 0.2131
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 1.2174999999999998,
+            "final_score": 0.3487
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.1097,
+            "final_score": 0.207
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.14550000000000002,
+            "final_score": 0.1752
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 1.7737000000000003,
+            "final_score": 0.3552
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.1899,
+            "final_score": 0.2085
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 2.991800000000004,
+            "final_score": 0.2873
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.7058,
+            "final_score": 0.361
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.19540000000000007,
+            "final_score": 0.2116
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.0892,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.3763,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.008499999999999786,
+            "final_score": 0.2057
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.0891,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.05850000000000001,
+            "final_score": 0.211
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -1.2745000000000002,
+            "final_score": 0.2685
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.1105,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.2095999999999999,
+            "final_score": 0.2083
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -2.7266999999999926,
+            "final_score": 0.1643
+          }
+        ],
+        "eval_scores": [
+          0.3488,
+          0.3409,
+          0.1397,
+          0.1396,
+          0.1397,
+          0.2613,
+          0.207,
+          0.2088,
+          0.1661,
+          0.162,
+          0.1987,
+          0.1636,
+          0.2773,
+          0.1646,
+          0.2787
+        ],
+        "mean_score": 0.21312000000000003,
+        "std_score": 0.06906938733380126
+      },
+      "21": {
+        "agent_type": "klong",
+        "seed": 21,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 5.521300000000001,
+            "final_score": 0.5695
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 1.3119999999999998,
+            "final_score": 0.4438
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 5.7442,
+            "final_score": 0.2959
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.32349999999999995,
+            "final_score": 0.3417
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.07919999999999999,
+            "final_score": 0.1976
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 2.7808000000000015,
+            "final_score": 0.3676
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.05850000000000001,
+            "final_score": 0.211
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.067,
+            "final_score": 0.1643
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.038400000000000004,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 3.1553000000000013,
+            "final_score": 0.3185
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.16499999999999998,
+            "final_score": 0.2724
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 12.4338,
+            "final_score": 0.6104
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.6775,
+            "final_score": 0.2113
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.09,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 5.1842,
+            "final_score": 0.3899
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.04850000000000001,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 1.1912000000000003,
+            "final_score": 0.4356
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 6.405299999999999,
+            "final_score": 0.3801
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.0883,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.016299999999999995,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 1.3609,
+            "final_score": 0.2762
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.016399999999999998,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.634,
+            "final_score": 0.2634
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 1.1213999999999995,
+            "final_score": 0.285
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.004399999999999987,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 1.9653000000000003,
+            "final_score": 0.2629
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": 0.01949999999999999,
+            "final_score": 0.2072
+          }
+        ],
+        "eval_scores": [
+          0.1396,
+          0.3406,
+          0.35,
+          0.1397,
+          0.1392,
+          0.2231,
+          0.2088,
+          0.1661,
+          0.1662,
+          0.2136,
+          0.2773,
+          0.2065,
+          0.2783,
+          0.3553,
+          0.2306
+        ],
+        "mean_score": 0.22899333333333335,
+        "std_score": 0.07345320021770475
+      },
+      "42": {
+        "agent_type": "klong",
+        "seed": 42,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 3.0944000000000003,
+            "final_score": 0.3604
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.7962999999999998,
+            "final_score": 0.375
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 2.2456,
+            "final_score": 0.3017
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.0063,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.20200000000000004,
+            "final_score": 0.2421
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.282,
+            "final_score": 0.3502
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.2813,
+            "final_score": 0.1694
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 1.3675999999999997,
+            "final_score": 0.427
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.015500000000000014,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.8909999999999998,
+            "final_score": 0.2263
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.1501,
+            "final_score": 0.1618
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.12309999999999986,
+            "final_score": 0.1381
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.1014999999999997,
+            "final_score": 0.2089
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.1549,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.0364,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.1189,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.09109999999999999,
+            "final_score": 0.2051
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.016399999999999998,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0943,
+            "final_score": 0.2078
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.37470000000000014,
+            "final_score": 0.2413
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 0.7887,
+            "final_score": 0.3458
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.37660000000000005,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.8492000000000008,
+            "final_score": 0.2718
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.16369999999999996,
+            "final_score": 0.1387
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.30249999999999955,
+            "final_score": 0.2251
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -2.067000000000001,
+            "final_score": 0.2617
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.32489999999999997,
+            "final_score": 0.3407
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.44600000000000006,
+            "final_score": 0.2078
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -2.649199999999994,
+            "final_score": 0.1851
+          }
+        ],
+        "eval_scores": [
+          0.1389,
+          0.1394,
+          0.3608,
+          0.1396,
+          0.1395,
+          0.1662,
+          0.162,
+          0.207,
+          0.2385,
+          0.443,
+          0.1626,
+          0.2759,
+          0.301,
+          0.2713,
+          0.2781
+        ],
+        "mean_score": 0.22825333333333334,
+        "std_score": 0.08955721349444101
+      },
+      "123": {
+        "agent_type": "klong",
+        "seed": 123,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.7519999999999999,
+            "final_score": 0.4146
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 2.1774,
+            "final_score": 0.3614
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.33390000000000003,
+            "final_score": 0.1659
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 1.3033,
+            "final_score": 0.3507
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.468,
+            "final_score": 0.2118
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.15230000000000002,
+            "final_score": 0.1645
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.059000000000000004,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.6794,
+            "final_score": 0.2178
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.026300000000000004,
+            "final_score": 0.1987
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.45909999999999995,
+            "final_score": 0.3433
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.11180000000000001,
+            "final_score": 0.166
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.04560000000000001,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": 0.8816000000000006,
+            "final_score": 0.2168
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.0175,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.0696,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 0.35629999999999995,
+            "final_score": 0.2065
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.038200000000000005,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.2771,
+            "final_score": 0.1745
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.014799999999999994,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": 0.3015,
+            "final_score": 0.3403
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.12260000000000001,
+            "final_score": 0.1747
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.1397,
+          0.3507,
+          0.1395,
+          0.1396,
+          0.1662,
+          0.2109,
+          0.1638,
+          0.2088,
+          0.1662,
+          0.1646,
+          0.1636,
+          0.1725,
+          0.1636,
+          0.1718
+        ],
+        "mean_score": 0.17741333333333337,
+        "std_score": 0.0509148683806825
+      }
+    },
+    "overall": {
+      "mean": 0.21521600000000002,
+      "std": 0.022160848660043073,
+      "min": 0.17741333333333337,
+      "max": 0.22899333333333335,
+      "ci_95": [
+        0.19767736666666674,
+        0.22856800000000002
+      ]
+    }
+  },
+  "memex": {
+    "seeds": {
+      "1": {
+        "agent_type": "memex",
+        "seed": 1,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 1.0668000000000002,
+            "final_score": 0.3499
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.33429999999999993,
+            "final_score": 0.1686
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.15180000000000002,
+            "final_score": 0.1725
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.07640000000000001,
+            "final_score": 0.2089
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 1.5417,
+            "final_score": 0.3487
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.06709999999999999,
+            "final_score": 0.1642
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.6587999999999999,
+            "final_score": 0.35
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": -0.0978,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 1.8365999999999996,
+            "final_score": 0.2785
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 0.07949999999999999,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.37799999999999995,
+            "final_score": 0.1655
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.08250000000000002,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.8877999999999999,
+            "final_score": 0.3544
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": 0.2914,
+            "final_score": 0.1712
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.08810000000000001,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.747,
+            "final_score": 0.361
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.2914,
+            "final_score": 0.1712
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": 1.5162000000000002,
+            "final_score": 0.3292
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 0.2914,
+            "final_score": 0.3427
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.0959,
+            "final_score": 0.211
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.04630000000000001,
+            "final_score": 0.2093
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 0.4085,
+            "final_score": 0.3404
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.7051999999999999,
+            "final_score": 0.2625
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 1.3923999999999999,
+            "final_score": 0.4357
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.005599999999999994,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.03510000000000001,
+            "final_score": 0.1726
+          }
+        ],
+        "eval_scores": [
+          0.3507,
+          0.1396,
+          0.1396,
+          0.1394,
+          0.341,
+          0.4546,
+          0.1662,
+          0.1694,
+          0.2088,
+          0.4456,
+          0.1626,
+          0.4013,
+          0.1751,
+          0.2065,
+          0.1626
+        ],
+        "mean_score": 0.2442,
+        "std_score": 0.11417349371314985
+      },
+      "7": {
+        "agent_type": "memex",
+        "seed": 7,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 1.9526,
+            "final_score": 0.3525
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.1829,
+            "final_score": 0.1635
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.34859999999999997,
+            "final_score": 0.1731
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": -0.09029999999999999,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.17620000000000002,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 1.7351999999999999,
+            "final_score": 0.2756
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.005500000000000005,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.7756000000000001,
+            "final_score": 0.2051
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.5125,
+            "final_score": 0.2446
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.6059999999999999,
+            "final_score": 0.3446
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.2630999999999999,
+            "final_score": 0.1641
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.02990000000000001,
+            "final_score": 0.1698
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.03629999999999999,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": -0.11180000000000001,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": 0.42539999999999994,
+            "final_score": 0.2176
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.10880000000000001,
+            "final_score": 0.1644
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": -0.015899999999999997,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.00739999999999999,
+            "final_score": 0.2088
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.0286,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.1017,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.12240000000000001,
+            "final_score": 0.1659
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.1549,
+            "final_score": 0.1645
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.016199999999999992,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.01630000000000001,
+            "final_score": 0.2103
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.0010000000000000286,
+            "final_score": 0.2728
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.13540000000000002,
+            "final_score": 0.1716
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.3512,
+          0.3541,
+          0.3507,
+          0.3512,
+          0.4158,
+          0.1662,
+          0.2103,
+          0.1827,
+          0.218,
+          0.1718,
+          0.1645,
+          0.1771,
+          0.2443,
+          0.1641
+        ],
+        "mean_score": 0.24411333333333332,
+        "std_score": 0.0897771824512715
+      },
+      "21": {
+        "agent_type": "memex",
+        "seed": 21,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": 1.0753,
+            "final_score": 0.3555
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.06860000000000001,
+            "final_score": 0.1654
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 0.8882,
+            "final_score": 0.3594
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": -0.11,
+            "final_score": 0.1619
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": 0.1347,
+            "final_score": 0.2315
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": -0.1213,
+            "final_score": 0.166
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": 0.35,
+            "final_score": 0.1983
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.2268,
+            "final_score": 0.139
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.5223000000000001,
+            "final_score": 0.2114
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 0.3139,
+            "final_score": 0.2731
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.30499999999999994,
+            "final_score": 0.1641
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 1.0239,
+            "final_score": 0.35
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": 0.017799999999999996,
+            "final_score": 0.1645
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.015699999999999992,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.06949999999999999,
+            "final_score": 0.2276
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.016299999999999995,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.1012,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.1348,
+            "final_score": 0.1636
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": 0.7203999999999999,
+            "final_score": 0.1719
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.026999999999999996,
+            "final_score": 0.1661
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.12360000000000002,
+            "final_score": 0.2084
+          }
+        ],
+        "eval_scores": [
+          0.1394,
+          0.1395,
+          0.3544,
+          0.1394,
+          0.3496,
+          0.2618,
+          0.1662,
+          0.1661,
+          0.1662,
+          0.1694,
+          0.1646,
+          0.1635,
+          0.1636,
+          0.2774,
+          0.1724
+        ],
+        "mean_score": 0.1995666666666667,
+        "std_score": 0.07121528550029754
+      },
+      "42": {
+        "agent_type": "memex",
+        "seed": 42,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.0779,
+            "final_score": 0.1394
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1662
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": 0.127,
+            "final_score": 0.2745
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 1.3629999999999998,
+            "final_score": 0.3589
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.21510000000000004,
+            "final_score": 0.1654
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.025300000000000003,
+            "final_score": 0.1646
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": 0.5029,
+            "final_score": 0.3406
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.5791000000000001,
+            "final_score": 0.2121
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.1348,
+            "final_score": 0.1636
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": 0.1529,
+            "final_score": 0.1391
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 1.5823999999999998,
+            "final_score": 0.235
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": -0.1003,
+            "final_score": 0.1393
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.04920000000000001,
+            "final_score": 0.2088
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": 0.08549999999999998,
+            "final_score": 0.2754
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 2.1995999999999998,
+            "final_score": 0.3618
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.0977,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.10890000000000001,
+            "final_score": 0.1751
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 1.0358,
+            "final_score": 0.348
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.5142,
+            "final_score": 0.2299
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.08349999999999999,
+            "final_score": 0.2067
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": -0.11130000000000001,
+            "final_score": 0.1396
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": 0.04640000000000001,
+            "final_score": 0.2111
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": -0.041,
+            "final_score": 0.2093
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 2.8752,
+            "final_score": 0.3706
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": 0.040499999999999994,
+            "final_score": 0.2341
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.13540000000000002,
+            "final_score": 0.1716
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": -0.0975,
+            "final_score": 0.2069
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": 0.2793,
+            "final_score": 0.2435
+          }
+        ],
+        "eval_scores": [
+          0.1397,
+          0.1396,
+          0.1393,
+          0.1396,
+          0.3403,
+          0.1662,
+          0.2215,
+          0.1638,
+          0.2102,
+          0.1662,
+          0.2428,
+          0.2102,
+          0.1626,
+          0.2437,
+          0.1726
+        ],
+        "mean_score": 0.19055333333333332,
+        "std_score": 0.05361535683821278
+      },
+      "123": {
+        "agent_type": "memex",
+        "seed": 123,
+        "episodes": 30,
+        "history": [
+          {
+            "episode": 0,
+            "task_id": "easy_bench",
+            "total_reward": -0.069,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 1,
+            "task_id": "medium_bench",
+            "total_reward": 0.45160000000000006,
+            "final_score": 0.1671
+          },
+          {
+            "episode": 2,
+            "task_id": "hard_bench",
+            "total_reward": -0.08929999999999999,
+            "final_score": 0.2067
+          },
+          {
+            "episode": 3,
+            "task_id": "easy_bench",
+            "total_reward": 1.1111,
+            "final_score": 0.3464
+          },
+          {
+            "episode": 4,
+            "task_id": "medium_bench",
+            "total_reward": 0.6405000000000001,
+            "final_score": 0.2097
+          },
+          {
+            "episode": 5,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 6,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 7,
+            "task_id": "medium_bench",
+            "total_reward": 0.9587000000000003,
+            "final_score": 0.2338
+          },
+          {
+            "episode": 8,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 9,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 10,
+            "task_id": "medium_bench",
+            "total_reward": 0.038199999999999984,
+            "final_score": 0.2071
+          },
+          {
+            "episode": 11,
+            "task_id": "hard_bench",
+            "total_reward": 1.1758,
+            "final_score": 0.2428
+          },
+          {
+            "episode": 12,
+            "task_id": "easy_bench",
+            "total_reward": 1.0242999999999998,
+            "final_score": 0.3519
+          },
+          {
+            "episode": 13,
+            "task_id": "medium_bench",
+            "total_reward": 0.2792,
+            "final_score": 0.2104
+          },
+          {
+            "episode": 14,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 15,
+            "task_id": "easy_bench",
+            "total_reward": 0.006300000000000014,
+            "final_score": 0.1395
+          },
+          {
+            "episode": 16,
+            "task_id": "medium_bench",
+            "total_reward": -0.045899999999999996,
+            "final_score": 0.162
+          },
+          {
+            "episode": 17,
+            "task_id": "hard_bench",
+            "total_reward": -0.14550000000000002,
+            "final_score": 0.1752
+          },
+          {
+            "episode": 18,
+            "task_id": "easy_bench",
+            "total_reward": 0.34440000000000004,
+            "final_score": 0.3417
+          },
+          {
+            "episode": 19,
+            "task_id": "medium_bench",
+            "total_reward": 0.006900000000000031,
+            "final_score": 0.2087
+          },
+          {
+            "episode": 20,
+            "task_id": "hard_bench",
+            "total_reward": -0.1312,
+            "final_score": 0.1626
+          },
+          {
+            "episode": 21,
+            "task_id": "easy_bench",
+            "total_reward": 0.483,
+            "final_score": 0.3497
+          },
+          {
+            "episode": 22,
+            "task_id": "medium_bench",
+            "total_reward": -0.05830000000000001,
+            "final_score": 0.166
+          },
+          {
+            "episode": 23,
+            "task_id": "hard_bench",
+            "total_reward": 0.11620000000000001,
+            "final_score": 0.1766
+          },
+          {
+            "episode": 24,
+            "task_id": "easy_bench",
+            "total_reward": 2.013600000000002,
+            "final_score": 0.3532
+          },
+          {
+            "episode": 25,
+            "task_id": "medium_bench",
+            "total_reward": -0.11380000000000001,
+            "final_score": 0.1637
+          },
+          {
+            "episode": 26,
+            "task_id": "hard_bench",
+            "total_reward": -0.08850000000000001,
+            "final_score": 0.1726
+          },
+          {
+            "episode": 27,
+            "task_id": "easy_bench",
+            "total_reward": -0.0912,
+            "final_score": 0.1397
+          },
+          {
+            "episode": 28,
+            "task_id": "medium_bench",
+            "total_reward": 0.2814,
+            "final_score": 0.1694
+          },
+          {
+            "episode": 29,
+            "task_id": "hard_bench",
+            "total_reward": -0.03510000000000002,
+            "final_score": 0.1768
+          }
+        ],
+        "eval_scores": [
+          0.1395,
+          0.1396,
+          0.3539,
+          0.3484,
+          0.139,
+          0.1641,
+          0.1662,
+          0.2101,
+          0.1662,
+          0.1664,
+          0.1636,
+          0.2108,
+          0.1752,
+          0.2093,
+          0.1787
+        ],
+        "mean_score": 0.19539999999999996,
+        "std_score": 0.0652284498257215
+      }
+    },
+    "overall": {
+      "mean": 0.2147666666666667,
+      "std": 0.027018240340760745,
+      "min": 0.19055333333333332,
+      "max": 0.2442,
+      "ci_95": [
+        0.19429466666666664,
+        0.23523866666666668
+      ]
+    }
+  }
+}

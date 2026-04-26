@@ -1,0 +1,4 @@
+policy,base_task,horizon_days,final_score,total_reward,token_efficiency_score
+rule_based_memory,medium_bench,30,0.3418,6.8794,1.0
+rule_based_memory,medium_bench,90,0.5957,17.7715,1.0
+rule_based_memory,medium_bench,180,0.6096,36.9862,1.0

@@ -1,0 +1,771 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "mcp-excalidraw-server",
+  "elements": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 80,
+      "y": 20,
+      "width": 600,
+      "height": 45,
+      "strokeColor": "#1e1e1e",
+      "text": "Adaptive Clinical Trial Recruitment - Architecture",
+      "fontSize": 28,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "createdAt": "2026-04-12T11:17:47.659Z",
+      "updatedAt": "2026-04-12T11:17:47.659Z",
+      "version": 1
+    },
+    {
+      "id": "agent-box",
+      "type": "rectangle",
+      "x": 160,
+      "y": 100,
+      "width": 280,
+      "height": 70,
+      "backgroundColor": "#a5d8ff",
+      "strokeColor": "#1971c2",
+      "label": {
+        "text": "Agent (inference.py)\nLLM + Rule-based Hybrid"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.659Z",
+      "updatedAt": "2026-04-12T11:17:47.659Z",
+      "version": 1
+    },
+    {
+      "id": "api-box",
+      "type": "rectangle",
+      "x": 160,
+      "y": 240,
+      "width": 280,
+      "height": 70,
+      "backgroundColor": "#b2f2bb",
+      "strokeColor": "#2f9e44",
+      "label": {
+        "text": "FastAPI Server (app.py)\n/reset  /step  /state  /tasks"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.659Z",
+      "updatedAt": "2026-04-12T11:17:47.659Z",
+      "version": 1
+    },
+    {
+      "id": "env-box",
+      "type": "rectangle",
+      "x": 120,
+      "y": 390,
+      "width": 360,
+      "height": 80,
+      "backgroundColor": "#ffec99",
+      "strokeColor": "#e67700",
+      "label": {
+        "text": "ClinicalRecruitmentEnv (env.py)\n180-day episodes  |  5 action types\n6-component reward"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.659Z",
+      "updatedAt": "2026-04-12T11:17:47.659Z",
+      "version": 1
+    },
+    {
+      "id": "screen-box",
+      "type": "rectangle",
+      "x": 30,
+      "y": 550,
+      "width": 160,
+      "height": 60,
+      "backgroundColor": "#d0bfff",
+      "strokeColor": "#7048e8",
+      "label": {
+        "text": "Screening"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "enroll-box",
+      "type": "rectangle",
+      "x": 230,
+      "y": 550,
+      "width": 160,
+      "height": 60,
+      "backgroundColor": "#d0bfff",
+      "strokeColor": "#7048e8",
+      "label": {
+        "text": "Enrollment"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "retain-box",
+      "type": "rectangle",
+      "x": 430,
+      "y": 550,
+      "width": 160,
+      "height": 60,
+      "backgroundColor": "#d0bfff",
+      "strokeColor": "#7048e8",
+      "label": {
+        "text": "Retention"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "funnel-label",
+      "type": "text",
+      "x": 190,
+      "y": 520,
+      "width": 250,
+      "height": 24,
+      "strokeColor": "#7048e8",
+      "text": "Recruitment Funnel",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "grader-easy",
+      "type": "diamond",
+      "x": 30,
+      "y": 680,
+      "width": 160,
+      "height": 80,
+      "backgroundColor": "#ffc9c9",
+      "strokeColor": "#c92a2a",
+      "label": {
+        "text": "Easy Grader"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "grader-medium",
+      "type": "diamond",
+      "x": 230,
+      "y": 680,
+      "width": 170,
+      "height": 80,
+      "backgroundColor": "#ffc9c9",
+      "strokeColor": "#c92a2a",
+      "label": {
+        "text": "Medium Grader"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "grader-hard",
+      "type": "diamond",
+      "x": 440,
+      "y": 680,
+      "width": 160,
+      "height": 80,
+      "backgroundColor": "#ffc9c9",
+      "strokeColor": "#c92a2a",
+      "label": {
+        "text": "Hard Grader"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "patients-box",
+      "type": "ellipse",
+      "x": 600,
+      "y": 260,
+      "width": 200,
+      "height": 70,
+      "backgroundColor": "#ffe8cc",
+      "strokeColor": "#d9480f",
+      "label": {
+        "text": "Patient Pool\n(load_traces.py)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "sites-box",
+      "type": "ellipse",
+      "x": 600,
+      "y": 380,
+      "width": 200,
+      "height": 70,
+      "backgroundColor": "#ffe8cc",
+      "strokeColor": "#d9480f",
+      "label": {
+        "text": "Recruitment Sites\n(1-5 sites)"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "events-box",
+      "type": "ellipse",
+      "x": 600,
+      "y": 500,
+      "width": 200,
+      "height": 70,
+      "backgroundColor": "#ffe8cc",
+      "strokeColor": "#d9480f",
+      "label": {
+        "text": "Events & Curriculum\nInjections"
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "score-box",
+      "type": "rectangle",
+      "x": 210,
+      "y": 810,
+      "width": 200,
+      "height": 50,
+      "backgroundColor": "#c3fae8",
+      "strokeColor": "#087f5b",
+      "label": {
+        "text": "Score: 0.0 - 1.0"
+      },
+      "roundness": {
+        "type": 3
+      },
+      "fillStyle": "solid",
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1
+    },
+    {
+      "id": "mnvo6gp8494leg96inm",
+      "type": "arrow",
+      "x": 300,
+      "y": 178,
+      "strokeColor": "#1971c2",
+      "strokeWidth": 2,
+      "label": {
+        "text": "Actions"
+      },
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          54
+        ]
+      ],
+      "startBinding": {
+        "elementId": "agent-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "api-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gp8lz93wq43a0a",
+      "type": "arrow",
+      "x": 300,
+      "y": 318,
+      "strokeColor": "#2f9e44",
+      "strokeWidth": 2,
+      "label": {
+        "text": "step() / reset()"
+      },
+      "createdAt": "2026-04-12T11:17:47.660Z",
+      "updatedAt": "2026-04-12T11:17:47.660Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          64
+        ]
+      ],
+      "startBinding": {
+        "elementId": "api-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gp9h8ev9pqbtf",
+      "type": "arrow",
+      "x": 243.05427120906597,
+      "y": 474.95715430863214,
+      "strokeColor": "#7048e8",
+      "strokeWidth": 2,
+      "createdAt": "2026-04-12T11:17:47.661Z",
+      "updatedAt": "2026-04-12T11:17:47.661Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -88.77520908479858,
+          70.08569138273566
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "screen-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gp9cykaxovmtsq",
+      "type": "arrow",
+      "x": 303.1988187508569,
+      "y": 477.9822812628529,
+      "strokeColor": "#7048e8",
+      "strokeWidth": 2,
+      "createdAt": "2026-04-12T11:17:47.661Z",
+      "updatedAt": "2026-04-12T11:17:47.661Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          4.269029164952883,
+          64.03543747429421
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "enroll-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gp981fti8e8l5",
+      "type": "arrow",
+      "x": 362.50986776965385,
+      "y": 474.64990554975276,
+      "strokeColor": "#7048e8",
+      "strokeWidth": 2,
+      "createdAt": "2026-04-12T11:17:47.661Z",
+      "updatedAt": "2026-04-12T11:17:47.661Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          98.9802644606923,
+          70.70018890049442
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "retain-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gp9ay24u81zeyc",
+      "type": "arrow",
+      "x": 198,
+      "y": 580,
+      "strokeColor": "#862e9c",
+      "strokeWidth": 2,
+      "label": {
+        "text": "eligible"
+      },
+      "createdAt": "2026-04-12T11:17:47.661Z",
+      "updatedAt": "2026-04-12T11:17:47.661Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          24,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "screen-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "enroll-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpac8u97tbkfvi",
+      "type": "arrow",
+      "x": 398,
+      "y": 580,
+      "strokeColor": "#862e9c",
+      "strokeWidth": 2,
+      "label": {
+        "text": "consented"
+      },
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          24,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "enroll-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "retain-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpa3qga4s9oogg",
+      "type": "arrow",
+      "x": 110,
+      "y": 618,
+      "strokeColor": "#c92a2a",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          54
+        ]
+      ],
+      "startBinding": {
+        "elementId": "screen-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "grader-easy",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpak0zwuszxo8m",
+      "type": "arrow",
+      "x": 311.3569608155279,
+      "y": 617.9949028347804,
+      "strokeColor": "#c92a2a",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1.9525482626868325,
+          54.67135135523256
+        ]
+      ],
+      "startBinding": {
+        "elementId": "enroll-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "grader-medium",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpatfmoqusqerd",
+      "type": "arrow",
+      "x": 512.7128335427604,
+      "y": 617.9796695986458,
+      "strokeColor": "#c92a2a",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          3.9585693676810934,
+          55.419971147535875
+        ]
+      ],
+      "startBinding": {
+        "elementId": "retain-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "grader-hard",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpa35wy657z8n5",
+      "type": "arrow",
+      "x": 312.94824155416046,
+      "y": 767.1904442543091,
+      "strokeColor": "#087f5b",
+      "strokeWidth": 2,
+      "label": {
+        "text": "grade()"
+      },
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -1.5137872382108526,
+          34.817106478850405
+        ]
+      ],
+      "startBinding": {
+        "elementId": "grader-medium",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "score-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpaig2zk9ddvo",
+      "type": "arrow",
+      "x": 425.8171307282993,
+      "y": 386.7242924716577,
+      "strokeColor": "#d9480f",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          172.1350291632,
+          -77.25633239777909
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "patients-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpabisd9dx80cc",
+      "type": "arrow",
+      "x": 487.9866763061663,
+      "y": 422.7884790573313,
+      "strokeColor": "#d9480f",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          104.0968858167493,
+          -6.015379994044281
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "sites-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "mnvo6gpa4q9fv80oukh",
+      "type": "arrow",
+      "x": 459.8792754368219,
+      "y": 472.7883958380789,
+      "strokeColor": "#d9480f",
+      "strokeWidth": 1,
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          135.89930496936518,
+          50.536773829418564
+        ]
+      ],
+      "startBinding": {
+        "elementId": "env-box",
+        "focus": 0,
+        "gap": 8
+      },
+      "endBinding": {
+        "elementId": "events-box",
+        "focus": 0,
+        "gap": 8
+      }
+    },
+    {
+      "id": "obs-arrow",
+      "type": "arrow",
+      "x": 160,
+      "y": 275,
+      "strokeColor": "#1971c2",
+      "strokeWidth": 2,
+      "strokeStyle": "dashed",
+      "label": {
+        "text": "Observation\n+ Reward"
+      },
+      "roundness": {
+        "type": 2
+      },
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -60,
+          0
+        ],
+        [
+          -60,
+          -140
+        ],
+        [
+          0,
+          -140
+        ]
+      ],
+      "createdAt": "2026-04-12T11:17:47.662Z",
+      "updatedAt": "2026-04-12T11:17:47.662Z",
+      "version": 1
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff",
+    "gridSize": null
+  },
+  "files": {}
+}

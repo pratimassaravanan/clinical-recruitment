@@ -1,0 +1,4 @@
+policy,base_task,horizon_days,avg_final_score,avg_total_reward,avg_enrolled,avg_target,avg_budget_remaining,avg_plan_steps,avg_memory_writes,avg_memory_hits,avg_milestone_potential,avg_trajectory_chunks
+rule_based_memory,medium_bench,30,0.2968,6.608,0.0,20.0,55100.0,0.0,2.0,0.0,0.7612,2.0
+rule_based_memory,medium_bench,90,0.5461,16.9391,9.0,60.0,56800.0,0.0,4.0,1.0,0.7506,6.0
+rule_based_memory,medium_bench,180,0.56,35.6013,19.0,120.0,60800.0,0.0,4.0,1.0,0.7174,11.0

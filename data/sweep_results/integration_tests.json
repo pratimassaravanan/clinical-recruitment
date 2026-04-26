@@ -1,0 +1,56 @@
+{
+  "easy_bench": {
+    "passed": 10,
+    "total": 10,
+    "checks": {
+      "has_patients": true,
+      "has_site_performance": true,
+      "has_milestones": true,
+      "has_causal_insight": true,
+      "has_memory": true,
+      "has_plan": true,
+      "has_token_budget": true,
+      "ran_multiple_steps": true,
+      "multiple_action_types": true,
+      "non_zero_reward": true
+    },
+    "steps_run": 20,
+    "total_reward": 4.683600000000001
+  },
+  "medium_bench": {
+    "passed": 10,
+    "total": 10,
+    "checks": {
+      "has_patients": true,
+      "has_site_performance": true,
+      "has_milestones": true,
+      "has_causal_insight": true,
+      "has_memory": true,
+      "has_plan": true,
+      "has_token_budget": true,
+      "ran_multiple_steps": true,
+      "multiple_action_types": true,
+      "non_zero_reward": true
+    },
+    "steps_run": 20,
+    "total_reward": 2.6390000000000002
+  },
+  "hard_bench": {
+    "passed": 10,
+    "total": 10,
+    "checks": {
+      "has_patients": true,
+      "has_site_performance": true,
+      "has_milestones": true,
+      "has_causal_insight": true,
+      "has_memory": true,
+      "has_plan": true,
+      "has_token_budget": true,
+      "ran_multiple_steps": true,
+      "multiple_action_types": true,
+      "non_zero_reward": true
+    },
+    "steps_run": 20,
+    "total_reward": 2.1073999999999997
+  }
+}

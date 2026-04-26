@@ -1,0 +1,14 @@
+{
+  "id": "kaushiksarav/clinical-qwen3-4b-5k-sft-v4-exploit-aware",
+  "title": "Clinical Qwen3-4B 5K SFT v4 (exploit-aware)",
+  "code_file": "projectblazer.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["kaushiksarav/clinical-sft-traces-5k"],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "_note": "v4: world_type exploit, confidence=0.9, no plan/memory actions, MAX_SEQ=768, 3 epochs, batch=2"
+}

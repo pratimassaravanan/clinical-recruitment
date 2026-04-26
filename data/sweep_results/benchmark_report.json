@@ -1,0 +1,224 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-21T20:21:23.615340",
+    "framework": "Clinical Recruitment Environment",
+    "version": "1.0.0"
+  },
+  "sweep_results": {
+    "hcapo": {
+      "mean": 0.22150533333333336,
+      "std": 0.012738265536912353,
+      "ci_95": [
+        0.21003733333333333,
+        0.2303066666666666
+      ],
+      "n_seeds": 5,
+      "per_seed": {
+        "1": 0.21545333333333333,
+        "7": 0.22881999999999994,
+        "21": 0.22878666666666667,
+        "42": 0.23255333333333333,
+        "123": 0.2019133333333333
+      }
+    },
+    "mira": {
+      "mean": 0.20942133333333332,
+      "std": 0.009489652142084968,
+      "ci_95": [
+        0.20234166666666667,
+        0.21649600000000002
+      ],
+      "n_seeds": 5,
+      "per_seed": {
+        "1": 0.20214666666666667,
+        "7": 0.22207333333333334,
+        "21": 0.21112,
+        "42": 0.19816,
+        "123": 0.21360666666666667
+      }
+    },
+    "klong": {
+      "mean": 0.21521600000000002,
+      "std": 0.022160848660043073,
+      "ci_95": [
+        0.19767736666666674,
+        0.22856800000000002
+      ],
+      "n_seeds": 5,
+      "per_seed": {
+        "1": 0.2283,
+        "7": 0.21312000000000003,
+        "21": 0.22899333333333335,
+        "42": 0.22825333333333334,
+        "123": 0.17741333333333337
+      }
+    },
+    "memex": {
+      "mean": 0.2147666666666667,
+      "std": 0.027018240340760745,
+      "ci_95": [
+        0.19429466666666664,
+        0.23523866666666668
+      ],
+      "n_seeds": 5,
+      "per_seed": {
+        "1": 0.2442,
+        "7": 0.24411333333333332,
+        "21": 0.1995666666666667,
+        "42": 0.19055333333333332,
+        "123": 0.19539999999999996
+      }
+    }
+  },
+  "statistical_tests": {
+    "comparisons": [
+      {
+        "agent1": "hcapo",
+        "agent2": "mira",
+        "n_pairs": 5,
+        "mean_diff": 0.01208400000000004,
+        "t_stat": 1.611761605341321,
+        "t_pvalue": 0.18230638345021075,
+        "wilcoxon_stat": 2.0,
+        "wilcoxon_pvalue": 0.1875,
+        "cohens_d": 1.075852017435355,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "hcapo",
+        "agent2": "klong",
+        "n_pairs": 5,
+        "mean_diff": 0.006289333333333341,
+        "t_stat": 0.9748087240802832,
+        "t_pvalue": 0.3848528823160801,
+        "wilcoxon_stat": 4.0,
+        "wilcoxon_pvalue": 0.4375,
+        "cohens_d": 0.34796946744430446,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "hcapo",
+        "agent2": "memex",
+        "n_pairs": 5,
+        "mean_diff": 0.006738666666666671,
+        "t_stat": 0.5098733193775441,
+        "t_pvalue": 0.6369849247541809,
+        "wilcoxon_stat": 5.0,
+        "wilcoxon_pvalue": 0.625,
+        "cohens_d": 0.31904063808368666,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "mira",
+        "agent2": "klong",
+        "n_pairs": 5,
+        "mean_diff": -0.005794666666666698,
+        "t_stat": -0.46310747060507923,
+        "t_pvalue": 0.6673622325682697,
+        "wilcoxon_stat": 6.0,
+        "wilcoxon_pvalue": 0.8125,
+        "cohens_d": -0.3399357401009534,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "mira",
+        "agent2": "memex",
+        "n_pairs": 5,
+        "mean_diff": -0.005345333333333369,
+        "t_stat": -0.4657630128410866,
+        "t_pvalue": 0.6656156461080275,
+        "wilcoxon_stat": 6.0,
+        "wilcoxon_pvalue": 0.8125,
+        "cohens_d": -0.26398095010470235,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      },
+      {
+        "agent1": "klong",
+        "agent2": "memex",
+        "n_pairs": 5,
+        "mean_diff": 0.00044933333333332937,
+        "t_stat": 0.03249932373651784,
+        "t_pvalue": 0.9756308691457065,
+        "wilcoxon_stat": 7.0,
+        "wilcoxon_pvalue": 1.0,
+        "cohens_d": 0.018184864124144474,
+        "significant_05": false,
+        "significant_01": false,
+        "bonferroni_sig": false,
+        "holm_sig": false
+      }
+    ],
+    "n_comparisons": 6
+  },
+  "integration_tests": {
+    "easy_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 4.683600000000001
+    },
+    "medium_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 2.6390000000000002
+    },
+    "hard_bench": {
+      "passed": 10,
+      "total": 10,
+      "checks": {
+        "has_patients": true,
+        "has_site_performance": true,
+        "has_milestones": true,
+        "has_causal_insight": true,
+        "has_memory": true,
+        "has_plan": true,
+        "has_token_budget": true,
+        "ran_multiple_steps": true,
+        "multiple_action_types": true,
+        "non_zero_reward": true
+      },
+      "steps_run": 20,
+      "total_reward": 2.1073999999999997
+    }
+  }
+}

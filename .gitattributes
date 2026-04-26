@@ -1,0 +1,9 @@
+docs/communication/adaptive_clinical_recruitment_posters.pdf filter=lfs diff=lfs merge=lfs -text
+docs/communication/poster_level_1_beginner.png filter=lfs diff=lfs merge=lfs -text
+docs/communication/poster_level_2_mechanics.png filter=lfs diff=lfs merge=lfs -text
+docs/communication/poster_level_3_implementation.png filter=lfs diff=lfs merge=lfs -text
+docs/communication/poster_level_4_results.png filter=lfs diff=lfs merge=lfs -text
+docs/communication/poster_level_5_reviewer.png filter=lfs diff=lfs merge=lfs -text
+docs/images/environment_architecture.png filter=lfs diff=lfs merge=lfs -text
+docs/images/agent_architectures.png filter=lfs diff=lfs merge=lfs -text
+docs/images/training_pipeline.png filter=lfs diff=lfs merge=lfs -text

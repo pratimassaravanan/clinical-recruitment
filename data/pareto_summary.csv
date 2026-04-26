@@ -1,0 +1,13 @@
+policy,task,avg_final_score,avg_budget_remaining,avg_token_efficiency_score
+conservative_retention,easy_bench,0.6625,37300.0,1.0
+conservative_retention,hard_bench,0.6051,6500.0,0.987
+conservative_retention,medium_bench,0.5805,51100.0,1.0
+greedy_screen,easy_bench,0.4939,14400.0,0.825
+greedy_screen,hard_bench,0.2446,100.0,0.859
+greedy_screen,medium_bench,0.299,23600.0,0.825
+rule_based_memory,easy_bench,0.7198,47700.0,1.0
+rule_based_memory,hard_bench,0.489,9100.0,0.98
+rule_based_memory,medium_bench,0.659,63250.0,0.998
+site_negotiation,easy_bench,0.5359,4800.0,1.0
+site_negotiation,hard_bench,0.3794,100.0,0.982
+site_negotiation,medium_bench,0.6202,19700.0,1.0

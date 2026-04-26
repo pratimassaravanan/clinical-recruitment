@@ -1,0 +1,21 @@
+{
+  "final_bundle": "grpo_job-69ed6d57",
+  "best_job_id": "69ed6d57",
+  "best_model_repo": "https://huggingface.co/pratimassaravanan/grpo",
+  "base_model_repo": "https://huggingface.co/Qwen/Qwen3-1.7B",
+  "environment_url": "https://pratimassaravanan-clinical-recruitment.hf.space",
+  "openenv_ui_url": "https://pratimassaravanan-clinical-recruitment.hf.space/web/",
+  "space_repo": "https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment",
+  "blog_url": "https://huggingface.co/spaces/pratimassaravanan/clinical-recruitment/blob/main/Blog.md",
+  "artifacts_repo": "https://huggingface.co/pratimassaravanan/clinical-recruitment-artifacts",
+  "comparison_models": [
+    "https://huggingface.co/pratimassaravanan/grpo_output",
+    "https://huggingface.co/pratimassaravanan/clinical-qwen3-4b-sft-lora"
+  ],
+  "best_training_script": "train_sft_grpo_hfjob.py",
+  "notes": [
+    "This bundle stores pointers, not duplicated model weights.",
+    "Current running jobs are not part of the final answer unless they later beat the published best run.",
+    "The repo-root train.py is a newer local SFT path; the best published model came from train_sft_grpo_hfjob.py."
+  ]
+}

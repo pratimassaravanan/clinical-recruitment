@@ -1,0 +1,212 @@
+[
+  {
+    "step": 1,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 2,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 3,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 4,
+    "loss": 0.007471,
+    "grad_norm": 0.2604,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 5,
+    "loss": 0.009167,
+    "grad_norm": 0.2782,
+    "reward": 0.3131,
+    "reward_std": 0.005052
+  },
+  {
+    "step": 6,
+    "loss": -0.003114,
+    "grad_norm": 0.2918,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 7,
+    "loss": 0.005694,
+    "grad_norm": 0.2161,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 8,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 9,
+    "loss": -0.008431,
+    "grad_norm": 0.3437,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 10,
+    "loss": 0.005694,
+    "grad_norm": 0.2672,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 11,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 12,
+    "loss": 0.00177,
+    "grad_norm": 0.2459,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 13,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 14,
+    "loss": 0.007626,
+    "grad_norm": 0.2756,
+    "reward": 0.3131,
+    "reward_std": 0.005052
+  },
+  {
+    "step": 15,
+    "loss": 0.000889,
+    "grad_norm": 0.2126,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 16,
+    "loss": 0.004425,
+    "grad_norm": 0.2659,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 17,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 18,
+    "loss": 0.006112,
+    "grad_norm": 0.2945,
+    "reward": 0.3131,
+    "reward_std": 0.005052
+  },
+  {
+    "step": 19,
+    "loss": 0.004593,
+    "grad_norm": 0.2227,
+    "reward": 0.3131,
+    "reward_std": 0.005052
+  },
+  {
+    "step": 20,
+    "loss": 0.01186,
+    "grad_norm": 0.2043,
+    "reward": 0.3153,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 21,
+    "loss": 0.01064,
+    "grad_norm": 0.2298,
+    "reward": 0.3131,
+    "reward_std": 0.005052
+  },
+  {
+    "step": 22,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 23,
+    "loss": 0.008407,
+    "grad_norm": 0.2678,
+    "reward": 0.3153,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 24,
+    "loss": -0.004013,
+    "grad_norm": 0.2683,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 25,
+    "loss": 0.005261,
+    "grad_norm": 0.2147,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 26,
+    "loss": 0.003976,
+    "grad_norm": 0.237,
+    "reward": 0.3153,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 27,
+    "loss": 0.008407,
+    "grad_norm": 0.2066,
+    "reward": 0.3153,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 28,
+    "loss": 0.006558,
+    "grad_norm": 0.2262,
+    "reward": 0.3109,
+    "reward_std": 0.004375
+  },
+  {
+    "step": 29,
+    "loss": 0,
+    "grad_norm": 0,
+    "reward": 0.3088,
+    "reward_std": 0
+  },
+  {
+    "step": 30,
+    "loss": 0.003976,
+    "grad_norm": 0.2386,
+    "reward": 0.3153,
+    "reward_std": 0.004375
+  }
+]

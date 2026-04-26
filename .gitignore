@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+archive/lightning_output/lora_adapter/madapter_model.safetensors
+# Virtual environments
+.venv/
+venv/
+env/
+archive/session-ses_2537.md
+archive/session-ses_27ed.md
+
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local logs
+*.log
+
+# Large local training artifacts (keep local / push to HF separately)
+data/sft_traces_5k.json
+data/sft_traces_5k_v2.json
+data/sft_traces_5k_v3.json
+data/sft_traces_5k_v4.json
+data/sft_traces_5k_v5.json
+data/training_outputs/lightning_sft_checkpoint/
+lightning_output/lora_adapter/adapter_model.safetensors

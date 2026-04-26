@@ -1,0 +1,3 @@
+variant,avg_final_score,avg_total_reward,avg_token_efficiency
+linear,0.4346,9.361,0.9895
+mlp,0.5119,6.786,1.0
