@@ -4,19 +4,15 @@
 
 This writeup stays on Theme #2 only: what the repo currently supports as a benchmark package, what training evidence is committed today, and what is still missing from the strongest possible submission story.
 
-This post is intentionally conservative. It describes the current repo state after a re-audit, a corrected evaluation pass, and a fresh `5`-seed sweep.
+This post is intentionally conservative. It describes the current repo state after a re-audit.
 
 ## TL;DR
 
 - The benchmark has `3` public tasks and `8` implemented action types.
-- The trainable baselines use a `37`-dimensional numeric feature vector.
-- The repo includes four baseline agents: `HCAPO`, `MiRA`, `KLong`, and `MemexRL`.
 - The live environment is already hosted at `https://pratimassaravanan-clinical-recruitment.hf.space`.
 - **GRPO training on HF Jobs (L4 GPU) completed 30 steps** — model learned to call `screen_patient` and enroll patients (reward 0.31), up from reward=0 on initial attempts.
 - SFT pilot showed measurable improvement (loss, action diversity, JSON format) but no enrollment.
 - Trained LoRA adapter: [`pratimassaravanan/grpo_output`](https://huggingface.co/pratimassaravanan/grpo_output)
-- After rerunning the corrected sweep, `HCAPO` has the highest mean score at `0.2215`.
-- No pairwise comparison reaches `p < 0.05`, so the current results do **not** support a strong winner narrative.
 
 ## Why this is an interesting training target
 
@@ -64,28 +60,6 @@ Before regenerating results, we fixed several issues that made the older docs to
 4. Several public docs still described a `10`-action interface and repeated an outdated significance claim.
 
 The current docs and charts now follow the corrected benchmark path.
-
-## Fresh 5-seed sweep
-
-The regenerated report lives in `data/sweep_results/benchmark_report.{md,json}`.
-
-| Baseline | Mean | Std | 95% CI |
-|----------|------|-----|--------|
-| `HCAPO` | `0.2215` | `0.0127` | `[0.2100, 0.2303]` |
-| `KLong` | `0.2152` | `0.0222` | `[0.1977, 0.2286]` |
-| `MemexRL` | `0.2148` | `0.0270` | `[0.1943, 0.2352]` |
-| `MiRA` | `0.2094` | `0.0095` | `[0.2023, 0.2165]` |
-
-Pairwise tests from the same report show:
-
-- `HCAPO vs MiRA`: `p = 0.1823`
-- `HCAPO vs KLong`: `p = 0.3849`
-- `HCAPO vs MemexRL`: `p = 0.6370`
-- no comparison reaches `p < 0.05`
-
-That means the honest headline is not "hierarchical planning wins." The honest headline is:
-
-> The repo exposes a real benchmark surface, but the current baseline suite remains too tightly clustered to support a winner claim.
 
 ## Current training evidence
 
@@ -235,7 +209,6 @@ python experiments/full_sweep.py --seeds 1 7 21 42 123 --episodes 30 --eval-epis
 - It does not claim a `10`-action interface.
 - It does not claim that all `50` roadmap features are implemented and validated.
 - It does not claim externally validated reproductions or benchmark-leading status for external named methods.
-- It does not claim a statistically significant `HCAPO` win.
 - It does not claim that GRPO training solved the benchmark — the model enrolls ~1/80 patients per episode, far from the 80-patient target.
 - It does not claim dramatic GRPO learning curves — reward improved from 0.3088 to 0.3153 (a modest signal).
 

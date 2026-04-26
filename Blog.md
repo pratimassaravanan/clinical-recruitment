@@ -1,6 +1,6 @@
 # Training a Long-Horizon Clinical Trial Recruitment Agent: What Failed, What Worked, and What We Learned
 
-**The problem:** 80% of clinical trials miss enrollment targets. Average delay = 6-12 months, costing sponsors $600K-$8M per day. We built **Adaptive Clinical Recruitment** -- a 180-step OpenEnv benchmark that turns clinical trial coordinator decisions into a trainable RL problem.
+**The problem:** Clinical trial recruitment is a sequential decision problem — which patients to screen, when to recontact dropouts, how to allocate site capacity, when to change strategy. We built **Adaptive Clinical Recruitment** -- a 180-step OpenEnv benchmark that turns those coordinator decisions into a trainable RL problem.
 
 **The result:** After 5+ failed training runs, 10 anti-collapse engineering fixes, and 3 GPU tiers (T4, L4, L40S), we produced a Qwen3-1.7B agent that learns to screen patients, recontact dropouts, and allocate sites -- enrolling 3-4 patients per rollout where it previously enrolled zero.
 
@@ -144,22 +144,23 @@ SFT improved loss, JSON formatting, and action diversity. But it did not teach e
 ### Some environment bugs were suppressing learning
 Planning actions were over-penalized, consistency penalties were unbounded, current-step events leaked into observations, and session handling was too loose. Those weren't cosmetic bugs -- they changed what behaviors the model could learn.
 
-## Heuristic Baseline Comparison
+## Rule-Based Baseline Comparison (not the GRPO model)
 
 ![Agent Comparison](https://huggingface.co/pratimassaravanan/clinical-recruitment-artifacts/resolve/main/article_assets/heuristic_comparison.png)
 
-| Task | Random | Heuristic | Optimized | Delta |
-|------|--------|-----------|-----------|-------|
+| Task | Random | Heuristic | Optimized Heuristic | Delta vs. Random |
+|------|--------|-----------|---------------------|------------------|
 | easy_bench | 0.4076 | 0.5487 | 0.5711 | +40.1% |
 | medium_bench | 0.2504 | 0.3163 | 0.4242 | +69.4% |
 | hard_bench | 0.3274 | 0.2894 | 0.3845 | +17.4% |
+
+*All three agents are hand-coded rule-based agents (see `demo/training_demo.py`), run once at seed=42. "Optimized Heuristic" uses dropout-recovery and funnel-priority rules — it is not the GRPO-trained LLM. The GRPO model's reward improvement (0.269→0.331) is shown in the training plots above.*
 
 ## What This Post Does Not Claim
 
 - The model did not solve the benchmark -- it enrolls 3-4/80 patients per episode.
 - Reward improved modestly (0.27 to 0.33), not dramatically.
 - 10% of GRPO steps still showed zero-std collapse.
-- The 5-seed baseline sweep shows no statistically significant winner (HCAPO mean 0.2215, no pairwise p < 0.05).
 - This is a synthetic benchmark, not a deployment-ready clinical system.
 
 ## Reproducing
